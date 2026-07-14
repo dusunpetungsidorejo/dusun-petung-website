@@ -19,11 +19,20 @@ const storage = multer.diskStorage({
 
 // Filter file types to only images
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+  const allowedTypes = [
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'image/svg+xml',
+    'image/avif',
+    'image/heic',
+    'image/heif'
+  ];
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Only image files (jpeg, png, gif, webp) are allowed'), false);
+    cb(new Error('Format file tidak didukung. Gunakan JPEG, PNG, GIF, WEBP, SVG, AVIF, atau HEIC.'), false);
   }
 };
 

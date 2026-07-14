@@ -1530,8 +1530,21 @@ function AdminPage({ nav, onLogout, settings, onUpdateSettings, activities, onUp
   const [submittingDoc, setSubmittingDoc] = useState(false);
 
   // Doc Input States
+  const [editingDocId, setEditingDocId] = useState<number | null>(null);
   const [titleInput, setTitleInput] = useState("");
   const [descInput, setDescInput] = useState("");
+
+  // Toast Notification States
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const showToast = (message: string, type: "success" | "error" = "success") => {
+    setToast({ message, type });
+  };
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   // Settings states
   const [villageNameInput, setVillageNameInput] = useState(settings?.village_name || "");
@@ -1596,13 +1609,14 @@ function AdminPage({ nav, onLogout, settings, onUpdateSettings, activities, onUp
       });
       if (res.ok) {
         onUpdateActivities(activities.filter(a => a.id !== id));
+        showToast("Dokumentasi berhasil dihapus", "success");
       } else {
         const errData = await res.json();
-        alert(errData.message || "Gagal menghapus dokumentasi");
+        showToast(errData.message || "Gagal menghapus dokumentasi", "error");
       }
     } catch (err) {
       console.error(err);
-      alert("Kesalahan koneksi saat menghapus");
+      showToast("Kesalahan koneksi saat menghapus", "error");
     } finally {
       setDeleteId(null);
     }
@@ -1641,11 +1655,13 @@ function AdminPage({ nav, onLogout, settings, onUpdateSettings, activities, onUp
       if (res.ok) {
         const data = await res.json();
         setLogoUrlInput(data.url);
+        showToast("Logo berhasil diunggah", "success");
       } else {
-        alert("Gagal mengunggah logo");
+        const errData = await res.json().catch(() => ({}));
+        showToast(errData.message || "Gagal mengunggah logo", "error");
       }
     } catch (err) {
-      alert("Kesalahan koneksi saat mengunggah");
+      showToast("Kesalahan koneksi saat mengunggah", "error");
     }
   };
 
@@ -1664,21 +1680,23 @@ function AdminPage({ nav, onLogout, settings, onUpdateSettings, activities, onUp
       if (res.ok) {
         const data = await res.json();
         setHeroImageUrlInput(data.url);
+        showToast("Foto hero berhasil diunggah", "success");
       } else {
-        alert("Gagal mengunggah foto hero");
+        const errData = await res.json().catch(() => ({}));
+        showToast(errData.message || "Gagal mengunggah foto hero", "error");
       }
     } catch (err) {
-      alert("Kesalahan koneksi saat mengunggah");
+      showToast("Kesalahan koneksi saat mengunggah", "error");
     }
   };
 
   const handleSaveDoc = async () => {
     if (!titleInput.trim()) {
-      alert("Judul wajib diisi");
+      showToast("Judul wajib diisi", "error");
       return;
     }
     if (!rawFile && !uploadedFile) {
-      alert("Foto dokumentasi wajib diunggah");
+      showToast("Foto dokumentasi wajib diunggah", "error");
       return;
     }
 
@@ -1698,14 +1716,19 @@ function AdminPage({ nav, onLogout, settings, onUpdateSettings, activities, onUp
           body: formData
         });
         if (!uploadRes.ok) {
-          throw new Error("Gagal mengunggah foto");
+          const errData = await uploadRes.json().catch(() => ({}));
+          throw new Error(errData.message || "Gagal mengunggah foto");
         }
         const uploadData = await uploadRes.json();
         finalImageUrl = uploadData.url;
       }
 
-      const actRes = await fetch(`${baseUrl}/activities`, {
-        method: "POST",
+      const isEdit = editingDocId !== null;
+      const url = isEdit ? `${baseUrl}/activities/${editingDocId}` : `${baseUrl}/activities`;
+      const method = isEdit ? "PUT" : "POST";
+
+      const actRes = await fetch(url, {
+        method: method,
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
@@ -1718,20 +1741,33 @@ function AdminPage({ nav, onLogout, settings, onUpdateSettings, activities, onUp
       });
 
       if (!actRes.ok) {
-        throw new Error("Gagal menyimpan dokumentasi");
+        throw new Error(isEdit ? "Gagal memperbarui dokumentasi" : "Gagal menyimpan dokumentasi");
       }
 
-      const newAct = await actRes.json();
-      onUpdateActivities([newAct, ...activities]);
+      const savedAct = await actRes.json();
+
+      if (isEdit) {
+        onUpdateActivities(activities.map(a => a.id === editingDocId ? { ...a, ...savedAct } : a));
+      } else {
+        const newActObj = {
+          id: savedAct.activity_id || Date.now(),
+          title: titleInput,
+          description: descInput,
+          image_url: finalImageUrl,
+          uploaded_at: new Date().toISOString()
+        };
+        onUpdateActivities([newActObj, ...activities]);
+      }
 
       setTitleInput("");
       setDescInput("");
       setUploadedFile(null);
       setRawFile(null);
+      setEditingDocId(null);
       setSection("docs");
-      alert("Dokumentasi berhasil disimpan!");
+      showToast(isEdit ? "Dokumentasi berhasil diperbarui!" : "Dokumentasi berhasil ditambahkan!", "success");
     } catch (err: any) {
-      alert(err.message || "Terjadi kesalahan saat menyimpan");
+      showToast(err.message || "Terjadi kesalahan saat menyimpan", "error");
     } finally {
       setSubmittingDoc(false);
     }
@@ -1763,9 +1799,9 @@ function AdminPage({ nav, onLogout, settings, onUpdateSettings, activities, onUp
 
       const updatedSettings = await res.json();
       onUpdateSettings(updatedSettings);
-      alert("Pengaturan website berhasil diperbarui!");
+      showToast("Pengaturan website berhasil diperbarui!", "success");
     } catch (err: any) {
-      alert(err.message || "Terjadi kesalahan saat menyimpan");
+      showToast(err.message || "Terjadi kesalahan saat menyimpan", "error");
     } finally {
       setSavingSettings(false);
     }
@@ -1773,6 +1809,48 @@ function AdminPage({ nav, onLogout, settings, onUpdateSettings, activities, onUp
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#F7F4EF]" style={{ fontFamily: "'Inter', sans-serif" }}>
+      <style>{`
+        @keyframes slideInRight {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        .animate-slide-in {
+          animation: slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+      `}</style>
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed top-6 right-6 z-[9999] animate-slide-in">
+          <div className={`flex items-center gap-3 px-5 py-4 rounded-xl border shadow-xl transition-all duration-300 ${
+            toast.type === "success" 
+              ? "bg-[#E6F4EA] border-[#3A6520]/20 text-[#2D5016]" 
+              : "bg-red-50 border-red-200 text-red-700"
+          }`}>
+            {toast.type === "success" ? (
+              <span className="w-5 h-5 rounded-full bg-[#3A6520] flex items-center justify-center text-white shrink-0">
+                <Check className="w-3.5 h-3.5" strokeWidth={3} />
+              </span>
+            ) : (
+              <span className="w-5 h-5 rounded-full bg-red-600 flex items-center justify-center text-white shrink-0">
+                <X className="w-3.5 h-3.5" strokeWidth={3} />
+              </span>
+            )}
+            <span className="text-[13px] font-semibold tracking-wide" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              {toast.message}
+            </span>
+            <button onClick={() => setToast(null)} className="text-black/30 hover:text-black/60 transition-colors ml-2 shrink-0">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── Sidebar ──────────────────────────────────── */}
       <aside className="w-60 shrink-0 flex flex-col bg-white border-r border-black/[0.07] h-full">
@@ -2012,7 +2090,12 @@ function AdminPage({ nav, onLogout, settings, onUpdateSettings, activities, onUp
                           </div>
                         </td>
                         <td className="px-4 py-3.5">
-                          <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[13px] font-semibold text-[#2C2C2A]">{doc.title}</span>
+                          <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[13px] font-semibold text-[#2C2C2A]">{doc.title}</div>
+                          {doc.description && (
+                            <div className="text-[11px] text-[#7A7065] mt-1 line-clamp-1 max-w-lg">
+                              {doc.description}
+                            </div>
+                          )}
                         </td>
                         <td className="px-4 py-3.5">
                           <span className="text-[13px] text-[#7A7065]">{formatDate(doc.uploaded_at || doc.date)}</span>
@@ -2028,7 +2111,18 @@ function AdminPage({ nav, onLogout, settings, onUpdateSettings, activities, onUp
                         </td>
                         <td className="px-4 py-3.5">
                           <div className="flex items-center gap-1">
-                            <button className="p-1.5 rounded-md text-[#7A7065] hover:bg-[#3A6520]/10 hover:text-[#3A6520] transition-colors" title="Edit">
+                            <button
+                              onClick={() => {
+                                setTitleInput(doc.title);
+                                setDescInput(doc.description || "");
+                                setUploadedFile(doc.image_url || doc.thumb || null);
+                                setRawFile(null);
+                                setEditingDocId(doc.id);
+                                setSection("add-doc");
+                              }}
+                              className="p-1.5 rounded-md text-[#7A7065] hover:bg-[#3A6520]/10 hover:text-[#3A6520] transition-colors"
+                              title="Edit"
+                            >
                               <Pencil className="w-3.5 h-3.5" strokeWidth={1.75} />
                             </button>
                             <button
@@ -2059,12 +2153,26 @@ function AdminPage({ nav, onLogout, settings, onUpdateSettings, activities, onUp
           {section === "add-doc" && (
             <div className="max-w-2xl">
               <div className="flex items-center gap-3 mb-7">
-                <button onClick={() => setSection("docs")} className="p-1.5 rounded-lg text-[#7A7065] hover:bg-[#F0EBE3] transition-colors">
+                <button
+                  onClick={() => {
+                    setTitleInput("");
+                    setDescInput("");
+                    setUploadedFile(null);
+                    setRawFile(null);
+                    setEditingDocId(null);
+                    setSection("docs");
+                  }}
+                  className="p-1.5 rounded-lg text-[#7A7065] hover:bg-[#F0EBE3] transition-colors"
+                >
                   <ChevronLeft className="w-5 h-5" strokeWidth={1.75} />
                 </button>
                 <div>
-                  <h1 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[22px] font-extrabold text-[#2C2C2A] leading-tight">Tambah Dokumentasi</h1>
-                  <p className="text-[13px] text-[#7A7065]">Unggah foto dan isi detail dokumentasi kegiatan.</p>
+                  <h1 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[22px] font-extrabold text-[#2C2C2A] leading-tight">
+                    {editingDocId !== null ? "Edit Dokumentasi" : "Tambah Dokumentasi"}
+                  </h1>
+                  <p className="text-[13px] text-[#7A7065]">
+                    {editingDocId !== null ? "Ubah detail dokumentasi kegiatan." : "Unggah foto dan isi detail dokumentasi kegiatan."}
+                  </p>
                 </div>
               </div>
 
@@ -2138,13 +2246,14 @@ function AdminPage({ nav, onLogout, settings, onUpdateSettings, activities, onUp
                 {/* Actions */}
                 <div className="flex items-center gap-3 pt-1">
                   <button onClick={handleSaveDoc} disabled={submittingDoc} className="px-6 py-2.5 bg-[#3A6520] text-white text-[13px] font-semibold rounded-full hover:bg-[#2D5016] transition-colors disabled:opacity-50">
-                    {submittingDoc ? "Menyimpan..." : "Simpan Dokumentasi"}
+                    {submittingDoc ? "Menyimpan..." : (editingDocId !== null ? "Simpan Perubahan" : "Simpan Dokumentasi")}
                   </button>
                   <button onClick={() => {
                     setTitleInput("");
                     setDescInput("");
                     setUploadedFile(null);
                     setRawFile(null);
+                    setEditingDocId(null);
                     setSection("docs");
                   }} className="px-6 py-2.5 border border-black/[0.12] text-[#5A5550] text-[13px] font-medium rounded-full hover:bg-[#F0EBE3] transition-colors">
                     Batal
