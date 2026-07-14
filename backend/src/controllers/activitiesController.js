@@ -66,3 +66,50 @@ export const deleteActivity = async (req, res, next) => {
     next(error);
   }
 };
+
+// PUT /api/activities/:id
+export const updateActivity = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { title, description, image_url, uploaded_at } = req.body;
+
+    if (!title) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'title is required'
+      });
+    }
+
+    const check = await db.execute({
+      sql: 'SELECT id FROM activities WHERE id = ?',
+      args: [id]
+    });
+
+    if (check.rows.length === 0) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Activity not found'
+      });
+    }
+
+    const date = uploaded_at || new Date().toISOString().split('T')[0];
+
+    await db.execute({
+      sql: `UPDATE activities 
+            SET title = ?, description = ?, image_url = ?, uploaded_at = ? 
+            WHERE id = ?`,
+      args: [title, description || null, image_url || null, date, id]
+    });
+
+    return res.status(200).json({
+      id: Number(id),
+      title,
+      description,
+      image_url,
+      uploaded_at: date
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

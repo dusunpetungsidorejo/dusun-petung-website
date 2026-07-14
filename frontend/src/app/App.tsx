@@ -1530,6 +1530,7 @@ function AdminPage({ nav, onLogout, settings, onUpdateSettings, activities, onUp
   const [submittingDoc, setSubmittingDoc] = useState(false);
 
   // Doc Input States
+  const [editingDocId, setEditingDocId] = useState<number | null>(null);
   const [titleInput, setTitleInput] = useState("");
   const [descInput, setDescInput] = useState("");
 
@@ -1704,8 +1705,12 @@ function AdminPage({ nav, onLogout, settings, onUpdateSettings, activities, onUp
         finalImageUrl = uploadData.url;
       }
 
-      const actRes = await fetch(`${baseUrl}/activities`, {
-        method: "POST",
+      const isEdit = editingDocId !== null;
+      const url = isEdit ? `${baseUrl}/activities/${editingDocId}` : `${baseUrl}/activities`;
+      const method = isEdit ? "PUT" : "POST";
+
+      const actRes = await fetch(url, {
+        method: method,
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
@@ -1718,18 +1723,31 @@ function AdminPage({ nav, onLogout, settings, onUpdateSettings, activities, onUp
       });
 
       if (!actRes.ok) {
-        throw new Error("Gagal menyimpan dokumentasi");
+        throw new Error(isEdit ? "Gagal memperbarui dokumentasi" : "Gagal menyimpan dokumentasi");
       }
 
-      const newAct = await actRes.json();
-      onUpdateActivities([newAct, ...activities]);
+      const savedAct = await actRes.json();
+
+      if (isEdit) {
+        onUpdateActivities(activities.map(a => a.id === editingDocId ? { ...a, ...savedAct } : a));
+      } else {
+        const newActObj = {
+          id: savedAct.activity_id || Date.now(),
+          title: titleInput,
+          description: descInput,
+          image_url: finalImageUrl,
+          uploaded_at: new Date().toISOString()
+        };
+        onUpdateActivities([newActObj, ...activities]);
+      }
 
       setTitleInput("");
       setDescInput("");
       setUploadedFile(null);
       setRawFile(null);
+      setEditingDocId(null);
       setSection("docs");
-      alert("Dokumentasi berhasil disimpan!");
+      alert(isEdit ? "Dokumentasi berhasil diperbarui!" : "Dokumentasi berhasil disimpan!");
     } catch (err: any) {
       alert(err.message || "Terjadi kesalahan saat menyimpan");
     } finally {
@@ -2028,7 +2046,18 @@ function AdminPage({ nav, onLogout, settings, onUpdateSettings, activities, onUp
                         </td>
                         <td className="px-4 py-3.5">
                           <div className="flex items-center gap-1">
-                            <button className="p-1.5 rounded-md text-[#7A7065] hover:bg-[#3A6520]/10 hover:text-[#3A6520] transition-colors" title="Edit">
+                            <button
+                              onClick={() => {
+                                setTitleInput(doc.title);
+                                setDescInput(doc.description || "");
+                                setUploadedFile(doc.image_url || doc.thumb || null);
+                                setRawFile(null);
+                                setEditingDocId(doc.id);
+                                setSection("add-doc");
+                              }}
+                              className="p-1.5 rounded-md text-[#7A7065] hover:bg-[#3A6520]/10 hover:text-[#3A6520] transition-colors"
+                              title="Edit"
+                            >
                               <Pencil className="w-3.5 h-3.5" strokeWidth={1.75} />
                             </button>
                             <button
@@ -2059,12 +2088,26 @@ function AdminPage({ nav, onLogout, settings, onUpdateSettings, activities, onUp
           {section === "add-doc" && (
             <div className="max-w-2xl">
               <div className="flex items-center gap-3 mb-7">
-                <button onClick={() => setSection("docs")} className="p-1.5 rounded-lg text-[#7A7065] hover:bg-[#F0EBE3] transition-colors">
+                <button
+                  onClick={() => {
+                    setTitleInput("");
+                    setDescInput("");
+                    setUploadedFile(null);
+                    setRawFile(null);
+                    setEditingDocId(null);
+                    setSection("docs");
+                  }}
+                  className="p-1.5 rounded-lg text-[#7A7065] hover:bg-[#F0EBE3] transition-colors"
+                >
                   <ChevronLeft className="w-5 h-5" strokeWidth={1.75} />
                 </button>
                 <div>
-                  <h1 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[22px] font-extrabold text-[#2C2C2A] leading-tight">Tambah Dokumentasi</h1>
-                  <p className="text-[13px] text-[#7A7065]">Unggah foto dan isi detail dokumentasi kegiatan.</p>
+                  <h1 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[22px] font-extrabold text-[#2C2C2A] leading-tight">
+                    {editingDocId !== null ? "Edit Dokumentasi" : "Tambah Dokumentasi"}
+                  </h1>
+                  <p className="text-[13px] text-[#7A7065]">
+                    {editingDocId !== null ? "Ubah detail dokumentasi kegiatan." : "Unggah foto dan isi detail dokumentasi kegiatan."}
+                  </p>
                 </div>
               </div>
 
@@ -2138,13 +2181,14 @@ function AdminPage({ nav, onLogout, settings, onUpdateSettings, activities, onUp
                 {/* Actions */}
                 <div className="flex items-center gap-3 pt-1">
                   <button onClick={handleSaveDoc} disabled={submittingDoc} className="px-6 py-2.5 bg-[#3A6520] text-white text-[13px] font-semibold rounded-full hover:bg-[#2D5016] transition-colors disabled:opacity-50">
-                    {submittingDoc ? "Menyimpan..." : "Simpan Dokumentasi"}
+                    {submittingDoc ? "Menyimpan..." : (editingDocId !== null ? "Simpan Perubahan" : "Simpan Dokumentasi")}
                   </button>
                   <button onClick={() => {
                     setTitleInput("");
                     setDescInput("");
                     setUploadedFile(null);
                     setRawFile(null);
+                    setEditingDocId(null);
                     setSection("docs");
                   }} className="px-6 py-2.5 border border-black/[0.12] text-[#5A5550] text-[13px] font-medium rounded-full hover:bg-[#F0EBE3] transition-colors">
                     Batal
