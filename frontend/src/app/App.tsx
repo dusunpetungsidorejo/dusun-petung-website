@@ -82,6 +82,39 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null;
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "icon";
+      document.head.appendChild(link);
+    }
+    if (settings?.logo_url && settings.logo_url.trim()) {
+      link.href = settings.logo_url;
+    } else {
+      // Fallback green map pin SVG
+      link.href = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233A6520' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z'/><circle cx='12' cy='10' r='3'/></svg>";
+    }
+  }, [settings]);
+
+  useEffect(() => {
+    const village = settings?.village_name || "Dusun Petung";
+    if (page === "home") {
+      document.title = `Beranda - ${village}`;
+    } else if (page === "profile") {
+      document.title = `Profil - ${village}`;
+    } else if (page === "village-life") {
+      document.title = `Kehidupan Dusun - ${village}`;
+    } else if (page === "camp") {
+      document.title = `Gumuk Petung Camp - ${village}`;
+    } else if (page === "admin") {
+      document.title = `Panel Admin - ${village}`;
+    } else {
+      document.title = village;
+    }
+  }, [page, settings]);
+
+
+  useEffect(() => {
     window.scrollTo({ top: 0 });
     setMenuOpen(false);
   }, [page]);
