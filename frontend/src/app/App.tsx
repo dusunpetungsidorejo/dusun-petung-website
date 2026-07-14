@@ -1643,7 +1643,8 @@ function AdminPage({ nav, onLogout, settings, onUpdateSettings, activities, onUp
         const data = await res.json();
         setLogoUrlInput(data.url);
       } else {
-        alert("Gagal mengunggah logo");
+        const errData = await res.json().catch(() => ({}));
+        alert(errData.message || "Gagal mengunggah logo");
       }
     } catch (err) {
       alert("Kesalahan koneksi saat mengunggah");
@@ -1666,7 +1667,8 @@ function AdminPage({ nav, onLogout, settings, onUpdateSettings, activities, onUp
         const data = await res.json();
         setHeroImageUrlInput(data.url);
       } else {
-        alert("Gagal mengunggah foto hero");
+        const errData = await res.json().catch(() => ({}));
+        alert(errData.message || "Gagal mengunggah foto hero");
       }
     } catch (err) {
       alert("Kesalahan koneksi saat mengunggah");
@@ -1699,7 +1701,8 @@ function AdminPage({ nav, onLogout, settings, onUpdateSettings, activities, onUp
           body: formData
         });
         if (!uploadRes.ok) {
-          throw new Error("Gagal mengunggah foto");
+          const errData = await uploadRes.json().catch(() => ({}));
+          throw new Error(errData.message || "Gagal mengunggah foto");
         }
         const uploadData = await uploadRes.json();
         finalImageUrl = uploadData.url;
