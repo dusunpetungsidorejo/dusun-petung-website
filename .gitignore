@@ -1,0 +1,49 @@
+# Dependency directories
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+
+# Env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+frontend/.env
+backend/.env
+
+# Build outputs
+dist/
+frontend/dist/
+
+# SQLite databases
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+backend/local.db
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+
+# Local logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Root level design mockups
+/Activity.png
+/Admin - Dashboard.png
+/Admin - Documentation.png
+/Admin - Web Setting 1.png
+/Admin - Web Setting 2.png
+/Camp.png
+/Home Page.png
+/Profile.png
+/RAT.jpeg

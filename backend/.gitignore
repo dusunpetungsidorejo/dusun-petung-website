@@ -1,0 +1,15 @@
+# Node dependencies
+node_modules/
+
+# Local env secrets
+.env
+
+# Uploads directory
+src/uploads/*
+!src/uploads/.gitkeep
+
+# Local SQLite files
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
