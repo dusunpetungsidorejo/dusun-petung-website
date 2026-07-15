@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { MapPin, Phone, Menu, X, ArrowRight, ChevronRight, Users, Home, Map, Building2, Mountain, Car, Droplets, Star, Eye, Umbrella, Info, Flame, Camera, Wind, Sunrise, LayoutDashboard, FileText, Settings, Search, Bell, Plus, Pencil, Trash2, Upload, ChevronLeft, LogOut, Filter, Check, Clock, ImageIcon, Instagram, Facebook, Lock, User } from "lucide-react";
+import { MapPin, Phone, Menu, X, ArrowRight, ChevronRight, Users, Home, Map, Building2, Mountain, Car, Droplets, Star, Eye, EyeOff, Umbrella, Info, Flame, Camera, Wind, Sunrise, LayoutDashboard, FileText, Settings, Search, Bell, Plus, Pencil, Trash2, Upload, ChevronLeft, LogOut, Filter, Check, Clock, ImageIcon, Instagram, Facebook, Lock, User } from "lucide-react";
 
 type Page = "home" | "profile" | "village-life" | "camp" | "admin";
 
@@ -36,6 +36,15 @@ export default function App() {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem("token"));
   const [settings, setSettings] = useState<any>(null);
   const [activities, setActivities] = useState<any[]>([]);
+
+  // App Toast (used for login/logout notifications)
+  const [appToast, setAppToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  useEffect(() => {
+    if (appToast) {
+      const timer = setTimeout(() => setAppToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [appToast]);
 
   useEffect(() => {
     const fetchSettingsAndActivities = async () => {
@@ -138,13 +147,17 @@ export default function App() {
   if (page === "admin") {
     if (!token) {
       return (
-        <LoginPage
-          onLogin={(t: string) => {
-            setToken(t);
-            localStorage.setItem("token", t);
-          }}
-          nav={nav}
-        />
+        <>
+          <LoginPage
+            onLogin={(t: string) => {
+              setToken(t);
+              localStorage.setItem("token", t);
+            }}
+            nav={nav}
+            settings={settings}
+          />
+          {appToast && <ToastContainer toast={appToast} setToast={setAppToast} />}
+        </>
       );
     }
     return (
@@ -153,7 +166,7 @@ export default function App() {
         onLogout={() => {
           setToken(null);
           localStorage.removeItem("token");
-          nav("home");
+          setAppToast({ message: "Berhasil keluar!", type: "success" });
         }}
         settings={settings}
         onUpdateSettings={(newSettings: any) => {
@@ -1388,13 +1401,62 @@ const DOCS_DATA = [
 ];
 
 /* ────────────────────────────────────────────────────────────
+   TOAST CONTAINER HELPERS
+   ──────────────────────────────────────────────────────────── */
+function ToastContainer({ toast, setToast }: { toast: { message: string; type: "success" | "error" }; setToast: (t: null) => void }) {
+  return (
+    <>
+      <style>{`
+        @keyframes slideInRight {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        .animate-slide-in {
+          animation: slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+      `}</style>
+      <div className="fixed top-6 right-6 z-[9999] animate-slide-in">
+        <div className={`flex items-center gap-3 px-5 py-4 rounded-xl border shadow-xl transition-all duration-300 ${
+          toast.type === "success" 
+            ? "bg-[#E6F4EA] border-[#3A6520]/20 text-[#2D5016]" 
+            : "bg-red-50 border-red-200 text-red-700"
+        }`}>
+          {toast.type === "success" ? (
+            <span className="w-5 h-5 rounded-full bg-[#3A6520] flex items-center justify-center text-white shrink-0">
+              <Check className="w-3.5 h-3.5" strokeWidth={3} />
+            </span>
+          ) : (
+            <span className="w-5 h-5 rounded-full bg-red-600 flex items-center justify-center text-white shrink-0">
+              <X className="w-3.5 h-3.5" strokeWidth={3} />
+            </span>
+          )}
+          <span className="text-[13px] font-semibold tracking-wide" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            {toast.message}
+          </span>
+          <button onClick={() => setToast(null)} className="text-black/30 hover:text-black/60 transition-colors ml-2 shrink-0">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────
    LOGIN PAGE
 ──────────────────────────────────────────────────────────── */
-function LoginPage({ onLogin, nav }: { onLogin: (token: string) => void; nav: (p: Page) => void }) {
+function LoginPage({ onLogin, nav, settings }: { onLogin: (token: string) => void; nav: (p: Page) => void; settings: any }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1422,27 +1484,70 @@ function LoginPage({ onLogin, nav }: { onLogin: (token: string) => void; nav: (p
     }
   };
 
+  const heroUrl = settings?.hero_image_url || IMGS.hero;
+
   return (
-    <div style={{ fontFamily: "'Inter', sans-serif" }} className="min-h-screen bg-[#F7F4EF] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md flex flex-col items-center">
-        <button onClick={() => nav("home")} className="flex items-center gap-2.5 mb-6">
-          <span className="w-9 h-9 rounded-full bg-[#3A6520] flex items-center justify-center">
-            <MapPin className="w-5 h-5 text-white" strokeWidth={2} />
+    <div style={{ fontFamily: "'Inter', sans-serif" }} className="min-h-screen bg-white flex flex-col md:flex-row">
+      
+      {/* Left Side: Welcome Panel (Full Screen half) */}
+      <div className="relative bg-[#3A6520] p-12 md:p-16 flex flex-col justify-between text-white overflow-hidden md:w-[42%] shrink-0 min-h-[340px] md:min-h-screen">
+        
+        {/* Logo Brand */}
+        <div className="flex items-center gap-2.5 z-10">
+          {settings?.logo_url ? (
+            <img src={settings.logo_url} alt="Logo" className="w-8 h-8 rounded-full object-cover border border-white/20" />
+          ) : (
+            <span className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center backdrop-blur-sm">
+              <MapPin className="w-4 h-4 text-white" strokeWidth={2.1} />
+            </span>
+          )}
+          <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="font-extrabold text-[15px] tracking-tight">
+            {settings?.village_name || "Dusun Petung"}
           </span>
-          <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="font-extrabold text-[18px] text-[#2C2C2A] tracking-tight">
-            Dusun Petung
-          </span>
-        </button>
-        <h2 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-center text-2xl font-extrabold text-[#2C2C2A]">
-          Masuk ke Panel Admin
-        </h2>
-        <p className="mt-2 text-center text-sm text-[#7A7065]">
-          Gunakan akun administrator Anda untuk mengelola konten website
-        </p>
+        </div>
+
+        {/* Text Content */}
+        <div className="my-auto z-10 flex flex-col gap-4 py-8 max-w-sm">
+          <h2 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "clamp(1.75rem, 3.5vw, 2.5rem)", lineHeight: 1.15 }} className="font-extrabold tracking-tight">
+            Selamat Datang<br />di Panel Admin
+          </h2>
+          <p className="text-[13.5px] text-white/80 leading-relaxed">
+            Kelola konten publikasi, galeri foto, kontak, dan dokumentasi kegiatan Dusun Petung.
+          </p>
+        </div>
+
+        {/* Footer Card Info */}
+        <div className="text-[11px] text-white/50 z-10">
+          © 2026 Dusun Petung · KKN BN UPNYK AD.84.242
+        </div>
+
+        {/* Decorative Circular shapes containing Petung Hero Image */}
+        <div 
+          className="absolute -bottom-24 -left-12 w-72 h-72 rounded-full border-8 border-white/10 opacity-70 bg-center pointer-events-none shadow-inner"
+          style={{ backgroundImage: `url(${heroUrl})`, backgroundSize: "180%", backgroundPosition: "center" }}
+        />
+        <div 
+          className="absolute -top-16 -right-16 w-56 h-56 rounded-full border-8 border-white/10 opacity-80 bg-center pointer-events-none shadow-2xl"
+          style={{ backgroundImage: `url(${heroUrl})`, backgroundSize: "180%", backgroundPosition: "center" }}
+        />
+        <div 
+          className="absolute bottom-1/4 -right-12 w-36 h-36 rounded-full border-4 border-white/15 opacity-60 bg-center pointer-events-none shadow-xl"
+          style={{ backgroundImage: `url(${heroUrl})`, backgroundSize: "180%", backgroundPosition: "center" }}
+        />
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 border border-black/[0.06] rounded-2xl sm:px-10">
+      {/* Right Side: Form Panel (Centered half) */}
+      <div className="flex-1 bg-white p-8 sm:p-12 md:p-20 flex flex-col justify-center items-center min-h-[460px] md:min-h-screen">
+        <div className="w-full max-w-md">
+          <div className="mb-8">
+            <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-2xl font-extrabold text-[#2C2C2A] mb-2">
+              Log In
+            </h3>
+            <p className="text-[13.5px] text-[#7A7065]">
+              Gunakan kredensial admin Anda untuk melanjutkan
+            </p>
+          </div>
+
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-[13px] flex items-center gap-2">
               <span className="font-semibold">Error:</span> {error}
@@ -1479,14 +1584,25 @@ function LoginPage({ onLogin, nav }: { onLogin: (token: string) => void; nav: (p
                   <Lock className="h-4.5 w-4.5 text-[#B8AFA3]" />
                 </span>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
                   disabled={loading}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-4 py-3 bg-[#F7F4EF] border border-black/[0.09] rounded-lg text-[13px] text-[#2C2C2A] placeholder:text-[#B8AFA3] outline-none focus:ring-1 focus:ring-[#3A6520]/30 focus:border-[#3A6520]/40 transition disabled:opacity-60"
+                  className="w-full pl-10 pr-10 py-3 bg-[#F7F4EF] border border-black/[0.09] rounded-lg text-[13px] text-[#2C2C2A] placeholder:text-[#B8AFA3] outline-none focus:ring-1 focus:ring-[#3A6520]/30 focus:border-[#3A6520]/40 transition disabled:opacity-60"
                 />
+                <button 
+                  type="button" 
+                  onClick={() => setShowPassword(!showPassword)} 
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#B8AFA3] hover:text-[#3A6520] transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4.5 h-4.5" strokeWidth={1.75} />
+                  ) : (
+                    <Eye className="w-4.5 h-4.5" strokeWidth={1.75} />
+                  )}
+                </button>
               </div>
             </div>
 
@@ -1494,9 +1610,9 @@ function LoginPage({ onLogin, nav }: { onLogin: (token: string) => void; nav: (p
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-3.5 px-4 bg-[#3A6520] hover:bg-[#2D5016] text-white text-[13px] font-semibold rounded-full shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3A6520] disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full flex justify-center py-3.5 px-4 bg-[#3A6520] hover:bg-[#2D5016] text-white text-[13px] font-semibold rounded-full shadow-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3A6520] disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {loading ? "Menghubungkan..." : "Masuk"}
+                {loading ? "Menghubungkan..." : "Log In"}
               </button>
             </div>
           </form>
@@ -1506,7 +1622,7 @@ function LoginPage({ onLogin, nav }: { onLogin: (token: string) => void; nav: (p
               onClick={() => nav("home")}
               className="text-[12px] font-medium text-[#7A7065] hover:text-[#2C2C2A] transition-colors"
             >
-              Kembali ke Beranda
+              Kembali ke Beranda Website
             </button>
           </div>
         </div>
@@ -1856,12 +1972,16 @@ function AdminPage({ nav, onLogout, settings, onUpdateSettings, activities, onUp
       <aside className="w-60 shrink-0 flex flex-col bg-white border-r border-black/[0.07] h-full">
         {/* Brand */}
         <div className="flex items-center gap-2.5 px-5 py-5 border-b border-black/[0.07]">
-          <span className="w-7 h-7 rounded-full bg-[#3A6520] flex items-center justify-center shrink-0">
-            <MapPin className="w-3.5 h-3.5 text-white" strokeWidth={2} />
-          </span>
+          {settings?.logo_url ? (
+            <img src={settings.logo_url} alt="Logo" className="w-7 h-7 rounded-full object-cover shrink-0 border border-black/[0.05]" />
+          ) : (
+            <span className="w-7 h-7 rounded-full bg-[#3A6520] flex items-center justify-center shrink-0">
+              <MapPin className="w-3.5 h-3.5 text-white" strokeWidth={2} />
+            </span>
+          )}
           <div>
             <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[13px] font-bold text-[#2C2C2A] leading-tight">
-              Dusun Petung
+              {settings?.village_name || "Dusun Petung"}
             </div>
             <div className="text-[10px] text-[#7A7065]">Panel Admin</div>
           </div>
@@ -1888,13 +2008,6 @@ function AdminPage({ nav, onLogout, settings, onUpdateSettings, activities, onUp
 
         {/* Bottom */}
         <div className="px-3 py-4 border-t border-black/[0.07] flex flex-col gap-1">
-          <button
-            onClick={() => nav("home")}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium text-[#5A5550] hover:bg-[#F0EBE3] hover:text-[#2C2C2A] transition-colors w-full text-left"
-          >
-            <ChevronLeft className="w-4 h-4 shrink-0" strokeWidth={1.75} />
-            Kembali ke Website
-          </button>
           <button onClick={onLogout} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium text-[#5A5550] hover:bg-red-50 hover:text-red-600 transition-colors w-full text-left">
             <LogOut className="w-4 h-4 shrink-0" strokeWidth={1.75} />
             Keluar
@@ -1906,28 +2019,9 @@ function AdminPage({ nav, onLogout, settings, onUpdateSettings, activities, onUp
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
 
         {/* Top bar */}
-        <header className="h-14 shrink-0 flex items-center justify-between px-6 bg-white border-b border-black/[0.07]">
-          <div className="relative flex items-center">
-            <Search className="absolute left-3 w-4 h-4 text-[#B8AFA3]" strokeWidth={1.75} />
-            <input
-              type="text"
-              value={search}
-              onChange={e => {
-                setSearch(e.target.value);
-                if (section !== "docs") {
-                  setSection("docs");
-                }
-              }}
-              placeholder="Cari dokumentasi..."
-              className="pl-9 pr-4 py-2 bg-[#F7F4EF] rounded-lg text-[13px] text-[#2C2C2A] placeholder:text-[#B8AFA3] border-none outline-none w-60 focus:ring-1 focus:ring-[#3A6520]/30"
-            />
-          </div>
+        <header className="h-14 shrink-0 flex items-center justify-end px-6 bg-white border-b border-black/[0.07]">
           <div className="flex items-center gap-3">
-            <button className="relative p-2 rounded-lg text-[#7A7065] hover:bg-[#F0EBE3] transition-colors">
-              <Bell className="w-4 h-4" strokeWidth={1.75} />
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#C97C2A] rounded-full" />
-            </button>
-            <div className="flex items-center gap-2.5 pl-3 border-l border-black/[0.07]">
+            <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-full bg-[#3A6520]/15 flex items-center justify-center">
                 <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[12px] font-bold text-[#3A6520]">AP</span>
               </div>
@@ -1966,11 +2060,10 @@ function AdminPage({ nav, onLogout, settings, onUpdateSettings, activities, onUp
                 const stats = [
                   { label: "Total Dokumentasi", value: docs.length.toString(), icon: FileText, color: "#3A6520" },
                   { label: "Baru Ditambahkan (7 Hari Terakhir)", value: recentCount, icon: Clock, color: "#C97C2A" },
-                  { label: "Sudah Dipublikasikan", value: docs.filter(d => (d.status || "published") === "published").length.toString(), icon: Check, color: "#3A6520" },
                 ];
 
                 return (
-                  <div className="grid grid-cols-3 gap-4 mb-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
                     {stats.map(({ label, value, icon: Icon, color }) => (
                   <div key={label} className="bg-white rounded-xl border border-black/[0.07] px-6 py-5">
                     <div className="flex items-start justify-between mb-4">
@@ -2063,10 +2156,6 @@ function AdminPage({ nav, onLogout, settings, onUpdateSettings, activities, onUp
                     className="w-full pl-9 pr-4 py-2.5 bg-white border border-black/[0.09] rounded-lg text-[13px] text-[#2C2C2A] placeholder:text-[#B8AFA3] outline-none focus:ring-1 focus:ring-[#3A6520]/30"
                   />
                 </div>
-                <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-black/[0.09] rounded-lg text-[13px] text-[#5A5550] hover:border-[#3A6520]/30 transition-colors">
-                  <Filter className="w-4 h-4" strokeWidth={1.75} />
-                  Filter
-                </button>
               </div>
 
               {/* Table */}
@@ -2265,13 +2354,13 @@ function AdminPage({ nav, onLogout, settings, onUpdateSettings, activities, onUp
 
           {/* ── SETTINGS ──────────────────────────── */}
           {section === "settings" && (
-            <div className="max-w-2xl">
+            <div className="max-w-5xl">
               <div className="mb-7">
                 <h1 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[22px] font-extrabold text-[#2C2C2A] mb-1">Pengaturan Website</h1>
                 <p className="text-[13px] text-[#7A7065]">Kelola informasi umum dan kontak yang ditampilkan di website publik.</p>
               </div>
 
-              <div className="flex flex-col gap-5">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start mb-6">
 
                 {/* General Information */}
                 <div className="bg-white rounded-xl border border-black/[0.07] p-7">
@@ -2348,28 +2437,28 @@ function AdminPage({ nav, onLogout, settings, onUpdateSettings, activities, onUp
                     </div>
                   </div>
                 </div>
+              </div>
 
-                {/* Save/Reset */}
-                <div className="flex items-center gap-3 pb-4">
-                  <button onClick={handleSaveSettings} disabled={savingSettings} className="px-6 py-2.5 bg-[#3A6520] text-white text-[13px] font-semibold rounded-full hover:bg-[#2D5016] transition-colors disabled:opacity-50">
-                    {savingSettings ? "Menyimpan..." : "Simpan Perubahan"}
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (settings) {
-                        setVillageNameInput(settings.village_name || "");
-                        setLogoUrlInput(settings.logo_url || "");
-                        setHeroImageUrlInput(settings.hero_image_url || "");
-                        setPhoneNumberInput(settings.phone_number || "");
-                        setInstagramUrlInput(settings.instagram_url || "");
-                        setTiktokUrlInput(settings.tiktok_url || "");
-                      }
-                    }}
-                    className="px-6 py-2.5 border border-black/[0.12] text-[#5A5550] text-[13px] font-medium rounded-full hover:bg-[#F0EBE3] transition-colors"
-                  >
-                    Reset
-                  </button>
-                </div>
+              {/* Save/Reset */}
+              <div className="flex items-center gap-3 pb-4">
+                <button onClick={handleSaveSettings} disabled={savingSettings} className="px-6 py-2.5 bg-[#3A6520] text-white text-[13px] font-semibold rounded-full hover:bg-[#2D5016] transition-colors disabled:opacity-50">
+                  {savingSettings ? "Menyimpan..." : "Simpan Perubahan"}
+                </button>
+                <button
+                  onClick={() => {
+                    if (settings) {
+                      setVillageNameInput(settings.village_name || "");
+                      setLogoUrlInput(settings.logo_url || "");
+                      setHeroImageUrlInput(settings.hero_image_url || "");
+                      setPhoneNumberInput(settings.phone_number || "");
+                      setInstagramUrlInput(settings.instagram_url || "");
+                      setTiktokUrlInput(settings.tiktok_url || "");
+                    }
+                  }}
+                  className="px-6 py-2.5 border border-black/[0.12] text-[#5A5550] text-[13px] font-medium rounded-full hover:bg-[#F0EBE3] transition-colors"
+                >
+                  Reset
+                </button>
               </div>
             </div>
           )}
