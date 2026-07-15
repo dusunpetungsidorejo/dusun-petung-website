@@ -3,15 +3,30 @@ import { MapPin, Phone, Menu, X, ArrowRight, ChevronRight, Users, Home, Map, Bui
 
 type Page = "home" | "profile" | "village-life" | "camp" | "admin";
 
+const Tiktok = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+  </svg>
+);
+
 const IMGS = {
   hero: "https://images.unsplash.com/photo-1671965448417-0582cb361168?w=1600&h=900&fit=crop&auto=format",
   profileHero: "https://images.unsplash.com/photo-1704288037999-3dc5b65a055c?w=1600&h=700&fit=crop&auto=format",
   aboutVillage: "https://images.unsplash.com/photo-1730697897511-bafe1f939e6b?w=900&h=700&fit=crop&auto=format",
-  previewProfile: "https://images.unsplash.com/photo-1775485484472-11a9dd9b0ffa?w=900&h=700&fit=crop&auto=format",
-  campMain: "https://images.unsplash.com/photo-1646806512881-1c169782a970?w=1200&h=800&fit=crop&auto=format",
-  campTent: "https://images.unsplash.com/photo-1782738666543-96db6633afb0?w=800&h=600&fit=crop&auto=format",
-  campPeak: "https://images.unsplash.com/photo-1763224017831-59e2b1a40882?w=800&h=600&fit=crop&auto=format",
-  campLake: "https://images.unsplash.com/photo-1713987680233-236782180c6a?w=800&h=600&fit=crop&auto=format",
+  previewProfile: "https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?w=900&h=700&fit=crop&auto=format",
+  campMain: "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=1200&h=800&fit=crop&auto=format",
+  campTent: "https://images.unsplash.com/photo-1510312305653-8ed496efae75?w=800&h=600&fit=crop&auto=format",
+  campPeak: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=600&fit=crop&auto=format",
+  campLake: "https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?w=800&h=600&fit=crop&auto=format",
   life1: "https://images.unsplash.com/photo-1650247452475-b5866374545d?w=600&h=800&fit=crop&auto=format",
   life2: "https://images.unsplash.com/photo-1572908721147-0a9eb395762d?w=700&h=500&fit=crop&auto=format",
   life3: "https://images.unsplash.com/photo-1542897643-cfccd88c7127?w=700&h=500&fit=crop&auto=format",
@@ -45,6 +60,22 @@ export default function App() {
       return () => clearTimeout(timer);
     }
   }, [appToast]);
+
+  // Dynamic Document Title Updater
+  useEffect(() => {
+    const vName = settings?.village_name || "Dusun Petung";
+    if (page === "home") {
+      document.title = `Beranda - ${vName}`;
+    } else if (page === "profile") {
+      document.title = `Profil Dusun - ${vName}`;
+    } else if (page === "village-life") {
+      document.title = `Kehidupan Dusun - ${vName}`;
+    } else if (page === "camp") {
+      document.title = `Gumuk Petung Camp - ${vName}`;
+    } else if (page === "admin") {
+      document.title = `Admin Panel - ${vName}`;
+    }
+  }, [page, settings]);
 
   useEffect(() => {
     const fetchSettingsAndActivities = async () => {
@@ -257,6 +288,12 @@ export default function App() {
 function HomePage({ nav, settings }: { nav: (p: Page) => void; settings: any }) {
   const villageName = settings?.village_name || "Dusun Petung";
   const heroImg = (settings?.hero_image_url && settings.hero_image_url.trim()) ? settings.hero_image_url : IMGS.hero;
+  const phoneVal = settings?.phone_number || "085138097972";
+  let formattedPhone = phoneVal.replace(/[^0-9]/g, "");
+  if (formattedPhone.startsWith("0")) {
+    formattedPhone = "62" + formattedPhone.slice(1);
+  }
+  const waUrl = "https://wa.me/6285138097972";
   return (
     <>
       {/* Hero ─────────────────────────────────────────────── */}
@@ -365,7 +402,7 @@ function HomePage({ nav, settings }: { nav: (p: Page) => void; settings: any }) 
               <p className="text-white/50 leading-[1.75] text-[15px] mb-7">
                 Rasakan pengalaman berkemah di bukit dengan panorama Gunung Merapi yang megah. Nikmati fajar di balik puncak, langit malam penuh bintang, dan udara pagi yang menyegarkan jiwa.
               </p>
-              <button className="inline-flex items-center gap-2 text-[#C97C2A] text-[13px] font-bold hover:gap-3 transition-all">
+              <button onClick={() => nav("camp")} className="inline-flex items-center gap-2 text-[#C97C2A] text-[13px] font-bold hover:gap-3 transition-all">
                 Lihat Detail Camp <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -390,7 +427,7 @@ function HomePage({ nav, settings }: { nav: (p: Page) => void; settings: any }) 
           {/* CTA */}
           <div className="mt-10">
             <a
-              href="https://wa.me/6281234567890"
+              href={`${waUrl}?text=Halo,%20saya%20ingin%20reservasi%20Gumuk%20Petung%20Camp`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2.5 px-7 py-3.5 bg-[#3A6520] text-white text-[13px] font-semibold rounded-full hover:bg-[#4a8029] transition-colors"
@@ -418,7 +455,7 @@ function HomePage({ nav, settings }: { nav: (p: Page) => void; settings: any }) 
                 Keseharian yang<br />Sesungguhnya
               </h2>
             </div>
-            <button className="hidden lg:inline-flex items-center gap-2 text-[#3A6520] text-[13px] font-bold hover:gap-3 transition-all">
+            <button onClick={() => nav("village-life")} className="hidden lg:inline-flex items-center gap-2 text-[#3A6520] text-[13px] font-bold hover:gap-3 transition-all">
               Lihat Semua <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -706,12 +743,12 @@ function ProfilePage({ nav, settings }: { nav: (p: Page) => void; settings: any 
 ──────────────────────────────────────────────────────────── */
 function SiteFooter({ nav, settings }: { nav: (p: Page) => void; settings: any }) {
   const villageName = settings?.village_name || "Dusun Petung";
-  const phoneVal = settings?.phone_number || "+62 812 3456 7890";
+  const phoneVal = settings?.phone_number || "085138097972";
   let formattedPhone = phoneVal.replace(/[^0-9]/g, "");
   if (formattedPhone.startsWith("0")) {
     formattedPhone = "62" + formattedPhone.slice(1);
   }
-  const waUrl = formattedPhone ? `https://wa.me/${formattedPhone}` : "https://wa.me/6281234567890";
+  const waUrl = formattedPhone ? `https://wa.me/${formattedPhone}` : "https://wa.me/6285138097972";
   const instagramUrl = settings?.instagram_url;
   const tiktokUrl = settings?.tiktok_url;
 
@@ -817,7 +854,7 @@ function SiteFooter({ nav, settings }: { nav: (p: Page) => void; settings: any }
         </div>
 
         <div className="border-t border-white/8 pt-8 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-white/25 text-[12px]">© 2024 {villageName}. Hak cipta dilindungi.</p>
+          <p className="text-white/25 text-[12px]">© 2026 {villageName} · KKN UPNYK AD.84.242. Hak cipta dilindungi.</p>
           <div className="flex items-center gap-5">
             <p className="text-white/25 text-[12px]">Desa Sidorejo · Kecamatan Kemalang · Kabupaten Klaten · Jawa Tengah</p>
             <button onClick={() => nav("admin")} className="text-white/20 text-[11px] hover:text-white/40 transition-colors">Admin</button>
@@ -1043,24 +1080,24 @@ function VillageLifePage({ nav, settings, activities }: { nav: (p: Page) => void
    GUMUK PETUNG CAMP PAGE
 ──────────────────────────────────────────────────────────── */
 function CampPage({ nav, settings }: { nav: (p: Page) => void; settings: any }) {
-  const phoneVal = settings?.phone_number || "+62 812 3456 7890";
+  const phoneVal = settings?.phone_number || "085138097972";
   let formattedPhone = phoneVal.replace(/[^0-9]/g, "");
   if (formattedPhone.startsWith("0")) {
     formattedPhone = "62" + formattedPhone.slice(1);
   }
-  const waUrl = formattedPhone ? `https://wa.me/${formattedPhone}` : "https://wa.me/6281234567890";
+  const waUrl = formattedPhone ? `https://wa.me/${formattedPhone}` : "https://wa.me/6285138097972";
 
   const activities = [
-    { img: "https://images.unsplash.com/photo-1646806512881-1c169782a970?w=600&h=420&fit=crop&auto=format", icon: Mountain, title: "Berkemah", desc: "Rasakan malam di alam terbuka dengan bintang sebagai atap dan semilir gunung sebagai selimut." },
-    { img: "https://images.unsplash.com/photo-1775204646778-25a1ce121a85?w=600&h=420&fit=crop&auto=format", icon: Sunrise, title: "Menyambut Fajar", desc: "Saksikan matahari terbit di balik puncak Merapi dari ketinggian bukit yang tenang." },
-    { img: "https://images.unsplash.com/photo-1772767511365-c7a5036bd55c?w=600&h=420&fit=crop&auto=format", icon: Star, title: "Mengamati Bintang", desc: "Langit malam yang bersih di kaki Merapi menawarkan pengalaman stargazing yang tak tertandingi." },
-    { img: "https://images.unsplash.com/photo-1763224017831-59e2b1a40882?w=600&h=420&fit=crop&auto=format", icon: Camera, title: "Fotografi Alam", desc: "Setiap sudut menawarkan komposisi indah — dari panorama puncak hingga kabut pagi yang dramatis." },
-    { img: "https://images.unsplash.com/photo-1744301960280-d6130ce0401d?w=600&h=420&fit=crop&auto=format", icon: Wind, title: "Relaksasi Alam", desc: "Biarkan udara pegunungan dan keheningan alam memulihkan pikiran dan jiwa Anda." },
-    { img: "https://images.unsplash.com/photo-1770893876530-68601a346202?w=600&h=420&fit=crop&auto=format", icon: Flame, title: "Api Unggun", desc: "Kumpul bersama di sekitar api unggun, berbagi cerita, dan menikmati hangatnya malam bersama." },
+    { img: "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=600&h=420&fit=crop&auto=format", icon: Mountain, title: "Berkemah", desc: "Rasakan malam di alam terbuka dengan bintang sebagai atap dan semilir gunung sebagai selimut." },
+    { img: "https://images.unsplash.com/photo-1470246973918-29a93221c455?w=600&h=420&fit=crop&auto=format", icon: Sunrise, title: "Menyambut Fajar", desc: "Saksikan matahari terbit di balik puncak Merapi dari ketinggian bukit yang tenang." },
+    { img: "https://images.unsplash.com/photo-1510312305653-8ed496efae75?w=600&h=420&fit=crop&auto=format", icon: Star, title: "Mengamati Bintang", desc: "Langit malam yang bersih di kaki Merapi menawarkan pengalaman stargazing yang tak tertandingi." },
+    { img: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&h=420&fit=crop&auto=format", icon: Camera, title: "Fotografi Alam", desc: "Setiap sudut menawarkan komposisi indah — dari panorama puncak hingga kabut pagi yang dramatis." },
+    { img: "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=600&h=420&fit=crop&auto=format", icon: Wind, title: "Relaksasi Alam", desc: "Biarkan udara pegunungan dan keheningan alam memulihkan pikiran dan jiwa Anda." },
+    { img: "https://images.unsplash.com/photo-1526491109672-74740652b963?w=600&h=420&fit=crop&auto=format", icon: Flame, title: "Api Unggun", desc: "Kumpul bersama di sekitar api unggun, berbagi cerita, dan menikmati hangatnya malam bersama." },
   ];
 
   const facilities = [
-    { icon: Mountain, label: "Area Kemping" },
+    { icon: Mountain, label: "Area Camping" },
     { icon: Car, label: "Parkir Luas" },
     { icon: Droplets, label: "Toilet Bersih" },
     { icon: Star, label: "Musala" },
@@ -1071,13 +1108,13 @@ function CampPage({ nav, settings }: { nav: (p: Page) => void; settings: any }) 
   ];
 
   const galleryImgs = [
-    { src: "https://images.unsplash.com/photo-1775204646778-25a1ce121a85?w=900&h=640&fit=crop&auto=format", alt: "Kabut tipis di bukit saat fajar, suasana pagi yang tenang" },
-    { src: "https://images.unsplash.com/photo-1782738666543-96db6633afb0?w=700&h=500&fit=crop&auto=format", alt: "Tenda berkemah berlatar matahari terbenam yang dramatis" },
-    { src: "https://images.unsplash.com/photo-1772767511365-c7a5036bd55c?w=700&h=500&fit=crop&auto=format", alt: "Area kemping di bawah langit malam berbintang" },
-    { src: "https://images.unsplash.com/photo-1778381464544-dccb7c660364?w=700&h=500&fit=crop&auto=format", alt: "Tenda kemping dengan Bima Sakti di langit malam" },
-    { src: "https://images.unsplash.com/photo-1770893876530-68601a346202?w=900&h=640&fit=crop&auto=format", alt: "Api unggun di atas bukit di bawah langit berbintang" },
-    { src: "https://images.unsplash.com/photo-1768746268521-1eb6195e5335?w=700&h=500&fit=crop&auto=format", alt: "Lembah berkabut saat fajar dengan sinar matahari menerobos" },
-    { src: "https://images.unsplash.com/photo-1713987680233-236782180c6a?w=700&h=500&fit=crop&auto=format", alt: "Tenda di tepi danau dengan latar pegunungan hijau" },
+    { src: "https://images.unsplash.com/photo-1470246973918-29a93221c455?w=900&h=640&fit=crop&auto=format", alt: "Kabut tipis di bukit saat fajar, suasana pagi yang tenang" },
+    { src: "https://images.unsplash.com/photo-1510312305653-8ed496efae75?w=700&h=500&fit=crop&auto=format", alt: "Tenda berkemah berlatar matahari terbenam yang dramatis" },
+    { src: "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=700&h=500&fit=crop&auto=format", alt: "Area camping di bawah langit malam berbintang" },
+    { src: "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=700&h=500&fit=crop&auto=format", alt: "Tenda camping dengan Bima Sakti di langit malam" },
+    { src: "https://images.unsplash.com/photo-1526491109672-74740652b963?w=900&h=640&fit=crop&auto=format", alt: "Api unggun di atas bukit di bawah langit berbintang" },
+    { src: "https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?w=700&h=500&fit=crop&auto=format", alt: "Lembah berkabut saat fajar dengan sinar matahari menerobos" },
+    { src: "https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?w=700&h=500&fit=crop&auto=format", alt: "Tenda di tepi danau dengan latar pegunungan hijau" },
   ];
 
   return (
@@ -1093,7 +1130,7 @@ function CampPage({ nav, settings }: { nav: (p: Page) => void; settings: any }) 
         <div className="relative h-full max-w-7xl mx-auto px-6 lg:px-12 flex items-center">
           <div style={{ maxWidth: 540 }}>
             <span className="inline-block text-white/55 text-[11px] font-semibold tracking-[0.18em] uppercase mb-5">
-              Wisata Kemping · Dusun Petung
+              Wisata Camping · Dusun Petung
             </span>
             <h1
               style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "clamp(2.5rem, 5vw, 3.75rem)", lineHeight: 1.08 }}
@@ -1106,7 +1143,7 @@ function CampPage({ nav, settings }: { nav: (p: Page) => void; settings: any }) 
             </p>
             <div className="flex flex-wrap gap-3">
               <a
-                href={waUrl}
+                href={`${waUrl}?text=Halo,%20saya%20ingin%20reservasi%20Gumuk%20Petung%20Camp`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-7 py-3.5 bg-[#3A6520] text-white text-[13px] font-semibold rounded-full hover:bg-[#2D5016] transition-colors"
@@ -1115,7 +1152,7 @@ function CampPage({ nav, settings }: { nav: (p: Page) => void; settings: any }) 
                 Reservasi via WhatsApp
               </a>
               <a
-                href="https://maps.google.com/?q=Gumuk+Petung+Camp+Sidorejo+Klaten"
+                href="https://maps.app.goo.gl/NeYgxRwN3ed3unXdA"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-7 py-3.5 bg-white/12 text-white text-[13px] font-semibold rounded-full border border-white/25 hover:bg-white/22 transition-colors backdrop-blur-sm"
@@ -1335,22 +1372,22 @@ function CampPage({ nav, settings }: { nav: (p: Page) => void; settings: any }) 
                 <div className="text-[11px] font-bold text-[#7A7065] tracking-[0.15em] uppercase mb-3">Media Sosial</div>
                 <div className="flex flex-col gap-2">
                   <a
-                    href="https://instagram.com/gumukpetung_camp"
+                    href="https://www.instagram.com/gumukpetungcamp"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 text-[14px] text-[#5A5550] hover:text-[#3A6520] transition-colors"
                   >
                     <Instagram className="w-4 h-4 text-[#3A6520]" />
-                    @gumukpetung_camp
+                    @gumukpetungcamp
                   </a>
                   <a
-                    href="https://facebook.com/gumukpetung"
+                    href="https://www.tiktok.com/@gumukpetungcamp"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 text-[14px] text-[#5A5550] hover:text-[#3A6520] transition-colors"
                   >
-                    <Facebook className="w-4 h-4 text-[#3A6520]" />
-                    Gumuk Petung Camp
+                    <Tiktok className="w-4 h-4 text-[#3A6520]" />
+                    @gumukpetungcamp
                   </a>
                 </div>
               </div>
@@ -1368,7 +1405,7 @@ function CampPage({ nav, settings }: { nav: (p: Page) => void; settings: any }) 
                   Reservasi via WhatsApp
                 </a>
                 <a
-                  href="https://maps.google.com/?q=Gumuk+Petung+Sidorejo+Klaten"
+                  href="https://maps.app.goo.gl/NeYgxRwN3ed3unXdA"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full flex items-center justify-center gap-2 py-3.5 border border-[#3A6520] text-[#3A6520] text-[13px] font-semibold rounded-full hover:bg-[#3A6520]/5 transition-colors"

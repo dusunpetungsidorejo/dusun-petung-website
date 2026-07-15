@@ -73,7 +73,7 @@ async function initDb() {
           'Dusun Petung',
           'https://placehold.co/150', // placeholder logo
           'https://placehold.co/1200x600', // placeholder hero banner
-          '08123456789',
+          '085138097972',
           'https://instagram.com/dusunpetung',
           null
         ]
