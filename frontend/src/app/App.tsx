@@ -1014,6 +1014,19 @@ function VillageLifePage({ nav, settings, activities }: { nav: (p: Page) => void
     },
   ];
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: "left" | "right") => {
+    if (scrollRef.current) {
+      const { scrollLeft, clientWidth } = scrollRef.current;
+      const scrollAmount = clientWidth * 0.75;
+      scrollRef.current.scrollTo({
+        left: direction === "left" ? scrollLeft - scrollAmount : scrollLeft + scrollAmount,
+        behavior: "smooth"
+      });
+    }
+  };
+
   const displayItems = activities.map(act => ({
     img: act.image_url,
     alt: act.title,
@@ -1022,9 +1035,33 @@ function VillageLifePage({ nav, settings, activities }: { nav: (p: Page) => void
     tall: false
   }));
 
-  const getItem = (index: number) => {
-    return displayItems[index] || galleryItems[index];
-  };
+  const allItems: any[] = [...displayItems];
+  galleryItems.forEach(item => {
+    if (!displayItems.some(act => act.title.toLowerCase() === item.title.toLowerCase())) {
+      allItems.push(item);
+    }
+  });
+
+  // Group allItems into collage columns
+  const columns: { type: "single" | "double"; items: any[] }[] = [];
+  let i = 0;
+  while (i < allItems.length) {
+    const colIndex = columns.length;
+    if (colIndex % 2 === 0) {
+      columns.push({
+        type: "single",
+        items: [allItems[i]]
+      });
+      i += 1;
+    } else {
+      const nextItems = allItems.slice(i, i + 2);
+      columns.push({
+        type: "double",
+        items: nextItems
+      });
+      i += nextItems.length;
+    }
+  }
 
   return (
     <>
@@ -1089,70 +1126,81 @@ function VillageLifePage({ nav, settings, activities }: { nav: (p: Page) => void
       </section>
 
       {/* Village Activity Gallery */}
-      <section className="pb-24 lg:pb-36">
+      <section className="pb-24 lg:pb-36 overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <div className="mb-14">
-            <span className="text-[#C97C2A] text-[11px] font-bold tracking-[0.18em] uppercase block mb-5">
-              Galeri Kegiatan
-            </span>
-            <h2
-              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "clamp(1.75rem, 3vw, 2.75rem)", lineHeight: 1.15 }}
-              className="font-extrabold text-[#2C2C2A]"
-            >
-              Momen Nyata,<br />Cerita Sesungguhnya
-            </h2>
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-14 gap-6">
+            <div>
+              <span className="text-[#C97C2A] text-[11px] font-bold tracking-[0.18em] uppercase block mb-5">
+                Galeri Kegiatan
+              </span>
+              <h2
+                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "clamp(1.75rem, 3vw, 2.75rem)", lineHeight: 1.15 }}
+                className="font-extrabold text-[#2C2C2A]"
+              >
+                Momen Nyata,<br />Cerita Sesungguhnya
+              </h2>
+            </div>
+            {/* Scroll Navigation Buttons */}
+            <div className="flex items-center gap-3 self-start md:self-end">
+              <button 
+                onClick={() => scroll("left")}
+                className="w-11 h-11 rounded-full border border-black/10 flex items-center justify-center hover:bg-[#3A6520] hover:text-white transition-colors"
+                aria-label="Previous image"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button 
+                onClick={() => scroll("right")}
+                className="w-11 h-11 rounded-full border border-black/10 flex items-center justify-center hover:bg-[#3A6520] hover:text-white transition-colors"
+                aria-label="Next image"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
-          {/* Masonry-style editorial grid */}
-          <div className="grid grid-cols-12 gap-2.5">
-            {/* Row 1 */}
-            <div className="col-span-12 lg:col-span-5 overflow-hidden bg-[#D4C9B5] group relative" style={{ height: 420 }}>
-              <img src={getItem(0).img} alt={getItem(0).alt} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700" />
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-5">
-                <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-white text-[13px] font-bold block">{getItem(0).title}</span>
-                <span className="text-white/60 text-[12px]">{getItem(0).caption}</span>
-              </div>
-            </div>
-            <div className="col-span-12 lg:col-span-7 grid grid-cols-2 gap-2.5">
-              {[getItem(1), getItem(2)].map((item) => (
-                <div key={item.title} className="overflow-hidden bg-[#D4C9B5] group relative" style={{ height: 420 }}>
-                  <img src={item.img} alt={item.alt} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700" />
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-5">
-                    <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-white text-[13px] font-bold block">{item.title}</span>
-                    <span className="text-white/60 text-[12px]">{item.caption}</span>
+          {/* Horizontally scrolling dynamic masonry collage */}
+          <div 
+            ref={scrollRef}
+            className="flex overflow-x-auto gap-3.5 pb-6 scrollbar-none snap-x snap-mandatory"
+            style={{ WebkitOverflowScrolling: "touch" }}
+          >
+            {columns.map((col, idx) => {
+              if (col.type === "single") {
+                const item = col.items[0];
+                if (!item) return null;
+                const widthClass = idx % 4 === 0 ? "w-[440px]" : "w-[520px]";
+                return (
+                  <div 
+                    key={idx} 
+                    className={`${widthClass} h-[460px] shrink-0 overflow-hidden bg-[#D4C9B5] group relative snap-start`}
+                  >
+                    <img src={item.img} alt={item.alt} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700" />
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-5">
+                      <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-white text-[14px] font-bold block mb-1">{item.title}</span>
+                      <span className="text-white/70 text-[12px] line-clamp-2 leading-relaxed">{item.caption}</span>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Row 2 */}
-            <div className="col-span-12 lg:col-span-4 overflow-hidden bg-[#D4C9B5] group relative" style={{ height: 480 }}>
-              <img src={getItem(4).img} alt={getItem(4).alt} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700" />
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-5">
-                <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-white text-[13px] font-bold block">{getItem(4).title}</span>
-                <span className="text-white/60 text-[12px]">{getItem(4).caption}</span>
-              </div>
-            </div>
-            <div className="col-span-12 lg:col-span-8 grid grid-cols-3 gap-2.5">
-              {[getItem(3), getItem(5), getItem(6)].map((item) => (
-                <div key={item.title} className="overflow-hidden bg-[#D4C9B5] group relative" style={{ height: 480 }}>
-                  <img src={item.img} alt={item.alt} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700" />
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-5">
-                    <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-white text-[13px] font-bold block">{item.title}</span>
-                    <span className="text-white/60 text-[12px]">{item.caption}</span>
+                );
+              } else {
+                return (
+                  <div key={idx} className="flex flex-col gap-3.5 w-[360px] shrink-0 snap-start">
+                    {col.items.map((item, subIdx) => (
+                      <div 
+                        key={subIdx} 
+                        className="h-[223px] overflow-hidden bg-[#D4C9B5] group relative"
+                      >
+                        <img src={item.img} alt={item.alt} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700" />
+                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-4">
+                          <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-white text-[13px] font-bold block mb-0.5">{item.title}</span>
+                          <span className="text-white/70 text-[11.5px] line-clamp-2 leading-relaxed">{item.caption}</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Row 3 — full width banner */}
-            <div className="col-span-12 overflow-hidden bg-[#D4C9B5] group relative" style={{ height: 360 }}>
-              <img src={getItem(7).img} alt={getItem(7).alt} className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-700" />
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent p-6">
-                <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-white text-[14px] font-bold block">{getItem(7).title}</span>
-                <span className="text-white/60 text-[13px]">{getItem(7).caption}</span>
-              </div>
-            </div>
+                );
+              }
+            })}
           </div>
         </div>
       </section>
