@@ -35,7 +35,11 @@ export const createActivity = async (req, res, next) => {
     const activityId = result.lastInsertRowid !== undefined ? Number(result.lastInsertRowid) : null;
 
     return res.status(201).json({
-      activity_id: activityId
+      id: activityId,
+      title,
+      description: description || null,
+      image_url: image_url || null,
+      uploaded_at: date
     });
   } catch (error) {
     next(error);

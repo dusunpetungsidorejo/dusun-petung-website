@@ -1,0 +1,18 @@
+export const IMGS = {
+  hero: "https://images.unsplash.com/photo-1671965448417-0582cb361168?w=1600&h=900&fit=crop&auto=format",
+  profileHero: "https://images.unsplash.com/photo-1704288037999-3dc5b65a055c?w=1600&h=700&fit=crop&auto=format",
+  aboutVillage: "https://images.unsplash.com/photo-1730697897511-bafe1f939e6b?w=900&h=700&fit=crop&auto=format",
+  previewProfile: "https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?w=900&h=700&fit=crop&auto=format",
+  campMain: "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=1200&h=800&fit=crop&auto=format",
+  campTent: "https://images.unsplash.com/photo-1510312305653-8ed496efae75?w=800&h=600&fit=crop&auto=format",
+  campPeak: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=600&fit=crop&auto=format",
+  campLake: "https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?w=800&h=600&fit=crop&auto=format",
+  life1: "https://images.unsplash.com/photo-1650247452475-b5866374545d?w=600&h=800&fit=crop&auto=format",
+  life2: "https://images.unsplash.com/photo-1572908721147-0a9eb395762d?w=700&h=500&fit=crop&auto=format",
+  life3: "https://images.unsplash.com/photo-1542897643-cfccd88c7127?w=700&h=500&fit=crop&auto=format",
+  life4: "https://images.unsplash.com/photo-1566205865731-51803de32a35?w=600&h=400&fit=crop&auto=format",
+  pot1: "https://images.unsplash.com/photo-1623042392888-1f87e36a5b64?w=500&h=360&fit=crop&auto=format",
+  pot2: "https://images.unsplash.com/photo-1572908721147-0a9eb395762d?w=500&h=360&fit=crop&auto=format",
+  pot3: "https://images.unsplash.com/photo-1650247452475-b5866374545d?w=500&h=360&fit=crop&auto=format",
+  pot4: "https://images.unsplash.com/photo-1646806512881-1c169782a970?w=500&h=360&fit=crop&auto=format",
+};
