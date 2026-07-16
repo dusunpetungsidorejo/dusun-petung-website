@@ -81,7 +81,7 @@ export function CampPage({ nav, settings }: CampPageProps) {
               style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "clamp(2.5rem, 5vw, 3.75rem)", lineHeight: 1.08 }}
               className="font-extrabold text-white mb-5"
             >
-              Gumuk Petung<br />Camp
+              Gumuk Petung <br className="hidden sm:inline" />Camp
             </h1>
             <p className="text-white/75 text-[17px] leading-[1.7] mb-9" style={{ maxWidth: 420 }}>
               Berkemah di bukit dengan panorama Gunung Merapi yang memukau. Tempat di mana alam berbicara dan jiwa menemukan ketenangannya.
@@ -121,7 +121,7 @@ export function CampPage({ nav, settings }: CampPageProps) {
                 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "clamp(1.75rem, 3vw, 2.75rem)", lineHeight: 1.15 }}
                 className="font-extrabold text-[#2C2C2A] mb-6"
               >
-                Di Mana Alam<br />Menjadi Rumah
+                Di Mana Alam <br className="hidden sm:inline" />Menjadi Rumah
               </h2>
               <p className="text-[#5A5550] leading-[1.75] text-[15px] mb-4">
                 Gumuk Petung Camp adalah destinasi berkemah berbasis komunitas yang terletak di bukit dusun, menawarkan pemandangan langsung ke arah Gunung Merapi. Pada hari cerah, puncak gunung tampak begitu dekat hingga serasa bisa dijangkau tangan.
@@ -137,8 +137,7 @@ export function CampPage({ nav, settings }: CampPageProps) {
               <img
                 src="https://images.unsplash.com/photo-1646806512881-1c169782a970?w=900&h=640&fit=crop&auto=format"
                 alt="Tenda berkemah dengan latar Gunung Merapi yang megah"
-                className="w-full object-cover"
-                style={{ height: 500 }}
+                className="w-full object-cover h-[280px] sm:h-[380px] lg:h-[500px]"
               />
             </div>
           </div>
@@ -152,28 +151,28 @@ export function CampPage({ nav, settings }: CampPageProps) {
               style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "clamp(1.5rem, 2.5vw, 2.25rem)", lineHeight: 1.2 }}
               className="font-extrabold text-[#2C2C2A] mb-10"
             >
-              Rasakan Sebelum<br />Berkunjung
+              Rasakan Sebelum <br className="hidden sm:inline" />Berkunjung
             </h3>
           </div>
 
           <div className="grid grid-cols-12 gap-2.5">
             {/* Big left */}
-            <div className="col-span-12 lg:col-span-6 overflow-hidden bg-[#D4C9B5]" style={{ height: 460 }}>
+            <div className="col-span-12 lg:col-span-6 overflow-hidden bg-[#D4C9B5] h-[260px] sm:h-[360px] lg:h-[460px]">
               <img src={galleryImgs[0].src} alt={galleryImgs[0].alt} className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-700" />
             </div>
             {/* Right 2-col stack */}
             <div className="col-span-12 lg:col-span-6 grid grid-cols-2 gap-2.5">
               {[galleryImgs[1], galleryImgs[2], galleryImgs[3], galleryImgs[5]].map((img) => (
-                <div key={img.src} className="overflow-hidden bg-[#D4C9B5]" style={{ height: 222 }}>
+                <div key={img.src} className="overflow-hidden bg-[#D4C9B5] h-[120px] sm:h-[180px] lg:h-[222px]">
                   <img src={img.src} alt={img.alt} className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-700" />
                 </div>
               ))}
             </div>
             {/* Bottom wide pair */}
-            <div className="col-span-12 lg:col-span-7 overflow-hidden bg-[#D4C9B5]" style={{ height: 360 }}>
+            <div className="col-span-12 lg:col-span-7 overflow-hidden bg-[#D4C9B5] h-[200px] sm:h-[280px] lg:h-[360px]">
               <img src={galleryImgs[4].src} alt={galleryImgs[4].alt} className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-700" />
             </div>
-            <div className="col-span-12 lg:col-span-5 overflow-hidden bg-[#D4C9B5]" style={{ height: 360 }}>
+            <div className="col-span-12 lg:col-span-5 overflow-hidden bg-[#D4C9B5] h-[200px] sm:h-[280px] lg:h-[360px]">
               <img src={galleryImgs[6].src} alt={galleryImgs[6].alt} className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-700" />
             </div>
           </div>
@@ -191,7 +190,7 @@ export function CampPage({ nav, settings }: CampPageProps) {
               style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "clamp(1.75rem, 3vw, 2.75rem)", lineHeight: 1.15 }}
               className="font-extrabold text-[#2C2C2A]"
             >
-              Apa yang Bisa<br />Anda Lakukan
+              Apa yang Bisa <br className="hidden sm:inline" />Anda Lakukan
             </h2>
           </div>
 
@@ -227,13 +226,13 @@ export function CampPage({ nav, settings }: CampPageProps) {
               style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "clamp(1.75rem, 3vw, 2.75rem)", lineHeight: 1.15 }}
               className="font-extrabold text-[#2C2C2A]"
             >
-              Semua yang<br />Anda Butuhkan
+              Semua yang <br className="hidden sm:inline" />Anda Butuhkan
             </h2>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-px bg-black/8 border border-black/8">
             {facilities.map(({ icon: Icon, label }) => (
-              <div key={label} className="bg-[#F7F4EF] flex flex-col items-center justify-center gap-3 py-10 px-4 text-center">
+              <div key={label} className="bg-[#F7F4EF] flex flex-col items-center justify-center gap-3 py-6 sm:py-10 px-3 sm:px-4 text-center">
                 <Icon className="w-5 h-5 text-[#3A6520]" strokeWidth={1.5} />
                 <span className="text-[13px] font-medium text-[#2C2C2A] leading-tight">{label}</span>
               </div>
@@ -253,13 +252,13 @@ export function CampPage({ nav, settings }: CampPageProps) {
               style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "clamp(1.75rem, 3vw, 2.75rem)", lineHeight: 1.15 }}
               className="font-extrabold text-[#2C2C2A]"
             >
-              Rencanakan<br />Kunjungan Anda
+              Rencanakan <br className="hidden sm:inline" />Kunjungan Anda
             </h2>
           </div>
 
           <div className="grid lg:grid-cols-[3fr_2fr] gap-8 items-start">
             {/* Map embed */}
-            <div className="bg-[#D4C9B5] overflow-hidden" style={{ height: 440 }}>
+            <div className="bg-[#D4C9B5] overflow-hidden h-[280px] sm:h-[360px] lg:h-[440px]">
               <iframe
                 title="Lokasi Gumuk Petung Camp"
                 src="https://maps.google.com/maps?q=Gumuk+Petung+Sidorejo+Klaten+Yogyakarta&output=embed"
@@ -273,7 +272,7 @@ export function CampPage({ nav, settings }: CampPageProps) {
             </div>
 
             {/* Info panel */}
-            <div className="bg-white border border-black/5 p-8 flex flex-col gap-7" style={{ minHeight: 440 }}>
+            <div className="bg-white border border-black/5 p-5 sm:p-8 flex flex-col gap-6 sm:gap-7 h-auto lg:min-h-[440px] justify-between">
               <div>
                 <div className="text-[11px] font-bold text-[#7A7065] tracking-[0.15em] uppercase mb-3">Jam Buka</div>
                 <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[15px] font-semibold text-[#2C2C2A] mb-1">Senin – Minggu</div>

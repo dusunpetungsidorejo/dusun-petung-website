@@ -152,8 +152,7 @@ export function VillageLifePage({ nav, settings, activities }: VillageLifePagePr
               <img
                 src="https://images.unsplash.com/photo-1542897643-cfccd88c7127?w=900&h=700&fit=crop&auto=format"
                 alt="Komunitas warga dusun dalam kegiatan bersama"
-                className="w-full object-cover"
-                style={{ height: 500 }}
+                className="w-full object-cover h-[280px] sm:h-[380px] lg:h-[500px]"
               />
             </div>
             <div>
@@ -164,7 +163,7 @@ export function VillageLifePage({ nav, settings, activities }: VillageLifePagePr
                 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "clamp(1.75rem, 3vw, 2.75rem)", lineHeight: 1.15 }}
                 className="font-extrabold text-[#2C2C2A] mb-6"
               >
-                Gotong Royong<br />yang Tak Pernah Padam
+                Gotong Royong <br className="hidden sm:inline" />yang Tak Pernah Padam
               </h2>
               <p className="text-[#5A5550] leading-[1.75] text-[15px] mb-4">
                 Kehidupan di Dusun Petung berputar di sekitar nilai-nilai kebersamaan yang telah diwariskan turun-temurun. Gotong royong bukan sekadar kata — ia adalah cara hidup yang terlihat dalam setiap aktivitas warga, dari mengerjakan sawah hingga merayakan hari besar.
@@ -192,7 +191,7 @@ export function VillageLifePage({ nav, settings, activities }: VillageLifePagePr
                 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "clamp(1.75rem, 3vw, 2.75rem)", lineHeight: 1.15 }}
                 className="font-extrabold text-[#2C2C2A]"
               >
-                Momen Nyata,<br />Cerita Sesungguhnya
+                Momen Nyata, <br className="hidden sm:inline" />Cerita Sesungguhnya
               </h2>
             </div>
             {/* Scroll Navigation Buttons */}
@@ -224,11 +223,13 @@ export function VillageLifePage({ nav, settings, activities }: VillageLifePagePr
               if (col.type === "single") {
                 const item = col.items[0];
                 if (!item) return null;
-                const widthClass = idx % 4 === 0 ? "w-[440px]" : "w-[520px]";
+                const widthClass = idx % 4 === 0 
+                  ? "w-[270px] xs:w-[320px] sm:w-[400px] lg:w-[440px]" 
+                  : "w-[300px] xs:w-[350px] sm:w-[460px] lg:w-[520px]";
                 return (
                   <div 
                     key={idx} 
-                    className={`${widthClass} h-[460px] shrink-0 overflow-hidden bg-[#D4C9B5] group relative snap-start`}
+                    className={`${widthClass} h-[300px] sm:h-[380px] lg:h-[460px] shrink-0 overflow-hidden bg-[#D4C9B5] group relative snap-start`}
                   >
                     <img src={item.img} alt={item.alt} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700" />
                     <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-5">
@@ -239,11 +240,11 @@ export function VillageLifePage({ nav, settings, activities }: VillageLifePagePr
                 );
               } else {
                 return (
-                  <div key={idx} className="flex flex-col gap-3.5 w-[360px] shrink-0 snap-start">
+                  <div key={idx} className="flex flex-col gap-2.5 sm:gap-3.5 w-[240px] xs:w-[280px] sm:w-[320px] lg:w-[360px] h-[300px] sm:h-[380px] lg:h-[460px] shrink-0 snap-start">
                     {col.items.map((item, subIdx) => (
                       <div 
                         key={subIdx} 
-                        className="h-[223px] overflow-hidden bg-[#D4C9B5] group relative"
+                        className="flex-1 overflow-hidden bg-[#D4C9B5] group relative"
                       >
                         <img src={item.img} alt={item.alt} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700" />
                         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-4">

@@ -48,7 +48,7 @@ export function LoginPage({ onLogin, nav, settings }: LoginPageProps) {
     <div style={{ fontFamily: "'Inter', sans-serif" }} className="min-h-screen bg-white flex flex-col md:flex-row">
       
       {/* Left Side: Welcome Panel (Full Screen half) */}
-      <div className="relative bg-[#3A6520] p-12 md:p-16 flex flex-col justify-between text-white overflow-hidden md:w-[42%] shrink-0 min-h-[340px] md:min-h-screen">
+      <div className="relative bg-[#3A6520] p-8 xs:p-10 sm:p-12 md:p-16 flex flex-col justify-between text-white overflow-hidden md:w-[42%] shrink-0 min-h-[340px] md:min-h-screen">
         
         {/* Logo Brand */}
         <div className="flex items-center gap-2.5 z-10">
@@ -65,9 +65,9 @@ export function LoginPage({ onLogin, nav, settings }: LoginPageProps) {
         </div>
 
         {/* Text Content */}
-        <div className="my-auto z-10 flex flex-col gap-4 py-8 max-w-sm">
+        <div className="my-auto z-10 flex flex-col gap-4 py-6 sm:py-8 max-w-sm">
           <h2 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "clamp(1.75rem, 3.5vw, 2.5rem)", lineHeight: 1.15 }} className="font-extrabold tracking-tight">
-            Selamat Datang<br />di Panel Admin
+            Selamat Datang <br className="hidden sm:inline" />di Panel Admin
           </h2>
           <p className="text-[13.5px] text-white/80 leading-relaxed">
             Kelola konten publikasi, galeri foto, kontak, dan dokumentasi kegiatan Dusun Petung.
@@ -95,7 +95,7 @@ export function LoginPage({ onLogin, nav, settings }: LoginPageProps) {
       </div>
 
       {/* Right Side: Form Panel (Centered half) */}
-      <div className="flex-1 bg-white p-8 sm:p-12 md:p-20 flex flex-col justify-center items-center min-h-[460px] md:min-h-screen">
+      <div className="flex-1 bg-white p-6 xs:p-8 sm:p-12 md:p-20 flex flex-col justify-center items-center min-h-[460px] md:min-h-screen">
         <div className="w-full max-w-md">
           <div className="mb-8">
             <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-2xl font-extrabold text-[#2C2C2A] mb-2">

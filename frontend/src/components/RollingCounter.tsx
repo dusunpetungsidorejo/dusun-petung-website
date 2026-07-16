@@ -55,21 +55,21 @@ function RollingDigit({ char, startDelay }: RollingDigitProps) {
   }
 
   return (
-    <span ref={ref} className="inline-block overflow-hidden h-[1.1em] relative" style={{ width: "0.62em", verticalAlign: "bottom" }}>
+    <span ref={ref} className="inline-block overflow-hidden h-[1.1em] relative align-baseline" style={{ width: "0.62em" }}>
       <span
-        className="absolute left-0 top-0 flex flex-col"
+        className="absolute left-0 top-0 flex flex-col w-full"
         style={{ 
           transform: `translateY(-${digit * 10}%)`,
           transition: "transform 1.5s cubic-bezier(0.16, 1, 0.3, 1)"
         }}
       >
         {["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"].map((num) => (
-          <span key={num} className="h-[1.1em] flex items-center justify-center leading-none">
+          <span key={num} className="h-[1.1em] block text-center leading-[1.1em]">
             {num}
           </span>
         ))}
       </span>
-      <span className="invisible select-none">0</span>
+      <span className="invisible select-none leading-[1.1em]">0</span>
     </span>
   );
 }

@@ -32,7 +32,7 @@ export function HomePage({ nav, settings }: HomePageProps) {
 
         <div className="relative h-full max-w-7xl mx-auto px-6 lg:px-12 flex items-center">
           <div style={{ maxWidth: 520 }}>
-            <span className="inline-block text-white/55 text-[11px] font-semibold tracking-[0.18em] uppercase mb-5">
+            <span className="inline-block text-white/55 text-[10px] sm:text-[11px] font-semibold tracking-[0.10em] sm:tracking-[0.18em] uppercase mb-5">
               Desa Sidorejo · Kecamatan Kemalang · Kabupaten Klaten · Jawa Tengah
             </span>
             <h1
@@ -73,8 +73,7 @@ export function HomePage({ nav, settings }: HomePageProps) {
                 <img
                   src={IMGS.previewProfile}
                   alt="Kabut pagi di bukit sekitar Dusun Petung"
-                  className="w-full object-cover"
-                  style={{ height: 500 }}
+                  className="w-full object-cover h-[280px] sm:h-[380px] lg:h-[500px]"
                 />
               </div>
               <div className="absolute -bottom-5 -right-5 w-28 h-28 bg-[#3A6520]/8 hidden lg:block" />
@@ -89,7 +88,7 @@ export function HomePage({ nav, settings }: HomePageProps) {
                 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "clamp(2rem, 3.5vw, 3rem)", lineHeight: 1.12 }}
                 className="font-extrabold text-[#2C2C2A] mb-6"
               >
-                Damai di Kaki<br />Gunung Merapi
+                Damai di Kaki <br className="hidden sm:inline" />Gunung Merapi
               </h2>
               <p className="text-[#5A5550] leading-[1.75] text-[15px] mb-4">
                 Dusun Petung terletak di lereng barat daya Gunung Merapi, dikelilingi hamparan sawah, kebun, dan hutan yang hijau sepanjang tahun. Udara sejuk, tanah subur, dan warga yang ramah menjadikan dusun ini tempat yang istimewa.
@@ -123,7 +122,7 @@ export function HomePage({ nav, settings }: HomePageProps) {
                 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "clamp(2rem, 3.5vw, 3rem)", lineHeight: 1.12 }}
                 className="font-extrabold text-white"
               >
-                Gumuk Petung<br />Camp
+                Gumuk Petung <br className="hidden sm:inline" />Camp
               </h2>
             </div>
             <div>
@@ -137,17 +136,17 @@ export function HomePage({ nav, settings }: HomePageProps) {
           </div>
 
           {/* Photo grid */}
-          <div className="grid grid-cols-12 grid-rows-2 gap-2.5" style={{ height: 520 }}>
-            <div className="col-span-7 row-span-2 bg-[#2C2C2A] overflow-hidden">
+          <div className="grid grid-cols-12 gap-2.5 h-auto md:h-[520px] md:grid-rows-2">
+            <div className="col-span-12 md:col-span-7 md:row-span-2 bg-[#2C2C2A] overflow-hidden h-[240px] sm:h-[320px] md:h-full">
               <img src={IMGS.campMain} alt="Tenda dan pemandangan Gunung Merapi dari Gumuk Petung Camp" className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-700" />
             </div>
-            <div className="col-span-5 bg-[#2C2C2A] overflow-hidden">
+            <div className="col-span-6 md:col-span-5 bg-[#2C2C2A] overflow-hidden h-[130px] sm:h-[180px] md:h-full">
               <img src={IMGS.campTent} alt="Tenda berkemah saat matahari terbenam" className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-700" />
             </div>
-            <div className="col-span-3 bg-[#2C2C2A] overflow-hidden">
+            <div className="col-span-6 md:col-span-3 bg-[#2C2C2A] overflow-hidden h-[130px] sm:h-[180px] md:h-full">
               <img src={IMGS.campPeak} alt="Puncak gunung menembus awan emas" className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-700" />
             </div>
-            <div className="col-span-2 bg-[#2C2C2A] overflow-hidden">
+            <div className="col-span-12 md:col-span-2 bg-[#2C2C2A] overflow-hidden h-[130px] sm:h-[180px] md:h-full">
               <img src={IMGS.campLake} alt="Tenda berkemah di tepi danau dengan latar pegunungan" className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-700" />
             </div>
           </div>
@@ -180,7 +179,7 @@ export function HomePage({ nav, settings }: HomePageProps) {
                 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "clamp(2rem, 3.5vw, 3rem)", lineHeight: 1.12 }}
                 className="font-extrabold text-[#2C2C2A]"
               >
-                Lebih dekat<br />dengan Petung
+                Lebih dekat <br className="hidden sm:inline" />dengan Petung
               </h2>
             </div>
             <button onClick={() => nav("village-life")} className="hidden lg:inline-flex items-center gap-2 text-[#3A6520] text-[13px] font-bold hover:gap-3 transition-all">
@@ -190,20 +189,27 @@ export function HomePage({ nav, settings }: HomePageProps) {
 
           {/* Asymmetric documentary gallery */}
           <div className="grid grid-cols-12 gap-2.5">
-            <div className="col-span-12 lg:col-span-4 bg-[#D4C9B5] overflow-hidden" style={{ height: 580 }}>
+            <div className="col-span-12 lg:col-span-4 bg-[#D4C9B5] overflow-hidden h-[300px] sm:h-[400px] lg:h-[580px]">
               <img src={IMGS.life1} alt="Warga berjalan melalui hutan hijau yang rimbun" className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-700" />
             </div>
             <div className="col-span-12 lg:col-span-8 grid grid-cols-2 gap-2.5">
-              <div className="bg-[#D4C9B5] overflow-hidden" style={{ height: 280 }}>
+              <div className="bg-[#D4C9B5] overflow-hidden h-[140px] sm:h-[200px] lg:h-[280px]">
                 <img src={IMGS.life2} alt="Petani menanam padi di sawah" className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-700" />
               </div>
-              <div className="bg-[#D4C9B5] overflow-hidden" style={{ height: 280 }}>
+              <div className="bg-[#D4C9B5] overflow-hidden h-[140px] sm:h-[200px] lg:h-[280px]">
                 <img src={IMGS.life3} alt="Pawai budaya masyarakat dusun" className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-700" />
               </div>
-              <div className="col-span-2 bg-[#D4C9B5] overflow-hidden" style={{ height: 286 }}>
+              <div className="col-span-2 bg-[#D4C9B5] overflow-hidden h-[150px] sm:h-[220px] lg:h-[286px]">
                 <img src={IMGS.life4} alt="Kehidupan sehari-hari warga dusun" className="w-full h-full object-cover object-top hover:scale-[1.02] transition-transform duration-700" />
               </div>
             </div>
+          </div>
+
+          {/* Mobile-only CTA */}
+          <div className="mt-10 text-center lg:hidden">
+            <button onClick={() => nav("village-life")} className="inline-flex items-center gap-2 px-7 py-3.5 border border-black/[0.09] text-[#2C2C2A] text-[13px] font-bold rounded-full hover:bg-[#FAF9F5] transition-colors">
+              Lihat Semua Kegiatan <ArrowRight className="w-4 h-4" />
+            </button>
           </div>
 
         </div>

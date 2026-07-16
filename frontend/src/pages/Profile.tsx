@@ -51,7 +51,7 @@ export function ProfilePage({ nav, settings }: ProfilePageProps) {
                 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "clamp(1.75rem, 3vw, 2.75rem)", lineHeight: 1.15 }}
                 className="font-extrabold text-[#2C2C2A] mb-7"
               >
-                Identitas<br />Dusun Petung
+                Identitas <br className="hidden sm:inline" />Dusun Petung
               </h2>
               <p className="text-[#5A5550] leading-[1.75] text-[15px] mb-4">
                 Dusun Petung terletak di Desa Sidorejo, Kecamatan Kemalang, Kabupaten Klaten, Jawa Tengah. Berada di kaki barat daya Gunung Merapi — salah satu gunung berapi paling aktif di Indonesia — dusun ini dianugerahi pemandangan alam yang luar biasa.
@@ -69,8 +69,7 @@ export function ProfilePage({ nav, settings }: ProfilePageProps) {
               <img
                 src={IMGS.aboutVillage}
                 alt="Hamparan sawah hijau dilihat dari udara di sekitar Dusun Petung"
-                className="w-full object-cover"
-                style={{ height: 540 }}
+                className="w-full object-cover h-[280px] sm:h-[380px] lg:h-[540px]"
               />
             </div>
           </div>
@@ -92,25 +91,28 @@ export function ProfilePage({ nav, settings }: ProfilePageProps) {
             </h2>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
             {[
               { Icon: Users, value: "3.247", label: "Jiwa Penduduk" },
               { Icon: Home, value: "892", label: "Kepala Keluarga" },
               { Icon: Map, value: "485 Ha", label: "Luas Wilayah" },
               { Icon: Building2, value: "1 RW / 2 RT", label: "Pembagian Administrasi" },
             ].map(({ Icon, value, label }) => (
-              <div key={label} className="bg-white p-8 border border-black/5">
-                <Icon className="w-[18px] h-[18px] text-[#3A6520] mb-5" strokeWidth={1.5} />
-                <div
-                  style={{ 
-                    fontFamily: "'Plus Jakarta Sans', sans-serif",
-                    fontSize: value.length > 7 ? "clamp(1.5rem, 2.5vw, 2.1rem)" : "2.5rem"
-                  }}
-                  className="font-extrabold text-[#2C2C2A] leading-none mb-2"
-                >
-                  <RollingCounter value={value} />
+              <div key={label} className="bg-white p-4 sm:p-6 lg:p-8 border border-black/5 flex flex-col justify-between">
+                <div>
+                  <Icon className="w-4 h-4 sm:w-[18px] sm:h-[18px] text-[#3A6520] mb-4 sm:mb-5" strokeWidth={1.5} />
+                  <div
+                    style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                    className={`font-extrabold text-[#2C2C2A] leading-none mb-2 ${
+                      value.length > 7
+                        ? "text-[18px] xs:text-[20px] sm:text-[24px] md:text-[28px] lg:text-[32px]"
+                        : "text-[24px] xs:text-[26px] sm:text-[32px] md:text-[36px] lg:text-[40px]"
+                    }`}
+                  >
+                    <RollingCounter value={value} />
+                  </div>
                 </div>
-                <div className="text-[13px] text-[#7A7065] font-medium">{label}</div>
+                <div className="text-[11px] sm:text-[12px] lg:text-[13px] text-[#7A7065] font-medium leading-tight">{label}</div>
               </div>
             ))}
           </div>
@@ -128,7 +130,7 @@ export function ProfilePage({ nav, settings }: ProfilePageProps) {
               style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "clamp(1.75rem, 3vw, 2.75rem)", lineHeight: 1.15 }}
               className="font-extrabold text-[#2C2C2A]"
             >
-              Jejak Perjalanan<br />Dusun Petung
+              Jejak Perjalanan <br className="hidden sm:inline" />Dusun Petung
             </h2>
           </div>
 
@@ -196,7 +198,7 @@ export function ProfilePage({ nav, settings }: ProfilePageProps) {
               style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "clamp(1.75rem, 3vw, 2.75rem)", lineHeight: 1.15 }}
               className="font-extrabold text-[#2C2C2A]"
             >
-              Yang Membuat<br />Dusun Ini Istimewa
+              Yang Membuat <br className="hidden sm:inline" />Dusun Ini Istimewa
             </h2>
           </div>
 

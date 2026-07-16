@@ -48,6 +48,7 @@ export function AdminPage({
   token 
 }: AdminPageProps) {
   const [section, setSection] = useState<AdminSection>("dashboard");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -383,21 +384,39 @@ export function AdminPage({
       <input type="file" ref={logoFileRef} accept="image/*" className="hidden" onChange={e => handleFileChange(e, "logo")} />
       <input type="file" ref={heroFileRef} accept="image/*" className="hidden" onChange={e => handleFileChange(e, "hero")} />
 
+      {/* Backdrop overlay for mobile sidebar */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/40 z-35 md:hidden transition-opacity" 
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar Navigation */}
-      <aside className="w-64 border-r border-black/[0.06] bg-white flex flex-col justify-between shrink-0 h-screen sticky top-0">
+      <aside className={`fixed inset-y-0 left-0 z-40 w-64 border-r border-black/[0.06] bg-white flex flex-col justify-between shrink-0 h-screen transition-transform duration-300 transform md:static md:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div>
           {/* Logo brand */}
-          <div className="h-[73px] border-b border-black/[0.06] px-6 flex items-center gap-2.5">
-            {settings?.logo_url ? (
-              <img src={settings.logo_url} alt="Logo" className="w-7 h-7 rounded-full object-cover border border-black/5" />
-            ) : (
-              <span className="w-7 h-7 rounded-full bg-[#3A6520]/10 flex items-center justify-center">
-                <MapPin className="w-3.5 h-3.5 text-[#3A6520]" strokeWidth={2.2} />
+          <div className="h-[73px] border-b border-black/[0.06] px-6 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              {settings?.logo_url ? (
+                <img src={settings.logo_url} alt="Logo" className="w-7 h-7 rounded-full object-cover border border-black/5" />
+              ) : (
+                <span className="w-7 h-7 rounded-full bg-[#3A6520]/10 flex items-center justify-center">
+                  <MapPin className="w-3.5 h-3.5 text-[#3A6520]" strokeWidth={2.2} />
+                </span>
+              )}
+              <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="font-extrabold text-[14px] text-[#2C2C2A] tracking-tight">
+                {settings?.village_name || "Dusun Petung"}
               </span>
-            )}
-            <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="font-extrabold text-[14px] text-[#2C2C2A] tracking-tight">
-              {settings?.village_name || "Dusun Petung"}
-            </span>
+            </div>
+            {/* Close button for mobile */}
+            <button 
+              onClick={() => setIsSidebarOpen(false)} 
+              className="p-1 text-[#7A7065] hover:text-[#2C2C2A] md:hidden"
+              aria-label="Close sidebar"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
           {/* Navigation Links */}
@@ -407,6 +426,7 @@ export function AdminPage({
                 key={key}
                 onClick={() => {
                   setSection(key);
+                  setIsSidebarOpen(false);
                   setEditingDocId(null);
                   setTitleInput("");
                   setDescInput("");
@@ -428,7 +448,13 @@ export function AdminPage({
 
         {/* Sidebar Footer logout */}
         <div className="p-4 border-t border-black/[0.06]">
-          <button onClick={onLogout} className="w-full flex items-center gap-3.5 px-4 py-3 text-[13px] font-semibold text-red-600 hover:bg-red-50 rounded-lg transition-all">
+          <button 
+            onClick={() => {
+              setIsSidebarOpen(false);
+              onLogout();
+            }} 
+            className="w-full flex items-center gap-3.5 px-4 py-3 text-[13px] font-semibold text-red-600 hover:bg-red-50 rounded-lg transition-all"
+          >
             <LogOut className="w-[18px] h-[18px]" strokeWidth={1.75} />
             Log Out
           </button>
@@ -439,9 +465,19 @@ export function AdminPage({
       <div className="flex-1 flex flex-col min-w-0">
         
         {/* Header bar */}
-        <header className="h-[73px] border-b border-black/[0.06] bg-white px-8 flex items-center justify-between shrink-0 sticky top-0 z-30">
-          <div>
-            <h1 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[17px] font-extrabold text-[#2C2C2A]">
+        <header className="h-[73px] border-b border-black/[0.06] bg-white px-4 sm:px-6 lg:px-8 flex items-center justify-between shrink-0 sticky top-0 z-30">
+          <div className="flex items-center gap-3 min-w-0">
+            {/* Hamburger Menu Button */}
+            <button 
+              onClick={() => setIsSidebarOpen(true)} 
+              className="p-2 -ml-2 text-[#7A7065] hover:text-[#2C2C2A] md:hidden flex items-center justify-center"
+              aria-label="Open menu"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <h1 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[15px] sm:text-[17px] font-extrabold text-[#2C2C2A] truncate">
               {section === "dashboard" && "Dashboard"}
               {section === "docs" && "Manajemen Dokumentasi"}
               {section === "add-doc" && (editingDocId ? "Ubah Dokumentasi" : "Tambah Dokumentasi Baru")}
@@ -449,22 +485,22 @@ export function AdminPage({
             </h1>
           </div>
 
-          <div className="flex items-center gap-4">
-            <button onClick={() => nav("home")} className="px-4 py-2 border border-black/[0.09] text-[12px] font-semibold text-[#5A5550] rounded-full hover:bg-[#FAF9F5] transition">
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+            <button onClick={() => nav("home")} className="px-3 sm:px-4 py-1.5 sm:py-2 border border-black/[0.09] text-[11px] sm:text-[12px] font-semibold text-[#5A5550] rounded-full hover:bg-[#FAF9F5] transition">
               Lihat Website
             </button>
             <div className="w-px h-6 bg-black/8" />
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#3A6520]/8 flex items-center justify-center text-[#3A6520] font-bold text-[12px]">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#3A6520]/8 flex items-center justify-center text-[#3A6520] font-bold text-[11px] sm:text-[12px]">
                 AD
               </div>
-              <span className="text-[12.5px] font-semibold text-[#2C2C2A]">Administrator</span>
+              <span className="text-[11.5px] sm:text-[12.5px] font-semibold text-[#2C2C2A] hidden xs:inline">Administrator</span>
             </div>
           </div>
         </header>
 
         {/* Dashboard Panels */}
-        <main className="flex-1 p-8 overflow-y-auto">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
 
           {/* Section: Dashboard Overview */}
           {section === "dashboard" && (
@@ -492,7 +528,7 @@ export function AdminPage({
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <button
                   onClick={() => setSection("add-doc")}
                   className="flex items-center gap-2 px-5 py-3 bg-[#3A6520] hover:bg-[#2D5016] text-white text-[12.5px] font-semibold rounded-xl shadow-sm transition"
@@ -533,22 +569,22 @@ export function AdminPage({
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-[#FAF9F5] border-b border-black/[0.06] text-[11.5px] font-bold text-[#7A7065] uppercase tracking-wider">
-                        <th className="py-4 px-6">Gambar</th>
-                        <th className="py-4 px-6">Dokumentasi</th>
-                        <th className="py-4 px-6 text-right">Aksi</th>
+                        <th className="py-4 px-4 sm:px-6">Gambar</th>
+                        <th className="py-4 px-4 sm:px-6">Dokumentasi</th>
+                        <th className="py-4 px-4 sm:px-6 text-right">Aksi</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-black/[0.05]">
                       {filteredDocs.map((doc, idx) => (
                         <tr key={doc.id || idx} className="hover:bg-black/[0.01] transition-colors text-[13px] text-[#2C2C2A]">
-                          <td className="py-4 px-6 shrink-0">
-                            <img src={doc.image_url} alt="" className="w-14 h-11 object-cover bg-[#D4C9B5] rounded" />
+                          <td className="py-4 px-4 sm:px-6 shrink-0">
+                            <img src={doc.image_url} alt="" className="w-14 h-11 object-cover bg-[#D4C9B5] rounded shrink-0" />
                           </td>
-                          <td className="py-4 px-6">
+                          <td className="py-4 px-4 sm:px-6">
                             <span className="font-bold text-[#2C2C2A] block mb-0.5">{doc.title}</span>
-                            <span className="text-[12px] text-[#7A7065] block max-w-md md:max-w-xl truncate">{doc.description}</span>
+                            <span className="text-[12px] text-[#7A7065] block max-w-[120px] xs:max-w-xs sm:max-w-md md:max-w-xl truncate">{doc.description}</span>
                           </td>
-                          <td className="py-4 px-6 text-right">
+                          <td className="py-4 px-4 sm:px-6 text-right">
                             <div className="flex items-center justify-end gap-2">
                               <button onClick={() => handleEditClick(doc)} className="p-2 border border-black/[0.08] hover:bg-[#FAF9F5] rounded text-[#7A7065] hover:text-[#2C2C2A] transition" title="Ubah">
                                 <Pencil className="w-4 h-4" />
@@ -605,22 +641,22 @@ export function AdminPage({
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-[#FAF9F5] border-b border-black/[0.06] text-[11.5px] font-bold text-[#7A7065] uppercase tracking-wider">
-                      <th className="py-4 px-6">Gambar</th>
-                      <th className="py-4 px-6">Dokumentasi</th>
-                      <th className="py-4 px-6 text-right">Aksi</th>
+                      <th className="py-4 px-4 sm:px-6">Gambar</th>
+                      <th className="py-4 px-4 sm:px-6">Dokumentasi</th>
+                      <th className="py-4 px-4 sm:px-6 text-right">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-black/[0.05]">
                     {filteredDocs.map((doc, idx) => (
                       <tr key={doc.id || idx} className="hover:bg-black/[0.01] transition-colors text-[13px] text-[#2C2C2A]">
-                        <td className="py-4 px-6 shrink-0">
-                          <img src={doc.image_url} alt="" className="w-14 h-11 object-cover bg-[#D4C9B5] rounded" />
+                        <td className="py-4 px-4 sm:px-6 shrink-0">
+                          <img src={doc.image_url} alt="" className="w-14 h-11 object-cover bg-[#D4C9B5] rounded shrink-0" />
                         </td>
-                        <td className="py-4 px-6">
+                        <td className="py-4 px-4 sm:px-6">
                           <span className="font-bold text-[#2C2C2A] block mb-0.5">{doc.title}</span>
-                          <span className="text-[12px] text-[#7A7065] block max-w-md md:max-w-xl truncate">{doc.description}</span>
+                          <span className="text-[12px] text-[#7A7065] block max-w-[120px] xs:max-w-xs sm:max-w-md md:max-w-xl truncate">{doc.description}</span>
                         </td>
-                        <td className="py-4 px-6 text-right">
+                        <td className="py-4 px-4 sm:px-6 text-right">
                           <div className="flex items-center justify-end gap-2">
                             <button onClick={() => handleEditClick(doc)} className="p-2 border border-black/[0.08] hover:bg-[#FAF9F5] rounded text-[#7A7065] hover:text-[#2C2C2A] transition" title="Ubah">
                               <Pencil className="w-4 h-4" />
@@ -648,7 +684,7 @@ export function AdminPage({
 
           {/* Section: Add/Edit documentation */}
           {section === "add-doc" && (
-            <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm p-8 max-w-3xl">
+            <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm p-5 sm:p-8 max-w-3xl">
               
               {/* Back button */}
               <button onClick={() => { setSection("docs"); setEditingDocId(null); }} className="flex items-center gap-1 text-[#7A7065] hover:text-[#2C2C2A] text-[12.5px] font-semibold mb-6 transition">
@@ -742,7 +778,7 @@ export function AdminPage({
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
                 
                 {/* Card 1: Informasi Umum */}
-                <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm p-8 flex flex-col gap-6">
+                <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm p-5 sm:p-8 flex flex-col gap-6">
                   
                   {/* Header */}
                   <div className="flex items-center gap-3 border-l-4 border-[#3A6520] pl-3.5">
@@ -866,7 +902,7 @@ export function AdminPage({
                 </div>
 
                 {/* Card 2: Kontak & Media Sosial */}
-                <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm p-8 flex flex-col gap-6">
+                <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm p-5 sm:p-8 flex flex-col gap-6">
                   
                   {/* Header */}
                   <div className="flex items-center gap-3 border-l-4 border-[#3A6520] pl-3.5">
@@ -927,7 +963,7 @@ export function AdminPage({
               </div>
 
               {/* Save/Reset panel */}
-              <div className="flex items-center gap-3 bg-white border border-black/[0.06] rounded-xl shadow-sm p-6">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-white border border-black/[0.06] rounded-xl shadow-sm p-5 sm:p-6">
                 <button 
                   onClick={handleSaveSettings} 
                   disabled={savingSettings} 
