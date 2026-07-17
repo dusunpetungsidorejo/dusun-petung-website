@@ -122,10 +122,7 @@ export function SiteFooter({ nav, settings }: SiteFooterProps) {
 
         <div className="border-t border-white/8 pt-8 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-white/25 text-[12px]">© 2026 {villageName} · KKN UPNYK AD.84.242. Hak cipta dilindungi.</p>
-          <div className="flex items-center gap-5">
-            <p className="text-white/25 text-[12px]">Desa Sidorejo · Kecamatan Kemalang · Kabupaten Klaten · Jawa Tengah</p>
-            <button onClick={() => nav("admin")} className="text-white/20 text-[11px] hover:text-white/40 transition-colors">Admin</button>
-          </div>
+          <p className="text-white/25 text-[12px]">Desa Sidorejo · Kecamatan Kemalang · Kabupaten Klaten · Jawa Tengah</p>
         </div>
       </div>
     </footer>
