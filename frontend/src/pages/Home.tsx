@@ -166,6 +166,77 @@ export function HomePage({ nav, settings }: HomePageProps) {
         </div>
       </section>
 
+      {/* Preview Live In ──────────────────────────────────── */}
+      <section className="py-24 lg:py-36 bg-[#FAF9F5]">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+          <div className="grid lg:grid-cols-[1fr_1.1fr] gap-16 lg:gap-24 items-center">
+            
+            {/* Text Content */}
+            <div>
+              <span className="text-[#C97C2A] text-[11px] font-bold tracking-[0.18em] uppercase block mb-5">
+                Program Live In
+              </span>
+              <h2
+                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "clamp(2rem, 3.5vw, 3rem)", lineHeight: 1.12 }}
+                className="font-extrabold text-[#2C2C2A] mb-6"
+              >
+                Hidup Membaur <br />Bersama Warga Dusun
+              </h2>
+              <p className="text-[#5A5550] leading-[1.75] text-[15px] mb-4">
+                Rasakan keaslian hidup di pedesaan lereng Merapi dengan tinggal langsung di rumah-rumah warga Dusun Petung. Program ini dirancang untuk mengajak Anda membaur dalam rutinitas harian pemilik rumah.
+              </p>
+              <p className="text-[#5A5550] leading-[1.75] text-[15px] mb-9">
+                Belajar memerah susu sapi segar di pagi hari, memanen sayuran organik di ladang, hingga menikmati makan malam hangat bersama keluarga angkat Anda dalam suasana damai yang jauh dari kebisingan kota.
+              </p>
+              <button
+                onClick={() => nav("livein")}
+                className="inline-flex items-center gap-2 px-7 py-3.5 bg-[#3A6520] hover:bg-[#2D5016] text-white text-[13px] font-semibold rounded-full transition-all"
+              >
+                Pilih Rumah Live In
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Visual Graphic Grid */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4">
+                <div className="rounded-2xl overflow-hidden aspect-[4/5] bg-gray-100 border border-black/[0.04]">
+                  <img 
+                    src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=600&h=800&fit=crop&auto=format" 
+                    alt="Pemandangan bukit hijau asri lereng gunung" 
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+                <div className="rounded-2xl overflow-hidden aspect-square bg-gray-100 border border-black/[0.04]">
+                  <img 
+                    src="https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=600&h=600&fit=crop&auto=format" 
+                    alt="Jalan setapak pepohonan hijau rindang" 
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+              </div>
+              <div className="space-y-4 pt-8">
+                <div className="rounded-2xl overflow-hidden aspect-square bg-gray-100 border border-black/[0.04]">
+                  <img 
+                    src="https://images.unsplash.com/photo-1500485035595-cbe6f645feb1?w=600&h=600&fit=crop&auto=format" 
+                    alt="Danau alam tenang dikelilingi hutan hijau" 
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+                <div className="rounded-2xl overflow-hidden aspect-[4/5] bg-gray-100 border border-black/[0.04]">
+                  <img 
+                    src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600&h=800&fit=crop&auto=format" 
+                    alt="Lembah pegunungan asri pagi hari" 
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
       {/* Preview Village Life ──────────────────────────────── */}
       <section className="py-24 lg:py-36">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">

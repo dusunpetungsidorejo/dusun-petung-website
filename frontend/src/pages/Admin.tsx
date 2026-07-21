@@ -20,13 +20,19 @@ import {
   MapPin, 
   Lock, 
   User,
-  X
+  X,
+  Home,
+  Building2,
+  Users,
+  Eye,
+  EyeOff,
+  DollarSign,
+  AlertCircle
 } from "lucide-react";
-import { Page, Activity } from "../types";
-import { Tiktok } from "../components/Tiktok";
+import { Page, Activity, LiveInHouse } from "../types";
 import { ToastContainer } from "../components/ToastContainer";
 
-type AdminSection = "dashboard" | "docs" | "add-doc" | "settings";
+type AdminSection = "dashboard" | "docs" | "add-doc" | "settings" | "livein" | "add-livein";
 
 interface AdminPageProps {
   nav: (p: Page) => void;
@@ -88,6 +94,43 @@ export function AdminPage({
   const logoFileRef = useRef<HTMLInputElement>(null);
   const heroFileRef = useRef<HTMLInputElement>(null);
 
+  // Live In States
+  const [liveinHouses, setLiveinHouses] = useState<LiveInHouse[]>([]);
+  const [loadingLivein, setLoadingLivein] = useState(false);
+  const [submittingLivein, setSubmittingLivein] = useState(false);
+  const [editingLiveinId, setEditingLiveinId] = useState<number | null>(null);
+  const [deleteLiveinId, setDeleteLiveinId] = useState<number | null>(null);
+  const [liveinSearch, setLiveinSearch] = useState("");
+  const [liveinFilterStatus, setLiveinFilterStatus] = useState<string>("all");
+
+  // Live In Form States
+  const [liveinName, setLiveinName] = useState("");
+  const [liveinOwner, setLiveinOwner] = useState("");
+  const [liveinCoverImage, setLiveinCoverImage] = useState("");
+  const [liveinGallery, setLiveinGallery] = useState<string[]>([]);
+  const [liveinDescription, setLiveinDescription] = useState("");
+  const [liveinHighlight, setLiveinHighlight] = useState("");
+  const [liveinOvernightActive, setLiveinOvernightActive] = useState(false);
+  const [liveinOvernightPrice, setLiveinOvernightPrice] = useState("");
+  const [liveinOvernightCheckin, setLiveinOvernightCheckin] = useState("");
+  const [liveinOvernightCheckout, setLiveinOvernightCheckout] = useState("");
+  const [liveinHour24Active, setLiveinHour24Active] = useState(false);
+  const [liveinHour24Price, setLiveinHour24Price] = useState("");
+  const [liveinHour24Description, setLiveinHour24Description] = useState("");
+  const [liveinPricingType, setLiveinPricingType] = useState<'house' | 'person'>("house");
+  const [liveinMinGuests, setLiveinMinGuests] = useState("");
+  const [liveinMaxGuests, setLiveinMaxGuests] = useState("");
+  
+  const [selectedFacilities, setSelectedFacilities] = useState<string[]>([]);
+  const [facilitiesOther, setFacilitiesOther] = useState("");
+  const [selectedExperiences, setSelectedExperiences] = useState<string[]>([]);
+  const [experiencesOther, setExperiencesOther] = useState("");
+  const [liveinStatus, setLiveinStatus] = useState<'Available' | 'Unavailable' | 'Inactive'>("Available");
+
+  const liveinCoverFileRef = useRef<HTMLInputElement>(null);
+  const liveinGalleryFileRef = useRef<HTMLInputElement>(null);
+
+  // Fetch settings effect
   useEffect(() => {
     if (settings) {
       setVillageNameInput(settings.village_name || "");
@@ -99,10 +142,32 @@ export function AdminPage({
     }
   }, [settings]);
 
-  const sideNav: { icon: React.ElementType; label: string; key: AdminSection }[] = [
-    { icon: LayoutDashboard, label: "Dashboard", key: "dashboard" },
-    { icon: FileText, label: "Dokumentasi", key: "docs" },
-    { icon: Settings, label: "Pengaturan Website", key: "settings" },
+  // Fetch Live In Houses
+  const fetchLiveinHouses = async () => {
+    setLoadingLivein(true);
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${baseUrl}/livein`);
+      if (res.ok) {
+        const data = await res.json();
+        setLiveinHouses(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch Live In houses:", err);
+    } finally {
+      setLoadingLivein(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLiveinHouses();
+  }, []);
+
+  const sideNav = [
+    { icon: LayoutDashboard, label: "Dashboard", key: "dashboard" as AdminSection },
+    { icon: Home, label: "Live In", key: "livein" as AdminSection },
+    { icon: FileText, label: "Dokumentasi", key: "docs" as AdminSection },
+    { icon: Settings, label: "Pengaturan Website", key: "settings" as AdminSection },
   ];
 
   const uploadMedia = async (file: File): Promise<string> => {
@@ -131,11 +196,24 @@ export function AdminPage({
     ref.current?.click();
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, target: "logo" | "hero" | "doc") => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, target: "logo" | "hero" | "doc" | "livein-cover" | "livein-gallery") => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
     try {
+      if (target === "livein-gallery") {
+        showToast(`Sedang mengunggah ${files.length} gambar galeri...`);
+        const uploadedUrls: string[] = [];
+        for (let i = 0; i < files.length; i++) {
+          const url = await uploadMedia(files[i]);
+          uploadedUrls.push(url);
+        }
+        setLiveinGallery(prev => [...prev, ...uploadedUrls]);
+        showToast("Galeri berhasil diperbarui!");
+        return;
+      }
+
+      const file = files[0];
       showToast("Sedang mengunggah gambar...");
       const fileUrl = await uploadMedia(file);
 
@@ -149,6 +227,9 @@ export function AdminPage({
         setUploadedFile(fileUrl);
         setRawFile(file);
         showToast("Gambar dokumentasi berhasil diunggah!");
+      } else if (target === "livein-cover") {
+        setLiveinCoverImage(fileUrl);
+        showToast("Gambar cover Live In berhasil diunggah!");
       }
     } catch (err: any) {
       showToast(err.message || "Gagal mengunggah gambar", "error");
@@ -190,7 +271,7 @@ export function AdminPage({
     }
   };
 
-  // Drag and Drop docs handlers
+  // Drag and drop handlers for documentation
   const onDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(true);
@@ -215,14 +296,9 @@ export function AdminPage({
     }
   };
 
-  // Drag and Drop logo handlers
-  const onLogoDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setLogoDragOver(true);
-  };
-  const onLogoDragLeave = () => {
-    setLogoDragOver(false);
-  };
+  // Drag and drop for Settings Logo
+  const onLogoDragOver = (e: React.DragEvent) => { e.preventDefault(); setLogoDragOver(true); };
+  const onLogoDragLeave = () => { setLogoDragOver(false); };
   const onLogoDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setLogoDragOver(false);
@@ -239,14 +315,9 @@ export function AdminPage({
     }
   };
 
-  // Drag and Drop hero handlers
-  const onHeroDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setHeroDragOver(true);
-  };
-  const onHeroDragLeave = () => {
-    setHeroDragOver(false);
-  };
+  // Drag and drop for Settings Hero
+  const onHeroDragOver = (e: React.DragEvent) => { e.preventDefault(); setHeroDragOver(true); };
+  const onHeroDragLeave = () => { setHeroDragOver(false); };
   const onHeroDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setHeroDragOver(false);
@@ -263,6 +334,7 @@ export function AdminPage({
     }
   };
 
+  // Save Documentation
   const handleSaveDoc = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!titleInput.trim() || !descInput.trim() || !uploadedFile) {
@@ -281,7 +353,6 @@ export function AdminPage({
 
       let res;
       if (editingDocId) {
-        // Edit existing doc
         res = await fetch(`${baseUrl}/activities/${editingDocId}`, {
           method: "PUT",
           headers: {
@@ -291,7 +362,6 @@ export function AdminPage({
           body: JSON.stringify(payload)
         });
       } else {
-        // Create new doc
         res = await fetch(`${baseUrl}/activities`, {
           method: "POST",
           headers: {
@@ -329,7 +399,7 @@ export function AdminPage({
     }
   };
 
-  const handleEditClick = (doc: any) => {
+  const handleEditDocClick = (doc: any) => {
     setEditingDocId(doc.id);
     setTitleInput(doc.title);
     setDescInput(doc.description);
@@ -337,7 +407,7 @@ export function AdminPage({
     setSection("add-doc");
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDeleteDoc = async (id: number) => {
     try {
       const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
       const res = await fetch(`${baseUrl}/activities/${id}`, {
@@ -359,12 +429,192 @@ export function AdminPage({
     }
   };
 
+  // Save Live In House
+  const handleSaveLivein = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!liveinName.trim() || !liveinOwner.trim()) {
+      showToast("Nama rumah dan pemilik wajib diisi", "error");
+      return;
+    }
+
+    setSubmittingLivein(true);
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const payload = {
+        name: liveinName,
+        owner: liveinOwner,
+        cover_image: liveinCoverImage,
+        gallery: liveinGallery,
+        description: liveinDescription,
+        highlight: liveinHighlight,
+        overnight_active: liveinOvernightActive,
+        overnight_price: liveinOvernightActive ? Number(liveinOvernightPrice) || 0 : null,
+        overnight_checkin: liveinOvernightActive ? liveinOvernightCheckin : null,
+        overnight_checkout: liveinOvernightActive ? liveinOvernightCheckout : null,
+        hour24_active: liveinHour24Active,
+        hour24_price: liveinHour24Active ? Number(liveinHour24Price) || 0 : null,
+        hour24_description: liveinHour24Active ? liveinHour24Description : null,
+        pricing_type: liveinPricingType,
+        min_guests: Number(liveinMinGuests) || 1,
+        max_guests: Number(liveinMaxGuests) || 10,
+        facilities: selectedFacilities,
+        facilities_other: selectedFacilities.includes("Others") ? facilitiesOther : null,
+        experiences: selectedExperiences,
+        experiences_other: selectedExperiences.includes("Others") ? experiencesOther : null,
+        status: liveinStatus
+      };
+
+      let res;
+      if (editingLiveinId) {
+        res = await fetch(`${baseUrl}/livein/${editingLiveinId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+      } else {
+        res = await fetch(`${baseUrl}/livein`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+      }
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.message || "Gagal menyimpan Rumah Live In");
+      }
+
+      showToast(editingLiveinId ? "Rumah Live In berhasil diperbarui!" : "Rumah Live In berhasil ditambahkan!");
+      fetchLiveinHouses();
+      handleResetLiveinForm();
+      setSection("livein");
+    } catch (err: any) {
+      showToast(err.message || "Gagal menyimpan Rumah Live In", "error");
+    } finally {
+      setSubmittingLivein(false);
+    }
+  };
+
+  const handleEditLiveinClick = (house: LiveInHouse) => {
+    setEditingLiveinId(house.id || null);
+    setLiveinName(house.name);
+    setLiveinOwner(house.owner);
+    setLiveinCoverImage(house.cover_image || "");
+    setLiveinGallery(house.gallery || []);
+    setLiveinDescription(house.description || "");
+    setLiveinHighlight(house.highlight || "");
+    setLiveinOvernightActive(!!house.overnight_active);
+    setLiveinOvernightPrice(house.overnight_price ? String(house.overnight_price) : "");
+    setLiveinOvernightCheckin(house.overnight_checkin || "");
+    setLiveinOvernightCheckout(house.overnight_checkout || "");
+    setLiveinHour24Active(!!house.hour24_active);
+    setLiveinHour24Price(house.hour24_price ? String(house.hour24_price) : "");
+    setLiveinHour24Description(house.hour24_description || "");
+    setLiveinPricingType(house.pricing_type || "house");
+    setLiveinMinGuests(house.min_guests ? String(house.min_guests) : "");
+    setLiveinMaxGuests(house.max_guests ? String(house.max_guests) : "");
+    setSelectedFacilities(house.facilities || []);
+    setFacilitiesOther(house.facilities_other || "");
+    setSelectedExperiences(house.experiences || []);
+    setExperiencesOther(house.experiences_other || "");
+    setLiveinStatus(house.status || "Available");
+    
+    setSection("add-livein");
+  };
+
+  const handleDeleteLivein = async (id: number) => {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${baseUrl}/livein/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if (!res.ok) {
+        throw new Error("Gagal menghapus Rumah Live In");
+      }
+
+      setLiveinHouses(prev => prev.filter(h => h.id !== id));
+      showToast("Rumah Live In berhasil dihapus!");
+      setDeleteLiveinId(null);
+    } catch (err: any) {
+      showToast(err.message || "Gagal menghapus Rumah Live In", "error");
+    }
+  };
+
+  const handleResetLiveinForm = () => {
+    setEditingLiveinId(null);
+    setLiveinName("");
+    setLiveinOwner("");
+    setLiveinCoverImage("");
+    setLiveinGallery([]);
+    setLiveinDescription("");
+    setLiveinHighlight("");
+    setLiveinOvernightActive(false);
+    setLiveinOvernightPrice("");
+    setLiveinOvernightCheckin("");
+    setLiveinOvernightCheckout("");
+    setLiveinHour24Active(false);
+    setLiveinHour24Price("");
+    setLiveinHour24Description("");
+    setLiveinPricingType("house");
+    setLiveinMinGuests("");
+    setLiveinMaxGuests("");
+    setSelectedFacilities([]);
+    setFacilitiesOther("");
+    setSelectedExperiences([]);
+    setExperiencesOther("");
+    setLiveinStatus("Available");
+  };
+
+  const toggleFacility = (facility: string) => {
+    setSelectedFacilities(prev => 
+      prev.includes(facility) 
+        ? prev.filter(f => f !== facility) 
+        : [...prev, facility]
+    );
+  };
+
+  const toggleExperience = (experience: string) => {
+    setSelectedExperiences(prev => 
+      prev.includes(experience) 
+        ? prev.filter(e => e !== experience) 
+        : [...prev, experience]
+    );
+  };
+
+  const removeGalleryImage = (indexToRemove: number) => {
+    setLiveinGallery(prev => prev.filter((_, idx) => idx !== indexToRemove));
+  };
+
+  // Filters and searches
   const filteredDocs = (activities as any[]).filter((d: any) => 
     d?.title && (
       d.title.toLowerCase().includes(search.toLowerCase()) || 
       (d.description || "").toLowerCase().includes(search.toLowerCase())
     )
   );
+
+  const filteredLivein = liveinHouses.filter(house => {
+    const matchesSearch = 
+      house.name.toLowerCase().includes(liveinSearch.toLowerCase()) ||
+      house.owner.toLowerCase().includes(liveinSearch.toLowerCase()) ||
+      (house.description || "").toLowerCase().includes(liveinSearch.toLowerCase());
+    
+    const matchesStatus = 
+      liveinFilterStatus === "all" || 
+      house.status.toLowerCase() === liveinFilterStatus.toLowerCase();
+
+    return matchesSearch && matchesStatus;
+  });
 
   const last7DaysCount = (activities as any[]).filter((doc: any) => {
     if (!doc?.title) return false;
@@ -376,13 +626,21 @@ export function AdminPage({
     return diffDays >= 0 && diffDays <= 7;
   }).length;
 
+  // Live in statistics
+  const totalLiveinCount = liveinHouses.length;
+  const availableLiveinCount = liveinHouses.filter(h => h.status === "Available").length;
+  const unavailableLiveinCount = liveinHouses.filter(h => h.status === "Unavailable").length;
+  const inactiveLiveinCount = liveinHouses.filter(h => h.status === "Inactive").length;
+
   return (
-    <div style={{ fontFamily: "'Inter', sans-serif" }} className="min-h-screen bg-[#FAF9F5] flex">
+    <div style={{ fontFamily: "'Inter', sans-serif" }} className="min-h-screen bg-[#FAF9F5] flex w-full">
       {toast && <ToastContainer toast={toast} setToast={setToast} />}
 
-      {/* Hidden file inputs for settings uploads */}
+      {/* Hidden inputs for uploads */}
       <input type="file" ref={logoFileRef} accept="image/*" className="hidden" onChange={e => handleFileChange(e, "logo")} />
       <input type="file" ref={heroFileRef} accept="image/*" className="hidden" onChange={e => handleFileChange(e, "hero")} />
+      <input type="file" ref={liveinCoverFileRef} accept="image/*" className="hidden" onChange={e => handleFileChange(e, "livein-cover")} />
+      <input type="file" ref={liveinGalleryFileRef} accept="image/*" multiple className="hidden" onChange={e => handleFileChange(e, "livein-gallery")} />
 
       {/* Backdrop overlay for mobile sidebar */}
       {isSidebarOpen && (
@@ -393,7 +651,7 @@ export function AdminPage({
       )}
 
       {/* Sidebar Navigation */}
-      <aside className={`fixed inset-y-0 left-0 z-40 w-64 border-r border-black/[0.06] bg-white flex flex-col justify-between shrink-0 h-screen transition-transform duration-300 transform md:static md:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed inset-y-0 left-0 z-40 w-64 border-r border-black/[0.06] bg-white flex flex-col justify-between shrink-0 h-screen transition-transform duration-300 transform md:sticky md:top-0 md:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div>
           {/* Logo brand */}
           <div className="h-[73px] border-b border-black/[0.06] px-6 flex items-center justify-between">
@@ -409,7 +667,6 @@ export function AdminPage({
                 {settings?.village_name || "Dusun Petung"}
               </span>
             </div>
-            {/* Close button for mobile */}
             <button 
               onClick={() => setIsSidebarOpen(false)} 
               className="p-1 text-[#7A7065] hover:text-[#2C2C2A] md:hidden"
@@ -427,14 +684,12 @@ export function AdminPage({
                 onClick={() => {
                   setSection(key);
                   setIsSidebarOpen(false);
-                  setEditingDocId(null);
-                  setTitleInput("");
-                  setDescInput("");
-                  setUploadedFile(null);
-                  setRawFile(null);
+                  handleResetLiveinForm();
                 }}
                 className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-lg text-[13px] font-semibold transition-all ${
-                  section === key || (key === "docs" && section === "add-doc")
+                  section === key || 
+                  (key === "livein" && section === "add-livein") ||
+                  (key === "docs" && section === "add-doc")
                     ? "bg-[#3A6520] text-white shadow-sm"
                     : "text-[#7A7065] hover:text-[#2C2C2A] hover:bg-[#F0EBE3]"
                 }`}
@@ -456,18 +711,17 @@ export function AdminPage({
             className="w-full flex items-center gap-3.5 px-4 py-3 text-[13px] font-semibold text-red-600 hover:bg-red-50 rounded-lg transition-all"
           >
             <LogOut className="w-[18px] h-[18px]" strokeWidth={1.75} />
-            Log Out
+            Keluar
           </button>
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 bg-[#FAF9F5]">
         
         {/* Header bar */}
         <header className="h-[73px] border-b border-black/[0.06] bg-white px-4 sm:px-6 lg:px-8 flex items-center justify-between shrink-0 sticky top-0 z-30">
           <div className="flex items-center gap-3 min-w-0">
-            {/* Hamburger Menu Button */}
             <button 
               onClick={() => setIsSidebarOpen(true)} 
               className="p-2 -ml-2 text-[#7A7065] hover:text-[#2C2C2A] md:hidden flex items-center justify-center"
@@ -478,7 +732,9 @@ export function AdminPage({
               </svg>
             </button>
             <h1 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[15px] sm:text-[17px] font-extrabold text-[#2C2C2A] truncate">
-              {section === "dashboard" && "Dashboard"}
+              {section === "dashboard" && "Dashboard Overview"}
+              {section === "livein" && "Manajemen Live In"}
+              {section === "add-livein" && (editingLiveinId ? "Ubah Rumah Live In" : "Tambah Rumah Live In Baru")}
               {section === "docs" && "Manajemen Dokumentasi"}
               {section === "add-doc" && (editingDocId ? "Ubah Dokumentasi" : "Tambah Dokumentasi Baru")}
               {section === "settings" && "Pengaturan Website"}
@@ -500,120 +756,713 @@ export function AdminPage({
         </header>
 
         {/* Dashboard Panels */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto w-full">
 
           {/* Section: Dashboard Overview */}
           {section === "dashboard" && (
-            <div className="flex flex-col gap-8">
+            <div className="flex flex-col gap-8 w-full max-w-7xl">
               
-              {/* Statistic widgets */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {[
-                  {label: "Jumlah Kegiatan", value: activities.length, icon: FileText, desc: "Total dokumentasi terbit"},
-                  { label: "Kegiatan (7 Hari Terakhir)", value: last7DaysCount, icon: Clock, desc: "Dokumentasi baru minggu ini" },
-                ].map(({ label, value, icon: Icon, desc }) => (
-                  <div key={label} className="bg-white border border-black/[0.06] rounded-xl p-6 shadow-sm flex items-start justify-between">
-                    <div>
-                      <span className="text-[11.5px] font-bold text-[#7A7065] uppercase tracking-wider">{label}</span>
-                      <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-2xl font-extrabold text-[#2C2C2A] mt-2 mb-1">
-                        {value}
+              {/* Live In Statistics Row */}
+              <div>
+                <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[13px] font-bold text-[#7A7065] uppercase tracking-wider mb-4">Statistik Live In</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                  {[
+                    { label: "Total Rumah Live In", value: totalLiveinCount, icon: Home, desc: "Seluruh rumah terdaftar", color: "text-[#3A6520] bg-[#3A6520]/8" },
+                    { label: "Tersedia (Available)", value: availableLiveinCount, icon: Check, desc: "Siap disewa pengunjung", color: "text-emerald-600 bg-emerald-50" },
+                    { label: "Penuh (Unavailable)", value: unavailableLiveinCount, icon: X, desc: "Sedang tidak tersedia", color: "text-amber-600 bg-amber-50" },
+                    { label: "Tidak Aktif (Inactive)", value: inactiveLiveinCount, icon: EyeOff, desc: "Disembunyikan dari publik", color: "text-gray-500 bg-gray-100" }
+                  ].map(({ label, value, icon: Icon, desc, color }) => (
+                    <div key={label} className="bg-white border border-black/[0.06] rounded-xl p-5 shadow-sm flex items-start justify-between">
+                      <div>
+                        <span className="text-[11px] font-bold text-[#7A7065] uppercase tracking-wider">{label}</span>
+                        <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-2xl font-extrabold text-[#2C2C2A] mt-1.5 mb-0.5">
+                          {value}
+                        </div>
+                        <span className="text-[11px] text-[#B8AFA3]">{desc}</span>
                       </div>
-                      <span className="text-[12px] text-[#B8AFA3]">{desc}</span>
+                      <span className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${color}`}>
+                        <Icon className="w-[18px] h-[18px]" strokeWidth={2} />
+                      </span>
                     </div>
-                    <span className="w-10 h-10 rounded-lg bg-[#3A6520]/8 text-[#3A6520] flex items-center justify-center shrink-0">
-                      <Icon className="w-5 h-5" strokeWidth={1.75} />
-                    </span>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                <button
-                  onClick={() => setSection("add-doc")}
-                  className="flex items-center gap-2 px-5 py-3 bg-[#3A6520] hover:bg-[#2D5016] text-white text-[12.5px] font-semibold rounded-xl shadow-sm transition"
-                >
-                  <Plus className="w-4 h-4" />
-                  Buat Kegiatan Baru
-                </button>
-                <button
-                  onClick={() => setSection("settings")}
-                  className="flex items-center gap-2 px-5 py-3 border border-black/[0.09] text-[#5A5550] text-[12.5px] font-semibold rounded-xl hover:bg-[#FAF9F5] transition"
-                >
-                  <Settings className="w-4 h-4" />
-                  Pengaturan Website
-                </button>
+              {/* Documentation Stats */}
+              <div>
+                <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[13px] font-bold text-[#7A7065] uppercase tracking-wider mb-4">Statistik Kegiatan & Dokumentasi</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  {[
+                    { label: "Jumlah Kegiatan", value: activities.length, icon: FileText, desc: "Total dokumentasi terbit", color: "text-[#3A6520] bg-[#3A6520]/8" },
+                    { label: "Kegiatan (7 Hari Terakhir)", value: last7DaysCount, icon: Clock, desc: "Dokumentasi baru minggu ini", color: "text-[#3A6520] bg-[#3A6520]/8" },
+                  ].map(({ label, value, icon: Icon, desc, color }) => (
+                    <div key={label} className="bg-white border border-black/[0.06] rounded-xl p-5 shadow-sm flex items-start justify-between">
+                      <div>
+                        <span className="text-[11px] font-bold text-[#7A7065] uppercase tracking-wider">{label}</span>
+                        <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-2xl font-extrabold text-[#2C2C2A] mt-1.5 mb-0.5">
+                          {value}
+                        </div>
+                        <span className="text-[11px] text-[#B8AFA3]">{desc}</span>
+                      </div>
+                      <span className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${color}`}>
+                        <Icon className="w-[18px] h-[18px]" strokeWidth={2} />
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              {/* All Documents List */}
-              <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm overflow-hidden flex flex-col">
-                <div className="p-5 border-b border-black/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[15px] font-bold text-[#2C2C2A]">
-                    Daftar Dokumentasi
+              {/* Quick Actions */}
+              <div>
+                <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[13px] font-bold text-[#7A7065] uppercase tracking-wider mb-4">Tindakan Cepat</h3>
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    onClick={() => { handleResetLiveinForm(); setSection("add-livein"); }}
+                    className="flex items-center gap-2 px-5 py-3 bg-[#3A6520] hover:bg-[#2D5016] text-white text-[12.5px] font-semibold rounded-xl shadow-sm transition cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Tambah Rumah Live In Baru
+                  </button>
+                  <button
+                    onClick={() => { setEditingDocId(null); setTitleInput(""); setDescInput(""); setUploadedFile(null); setSection("add-doc"); }}
+                    className="flex items-center gap-2 px-5 py-3 bg-white border border-black/[0.09] hover:bg-[#FAF9F5] text-[#2C2C2A] text-[12.5px] font-semibold rounded-xl shadow-sm transition cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Buat Kegiatan Baru
+                  </button>
+                  <button
+                    onClick={() => setSection("settings")}
+                    className="flex items-center gap-2 px-5 py-3 bg-white border border-black/[0.09] hover:bg-[#FAF9F5] text-[#2C2C2A] text-[12.5px] font-semibold rounded-xl shadow-sm transition cursor-pointer"
+                  >
+                    <Settings className="w-4 h-4" />
+                    Pengaturan Website
+                  </button>
+                </div>
+              </div>
+
+              {/* Recent Activity Side-by-Side */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                {/* Recently Added Live In */}
+                <div className="bg-white border border-black/[0.06] rounded-xl p-5 shadow-sm flex flex-col gap-4">
+                  <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[14px] font-bold text-[#2C2C2A]">
+                    Rumah Live In Baru
                   </h3>
-                  <div className="relative w-full sm:w-80">
+                  <div className="divide-y divide-black/[0.04]">
+                    {liveinHouses.slice(0, 3).map((house, idx) => (
+                      <div key={house.id || idx} className="py-3 flex items-center justify-between first:pt-0 last:pb-0">
+                        <div className="flex items-center gap-3">
+                          {house.cover_image ? (
+                            <img src={house.cover_image} alt="" className="w-10 h-10 object-cover rounded bg-[#FAF9F5] border border-black/[0.05]" />
+                          ) : (
+                            <span className="w-10 h-10 rounded bg-[#FAF9F5] border border-black/[0.05] flex items-center justify-center text-[#B8AFA3]">
+                              <Home className="w-4 h-4" />
+                            </span>
+                          )}
+                          <div>
+                            <span className="text-[13px] font-bold text-[#2C2C2A] block">{house.name}</span>
+                            <span className="text-[11.5px] text-[#7A7065] block">Pemilik: {house.owner}</span>
+                          </div>
+                        </div>
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-semibold ${
+                          house.status === "Available" ? "bg-emerald-50 text-emerald-700" :
+                          house.status === "Unavailable" ? "bg-amber-50 text-amber-700" :
+                          "bg-gray-100 text-gray-700"
+                        }`}>
+                          {house.status === "Available" ? "Tersedia" :
+                           house.status === "Unavailable" ? "Penuh" : "Tidak Aktif"}
+                        </span>
+                      </div>
+                    ))}
+                    {liveinHouses.length === 0 && (
+                      <p className="text-center py-6 text-[12.5px] text-[#7A7065]">Belum ada data Live In.</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Recently Added Activities */}
+                <div className="bg-white border border-black/[0.06] rounded-xl p-5 shadow-sm flex flex-col gap-4">
+                  <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[14px] font-bold text-[#2C2C2A]">
+                    Kegiatan Dokumentasi Terbaru
+                  </h3>
+                  <div className="divide-y divide-black/[0.04]">
+                    {activities.slice(0, 3).map((act, idx) => (
+                      <div key={act.id || idx} className="py-3 flex items-center justify-between first:pt-0 last:pb-0">
+                        <div className="flex items-center gap-3">
+                          {act.image_url ? (
+                            <img src={act.image_url} alt="" className="w-10 h-10 object-cover rounded bg-[#FAF9F5] border border-black/[0.05]" />
+                          ) : (
+                            <span className="w-10 h-10 rounded bg-[#FAF9F5] border border-black/[0.05] flex items-center justify-center text-[#B8AFA3]">
+                              <FileText className="w-4 h-4" />
+                            </span>
+                          )}
+                          <div>
+                            <span className="text-[13px] font-bold text-[#2C2C2A] block truncate max-w-[200px]">{act.title}</span>
+                            <span className="text-[11.5px] text-[#7A7065] block">{act.date || act.uploaded_at}</span>
+                          </div>
+                        </div>
+                        <button onClick={() => handleEditDocClick(act)} className="p-1.5 border border-black/[0.08] hover:bg-[#FAF9F5] rounded text-[#7A7065] hover:text-[#2C2C2A]">
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                    {activities.length === 0 && (
+                      <p className="text-center py-6 text-[12.5px] text-[#7A7065]">Belum ada data kegiatan.</p>
+                    )}
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+          )}
+
+          {/* Section: Live In List */}
+          {section === "livein" && (
+            <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm overflow-hidden flex flex-col w-full max-w-7xl">
+              
+              {/* Toolbar */}
+              <div className="p-5 border-b border-black/[0.06] flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+                  
+                  {/* Search */}
+                  <div className="relative w-full sm:w-64">
                     <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <Search className="w-4 h-4 text-[#B8AFA3]" />
                     </span>
                     <input
                       type="text"
-                      value={search}
-                      onChange={e => setSearch(e.target.value)}
-                      placeholder="Cari dokumentasi..."
+                      value={liveinSearch}
+                      onChange={e => setLiveinSearch(e.target.value)}
+                      placeholder="Cari nama rumah / pemilik..."
                       className="w-full pl-9 pr-4 py-2 bg-[#FAF9F5] border border-black/[0.08] rounded-lg text-[13px] text-[#2C2C2A] placeholder:text-[#B8AFA3] outline-none focus:ring-1 focus:ring-[#3A6520]/25 transition"
                     />
                   </div>
+
+                  {/* Filter */}
+                  <div className="flex items-center gap-2">
+                    <Filter className="w-4 h-4 text-[#7A7065] shrink-0" />
+                    <select
+                      value={liveinFilterStatus}
+                      onChange={e => setLiveinFilterStatus(e.target.value)}
+                      className="px-3 py-2 bg-[#FAF9F5] border border-black/[0.08] rounded-lg text-[12.5px] text-[#5A5550] outline-none focus:ring-1 focus:ring-[#3A6520]/25"
+                    >
+                      <option value="all">Semua Status</option>
+                      <option value="available">Tersedia</option>
+                      <option value="unavailable">Penuh</option>
+                      <option value="inactive">Tidak Aktif</option>
+                    </select>
+                  </div>
+
                 </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-[#FAF9F5] border-b border-black/[0.06] text-[11.5px] font-bold text-[#7A7065] uppercase tracking-wider">
-                        <th className="py-4 px-4 sm:px-6">Gambar</th>
-                        <th className="py-4 px-4 sm:px-6">Dokumentasi</th>
-                        <th className="py-4 px-4 sm:px-6 text-right">Aksi</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-black/[0.05]">
-                      {filteredDocs.map((doc, idx) => (
-                        <tr key={doc.id || idx} className="hover:bg-black/[0.01] transition-colors text-[13px] text-[#2C2C2A]">
-                          <td className="py-4 px-4 sm:px-6 shrink-0">
-                            <img src={doc.image_url} alt="" className="w-14 h-11 object-cover bg-[#D4C9B5] rounded shrink-0" />
-                          </td>
-                          <td className="py-4 px-4 sm:px-6">
-                            <span className="font-bold text-[#2C2C2A] block mb-0.5">{doc.title}</span>
-                            <span className="text-[12px] text-[#7A7065] block max-w-[120px] xs:max-w-xs sm:max-w-md md:max-w-xl truncate">{doc.description}</span>
-                          </td>
-                          <td className="py-4 px-4 sm:px-6 text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <button onClick={() => handleEditClick(doc)} className="p-2 border border-black/[0.08] hover:bg-[#FAF9F5] rounded text-[#7A7065] hover:text-[#2C2C2A] transition" title="Ubah">
-                                <Pencil className="w-4 h-4" />
-                              </button>
-                              <button onClick={() => setDeleteId(doc.id)} className="p-2 border border-black/[0.08] hover:bg-red-50 rounded text-red-500 hover:text-red-700 transition" title="Hapus">
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                      {filteredDocs.length === 0 && (
-                        <tr>
-                          <td colSpan={3} className="text-center py-12 text-[#7A7065]">
-                            Tidak ada dokumentasi kegiatan ditemukan.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                <button 
+                  onClick={() => { handleResetLiveinForm(); setSection("add-livein"); }}
+                  className="flex items-center gap-1.5 px-5 py-2.5 bg-[#3A6520] hover:bg-[#2D5016] text-white text-[12.5px] font-semibold rounded-full shadow-sm transition shrink-0 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  Tambah Rumah Live In
+                </button>
               </div>
+
+              {/* Table */}
+              <div className="overflow-x-auto w-full">
+                <table className="w-full text-left border-collapse min-w-[700px]">
+                  <thead>
+                    <tr className="bg-[#FAF9F5] border-b border-black/[0.06] text-[11px] font-bold text-[#7A7065] uppercase tracking-wider">
+                      <th className="py-4 px-5">Foto</th>
+                      <th className="py-4 px-5">Nama Rumah</th>
+                      <th className="py-4 px-5">Pemilik</th>
+                      <th className="py-4 px-5">Kapasitas</th>
+                      <th className="py-4 px-5">Status</th>
+                      <th className="py-4 px-5">Terakhir Update</th>
+                      <th className="py-4 px-5 text-right">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-black/[0.04]">
+                    {filteredLivein.map((house, idx) => (
+                      <tr key={house.id || idx} className="hover:bg-black/[0.01] transition-colors text-[13px] text-[#2C2C2A]">
+                        <td className="py-4 px-5">
+                          {house.cover_image ? (
+                            <img src={house.cover_image} alt="" className="w-14 h-11 object-cover rounded border border-black/[0.05] bg-[#FAF9F5]" />
+                          ) : (
+                            <div className="w-14 h-11 rounded border border-black/[0.05] bg-[#FAF9F5] flex items-center justify-center text-[#B8AFA3]">
+                              <ImageIcon className="w-5 h-5" />
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-4 px-5 font-bold text-[#2C2C2A]">{house.name}</td>
+                        <td className="py-4 px-5 text-[#5A5550]">{house.owner}</td>
+                        <td className="py-4 px-5 text-[#5A5550]">{house.min_guests || 1} - {house.max_guests || 10} Orang</td>
+                        <td className="py-4 px-5">
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                            house.status === "Available" ? "bg-emerald-50 text-emerald-700 border border-emerald-100" :
+                            house.status === "Unavailable" ? "bg-amber-50 text-amber-700 border border-amber-100" :
+                            "bg-gray-100 text-gray-700 border border-gray-200"
+                          }`}>
+                            {house.status === "Available" ? "Tersedia" :
+                             house.status === "Unavailable" ? "Penuh" : "Tidak Aktif"}
+                          </span>
+                        </td>
+                        <td className="py-4 px-5 text-[#7A7065]">{house.updated_at}</td>
+                        <td className="py-4 px-5 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button onClick={() => handleEditLiveinClick(house)} className="p-2 border border-black/[0.08] hover:bg-[#FAF9F5] rounded text-[#7A7065] hover:text-[#2C2C2A] transition" title="Ubah">
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => setDeleteLiveinId(house.id || null)} className="p-2 border border-black/[0.08] hover:bg-red-50 rounded text-red-500 hover:text-red-700 transition" title="Hapus">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {filteredLivein.length === 0 && (
+                      <tr>
+                        <td colSpan={7} className="text-center py-12 text-[#7A7065]">
+                          Tidak ada rumah Live In ditemukan.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+            </div>
+          )}
+
+          {/* Section: Add/Edit Live In Form */}
+          {section === "add-livein" && (
+            <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm p-5 sm:p-8 max-w-4xl w-full">
+              
+              {/* Back button */}
+              <button 
+                onClick={() => { setSection("livein"); handleResetLiveinForm(); }} 
+                className="flex items-center gap-1 text-[#7A7065] hover:text-[#2C2C2A] text-[12.5px] font-semibold mb-8 transition"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Kembali ke Daftar Live In
+              </button>
+
+              <form onSubmit={handleSaveLivein} className="space-y-10">
+                
+                {/* 1. Basic Info Section */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3 border-l-4 border-[#3A6520] pl-3">
+                    <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[15px] font-bold text-[#2C2C2A]">
+                      Informasi Dasar
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Nama Rumah</label>
+                      <input
+                        type="text"
+                        required
+                        value={liveinName}
+                        onChange={e => setLiveinName(e.target.value)}
+                        placeholder="Contoh: Joglo Mbah Siswo"
+                        className="w-full px-4 py-2.5 bg-[#FAF9F5] border border-black/[0.08] rounded-lg text-[13px] text-[#2C2C2A] placeholder:text-[#B8AFA3] outline-none focus:ring-1 focus:ring-[#3A6520]/25 transition"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Nama Pemilik</label>
+                      <input
+                        type="text"
+                        required
+                        value={liveinOwner}
+                        onChange={e => setLiveinOwner(e.target.value)}
+                        placeholder="Contoh: Siswosuharto"
+                        className="w-full px-4 py-2.5 bg-[#FAF9F5] border border-black/[0.08] rounded-lg text-[13px] text-[#2C2C2A] placeholder:text-[#B8AFA3] outline-none focus:ring-1 focus:ring-[#3A6520]/25 transition"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Deskripsi Singkat</label>
+                    <textarea
+                      required
+                      rows={4}
+                      value={liveinDescription}
+                      onChange={e => setLiveinDescription(e.target.value)}
+                      placeholder="Gambarkan suasana rumah, keramahtamahan pemilik, atau keunikan menginap di sini..."
+                      className="w-full px-4 py-2.5 bg-[#FAF9F5] border border-black/[0.08] rounded-lg text-[13px] text-[#2C2C2A] placeholder:text-[#B8AFA3] outline-none focus:ring-1 focus:ring-[#3A6520]/25 transition resize-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Highlight Keunikan (Opsional)</label>
+                    <input
+                      type="text"
+                      value={liveinHighlight}
+                      onChange={e => setLiveinHighlight(e.target.value)}
+                      placeholder="Contoh: Dekat sungai alami, pemandangan langsung ke Merapi"
+                      className="w-full px-4 py-2.5 bg-[#FAF9F5] border border-black/[0.08] rounded-lg text-[13px] text-[#2C2C2A] placeholder:text-[#B8AFA3] outline-none focus:ring-1 focus:ring-[#3A6520]/25 transition"
+                    />
+                  </div>
+
+                  {/* Image uploads side-by-side */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                    
+                    {/* Cover image uploader */}
+                    <div>
+                      <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Foto Cover Utama</label>
+                      <div 
+                        onClick={() => handleFileUploadClick(liveinCoverFileRef)}
+                        className="border-2 border-dashed border-black/[0.09] bg-[#FAF9F5] hover:border-black/20 rounded-xl p-5 text-center cursor-pointer transition flex flex-col items-center justify-center h-44"
+                      >
+                        {liveinCoverImage ? (
+                          <div className="relative w-full h-full">
+                            <img src={liveinCoverImage} alt="" className="w-full h-full object-cover rounded" />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition flex items-center justify-center text-white text-[11px] font-medium rounded">
+                              Klik untuk mengganti gambar
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <Upload className="w-6 h-6 text-[#B8AFA3] mb-2" />
+                            <span className="text-[12px] font-bold text-[#2C2C2A] block">Unggah Gambar Cover</span>
+                            <span className="text-[11px] text-[#7A7065] mt-1">Satu gambar resolusi tinggi landscape</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Gallery uploader */}
+                    <div>
+                      <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Galeri Foto Rumah</label>
+                      <div 
+                        onClick={() => handleFileUploadClick(liveinGalleryFileRef)}
+                        className="border-2 border-dashed border-black/[0.09] bg-[#FAF9F5] hover:border-black/20 rounded-xl p-5 text-center cursor-pointer transition flex flex-col items-center justify-center h-44"
+                      >
+                        <Upload className="w-6 h-6 text-[#B8AFA3] mb-2" />
+                        <span className="text-[12px] font-bold text-[#2C2C2A] block">Unggah Galeri Foto</span>
+                        <span className="text-[11px] text-[#7A7065] mt-1">Pilih satu atau beberapa gambar suasana dalam rumah</span>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {/* Gallery thumbnails rendering */}
+                  {liveinGallery.length > 0 && (
+                    <div className="pt-2">
+                      <span className="block text-[12px] font-semibold text-[#7A7065] mb-2">Foto Galeri Terunggah ({liveinGallery.length}):</span>
+                      <div className="flex flex-wrap gap-3">
+                        {liveinGallery.map((url, idx) => (
+                          <div key={idx} className="relative w-20 h-16 group border border-black/[0.08] rounded overflow-hidden shadow-sm">
+                            <img src={url} alt="" className="w-full h-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => removeGalleryImage(idx)}
+                              className="absolute top-1 right-1 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                              title="Hapus"
+                            >
+                              <X className="w-2.5 h-2.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+
+                {/* 2. Package Section */}
+                <div className="space-y-6 pt-4 border-t border-black/[0.06]">
+                  <div className="flex items-center gap-3 border-l-4 border-[#3A6520] pl-3">
+                    <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[15px] font-bold text-[#2C2C2A]">
+                      Paket Live In
+                    </h3>
+                  </div>
+
+                  <div className="space-y-6">
+                    {/* Overnight Package */}
+                    <div className="bg-[#FAF9F5] p-5 border border-black/[0.06] rounded-xl space-y-4">
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={liveinOvernightActive}
+                          onChange={e => setLiveinOvernightActive(e.target.checked)}
+                          className="w-4 h-4 rounded text-[#3A6520] border-black/[0.12] focus:ring-[#3A6520]/20"
+                        />
+                        <span className="text-[13px] font-bold text-[#2C2C2A]">Paket Menginap (Overnight)</span>
+                      </label>
+
+                      {liveinOvernightActive && (
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                          <div>
+                            <label className="block text-[11.5px] font-semibold text-[#5A5550] mb-1.5">Harga per malam (Rp)</label>
+                            <input
+                              type="number"
+                              value={liveinOvernightPrice}
+                              onChange={e => setLiveinOvernightPrice(e.target.value)}
+                              placeholder="150000"
+                              className="w-full px-3 py-2 bg-white border border-black/[0.08] rounded-lg text-[13px] outline-none"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[11.5px] font-semibold text-[#5A5550] mb-1.5">Waktu Check-in</label>
+                            <input
+                              type="text"
+                              value={liveinOvernightCheckin}
+                              onChange={e => setLiveinOvernightCheckin(e.target.value)}
+                              placeholder="14:00 WIB"
+                              className="w-full px-3 py-2 bg-white border border-black/[0.08] rounded-lg text-[13px] outline-none"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[11.5px] font-semibold text-[#5A5550] mb-1.5">Waktu Check-out</label>
+                            <input
+                              type="text"
+                              value={liveinOvernightCheckout}
+                              onChange={e => setLiveinOvernightCheckout(e.target.value)}
+                              placeholder="12:00 WIB"
+                              className="w-full px-3 py-2 bg-white border border-black/[0.08] rounded-lg text-[13px] outline-none"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 24 Hour Package */}
+                    <div className="bg-[#FAF9F5] p-5 border border-black/[0.06] rounded-xl space-y-4">
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={liveinHour24Active}
+                          onChange={e => setLiveinHour24Active(e.target.checked)}
+                          className="w-4 h-4 rounded text-[#3A6520] border-black/[0.12] focus:ring-[#3A6520]/20"
+                        />
+                        <span className="text-[13px] font-bold text-[#2C2C2A]">Paket 24 Jam (Menginap + Aktivitas)</span>
+                      </label>
+
+                      {liveinHour24Active && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                          <div>
+                            <label className="block text-[11.5px] font-semibold text-[#5A5550] mb-1.5">Harga paket (Rp)</label>
+                            <input
+                              type="number"
+                              value={liveinHour24Price}
+                              onChange={e => setLiveinHour24Price(e.target.value)}
+                              placeholder="250000"
+                              className="w-full px-3 py-2 bg-white border border-black/[0.08] rounded-lg text-[13px] outline-none"
+                            />
+                          </div>
+                          <div className="md:col-span-2">
+                            <label className="block text-[11.5px] font-semibold text-[#5A5550] mb-1.5">Deskripsi Paket</label>
+                            <input
+                              type="text"
+                              value={liveinHour24Description}
+                              onChange={e => setLiveinHour24Description(e.target.value)}
+                              placeholder="Contoh: Menginap 1 malam + Makan 3x + Aktivitas Bertani"
+                              className="w-full px-3 py-2 bg-white border border-black/[0.08] rounded-lg text-[13px] outline-none"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Pricing & Capacity Section */}
+                <div className="space-y-6 pt-4 border-t border-black/[0.06]">
+                  <div className="flex items-center gap-3 border-l-4 border-[#3A6520] pl-3">
+                    <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[15px] font-bold text-[#2C2C2A]">
+                      Metode Penentuan Harga & Kapasitas
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Pricing Type */}
+                    <div>
+                      <span className="block text-[12.5px] font-semibold text-[#5A5550] mb-3">Tipe Perhitungan Biaya</span>
+                      <div className="flex items-center gap-6">
+                        <label className="flex items-center gap-2.5 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="pricing_type"
+                            checked={liveinPricingType === "house"}
+                            onChange={() => setLiveinPricingType("house")}
+                            className="w-4 h-4 text-[#3A6520] focus:ring-[#3A6520]/20 border-black/10"
+                          />
+                          <span className="text-[13px] text-[#2C2C2A]">Per Rumah</span>
+                        </label>
+                        <label className="flex items-center gap-2.5 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="pricing_type"
+                            checked={liveinPricingType === "person"}
+                            onChange={() => setLiveinPricingType("person")}
+                            className="w-4 h-4 text-[#3A6520] focus:ring-[#3A6520]/20 border-black/10"
+                          />
+                          <span className="text-[13px] text-[#2C2C2A]">Per Orang / Tamu</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Guests Capacity */}
+                    <div>
+                      <span className="block text-[12.5px] font-semibold text-[#5A5550] mb-3">Kapasitas Tamu</span>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-[11px] text-[#7A7065] mb-1">Minimal (Orang)</label>
+                          <input
+                            type="number"
+                            value={liveinMinGuests}
+                            onChange={e => setLiveinMinGuests(e.target.value)}
+                            placeholder="1"
+                            className="w-full px-3 py-2 bg-[#FAF9F5] border border-black/[0.08] rounded-lg text-[13px] outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] text-[#7A7065] mb-1">Maksimal (Orang)</label>
+                          <input
+                            type="number"
+                            value={liveinMaxGuests}
+                            onChange={e => setLiveinMaxGuests(e.target.value)}
+                            placeholder="8"
+                            className="w-full px-3 py-2 bg-[#FAF9F5] border border-black/[0.08] rounded-lg text-[13px] outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 4. Facilities Checkboxes */}
+                <div className="space-y-6 pt-4 border-t border-black/[0.06]">
+                  <div className="flex items-center gap-3 border-l-4 border-[#3A6520] pl-3">
+                    <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[15px] font-bold text-[#2C2C2A]">
+                      Fasilitas Rumah
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    {[
+                      "Kamar Tidur", "Kamar Mandi", "Dapur", "Welcome Drink",
+                      "Sarapan", "WiFi", "Air Panas", "Area Parkir",
+                      "Mushola", "Alat Mandi", "Handuk", "Others"
+                    ].map(facility => (
+                      <label key={facility} className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selectedFacilities.includes(facility)}
+                          onChange={() => toggleFacility(facility)}
+                          className="w-4 h-4 rounded text-[#3A6520] border-black/[0.12] focus:ring-[#3A6520]/20"
+                        />
+                        <span className="text-[12.5px] text-[#2C2C2A]">{facility === "Others" ? "Lainnya" : facility}</span>
+                      </label>
+                    ))}
+                  </div>
+
+                  {selectedFacilities.includes("Others") && (
+                    <div className="pt-2">
+                      <label className="block text-[11.5px] font-semibold text-[#5A5550] mb-1.5">Fasilitas Lainnya (pisahkan dengan koma)</label>
+                      <input
+                        type="text"
+                        value={facilitiesOther}
+                        onChange={e => setFacilitiesOther(e.target.value)}
+                        placeholder="Contoh: Kipas Angin, TV, Mesin Cuci"
+                        className="w-full px-4 py-2.5 bg-[#FAF9F5] border border-black/[0.08] rounded-lg text-[13px] outline-none"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* 5. Experience Checkboxes */}
+                <div className="space-y-6 pt-4 border-t border-black/[0.06]">
+                  <div className="flex items-center gap-3 border-l-4 border-[#3A6520] pl-3">
+                    <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[15px] font-bold text-[#2C2C2A]">
+                      Pengalaman & Aktivitas Dusun
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    {[
+                      "Farming", "Gardening", "Cooking Traditional Food", "Livestock Activities",
+                      "Village Activities", "Trekking", "Sunrise Experience", "Harvesting", "Others"
+                    ].map(exp => (
+                      <label key={exp} className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selectedExperiences.includes(exp)}
+                          onChange={() => toggleExperience(exp)}
+                          className="w-4 h-4 rounded text-[#3A6520] border-black/[0.12] focus:ring-[#3A6520]/20"
+                        />
+                        <span className="text-[12.5px] text-[#2C2C2A]">{exp === "Others" ? "Lainnya" : exp}</span>
+                      </label>
+                    ))}
+                  </div>
+
+                  {selectedExperiences.includes("Others") && (
+                    <div className="pt-2">
+                      <label className="block text-[11.5px] font-semibold text-[#5A5550] mb-1.5">Aktivitas Lainnya (pisahkan dengan koma)</label>
+                      <input
+                        type="text"
+                        value={experiencesOther}
+                        onChange={e => setExperiencesOther(e.target.value)}
+                        placeholder="Contoh: Membuat Gerabah, Membatik"
+                        className="w-full px-4 py-2.5 bg-[#FAF9F5] border border-black/[0.08] rounded-lg text-[13px] outline-none"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* 6. Status Section */}
+                <div className="space-y-6 pt-4 border-t border-black/[0.06]">
+                  <div className="flex items-center gap-3 border-l-4 border-[#3A6520] pl-3">
+                    <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[15px] font-bold text-[#2C2C2A]">
+                      Status Publikasi
+                    </h3>
+                  </div>
+
+                  <div className="flex items-center gap-6">
+                    {[
+                      { value: "Available", label: "Tersedia (Available)" },
+                      { value: "Unavailable", label: "Penuh (Unavailable)" },
+                      { value: "Inactive", label: "Tidak Aktif (Inactive)" }
+                    ].map(opt => (
+                      <label key={opt.value} className="flex items-center gap-2.5 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="livein_status"
+                          checked={liveinStatus === opt.value}
+                          onChange={() => setLiveinStatus(opt.value as any)}
+                          className="w-4 h-4 text-[#3A6520] focus:ring-[#3A6520]/20 border-black/10"
+                        />
+                        <span className="text-[13px] text-[#2C2C2A]">{opt.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Submit panel */}
+                <div className="pt-8 border-t border-black/[0.06] flex items-center gap-3">
+                  <button 
+                    type="submit" 
+                    disabled={submittingLivein} 
+                    className="px-8 py-3 bg-[#3A6520] hover:bg-[#2D5016] text-white text-[12.5px] font-bold rounded-full shadow transition disabled:opacity-50 cursor-pointer"
+                  >
+                    {submittingLivein ? "Menyimpan..." : (editingLiveinId ? "Simpan Perubahan" : "Tambah Rumah Live In")}
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={() => { setSection("livein"); handleResetLiveinForm(); }} 
+                    className="px-8 py-3 border border-black/[0.09] text-[#5A5550] text-[12.5px] font-semibold rounded-full hover:bg-[#FAF9F5] transition cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                </div>
+
+              </form>
 
             </div>
           )}
 
           {/* Section: Manage activities list */}
           {section === "docs" && (
-            <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm overflow-hidden flex flex-col">
+            <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm overflow-hidden flex flex-col w-full max-w-7xl">
               
               {/* Toolbar */}
               <div className="p-5 border-b border-black/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -637,7 +1486,7 @@ export function AdminPage({
               </div>
 
               {/* Table list */}
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto w-full">
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-[#FAF9F5] border-b border-black/[0.06] text-[11.5px] font-bold text-[#7A7065] uppercase tracking-wider">
@@ -658,7 +1507,7 @@ export function AdminPage({
                         </td>
                         <td className="py-4 px-4 sm:px-6 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <button onClick={() => handleEditClick(doc)} className="p-2 border border-black/[0.08] hover:bg-[#FAF9F5] rounded text-[#7A7065] hover:text-[#2C2C2A] transition" title="Ubah">
+                            <button onClick={() => handleEditDocClick(doc)} className="p-2 border border-black/[0.08] hover:bg-[#FAF9F5] rounded text-[#7A7065] hover:text-[#2C2C2A] transition" title="Ubah">
                               <Pencil className="w-4 h-4" />
                             </button>
                             <button onClick={() => setDeleteId(doc.id)} className="p-2 border border-black/[0.08] hover:bg-red-50 rounded text-red-500 hover:text-red-700 transition" title="Hapus">
@@ -684,7 +1533,7 @@ export function AdminPage({
 
           {/* Section: Add/Edit documentation */}
           {section === "add-doc" && (
-            <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm p-5 sm:p-8 max-w-3xl">
+            <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm p-5 sm:p-8 max-w-3xl w-full">
               
               {/* Back button */}
               <button onClick={() => { setSection("docs"); setEditingDocId(null); }} className="flex items-center gap-1 text-[#7A7065] hover:text-[#2C2C2A] text-[12.5px] font-semibold mb-6 transition">
@@ -772,25 +1621,21 @@ export function AdminPage({
 
           {/* Section: Website configuration */}
           {section === "settings" && (
-            <div className="max-w-6xl flex flex-col gap-6">
+            <div className="max-w-6xl flex flex-col gap-6 w-full">
               
-              {/* Cards Grid: Side-by-side on large screens, stacked on small screens */}
+              {/* Cards Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
                 
                 {/* Card 1: Informasi Umum */}
                 <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm p-5 sm:p-8 flex flex-col gap-6">
                   
-                  {/* Header */}
                   <div className="flex items-center gap-3 border-l-4 border-[#3A6520] pl-3.5">
                     <h2 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[15px] font-extrabold text-[#2C2C2A]">
                       Informasi Umum
                     </h2>
                   </div>
 
-                  {/* Form Fields */}
                   <div className="flex flex-col gap-5 mt-2">
-                    
-                    {/* Nama Dusun */}
                     <div>
                       <label className="block text-[13px] font-semibold text-[#5A5550] mb-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                         Nama Dusun
@@ -804,7 +1649,6 @@ export function AdminPage({
                       />
                     </div>
 
-                    {/* Logo & Hero upload side by side */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-2">
                       
                       {/* Logo */}
@@ -904,14 +1748,12 @@ export function AdminPage({
                 {/* Card 2: Kontak & Media Sosial */}
                 <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm p-5 sm:p-8 flex flex-col gap-6">
                   
-                  {/* Header */}
                   <div className="flex items-center gap-3 border-l-4 border-[#3A6520] pl-3.5">
                     <h2 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[15px] font-extrabold text-[#2C2C2A]">
                       Kontak & Media Sosial
                     </h2>
                   </div>
 
-                  {/* Form Fields */}
                   <div className="flex flex-col gap-5 mt-2">
                     
                     {/* WhatsApp */}
@@ -995,19 +1837,39 @@ export function AdminPage({
         </main>
       </div>
 
-      {/* Delete confirmation modal */}
+      {/* Delete documentation modal */}
       {deleteId !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 backdrop-blur-sm">
           <div className="bg-white rounded-xl border border-black/[0.08] shadow-lg p-7 w-80 flex flex-col gap-5">
             <div>
               <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[16px] font-bold text-[#2C2C2A] mb-1.5">Hapus Dokumentasi?</h3>
               <p className="text-[13px] text-[#7A7065] leading-relaxed">Tindakan ini tidak dapat dibatalkan. Dokumentasi akan dihapus permanen dari sistem.</p>
             </div>
             <div className="flex items-center gap-3">
-              <button onClick={() => handleDelete(deleteId)} className="flex-1 py-2.5 bg-red-500 text-white text-[13px] font-semibold rounded-full hover:bg-red-600 transition-colors">
+              <button onClick={() => handleDeleteDoc(deleteId)} className="flex-1 py-2.5 bg-red-500 text-white text-[13px] font-semibold rounded-full hover:bg-red-600 transition-colors cursor-pointer">
                 Ya, Hapus
               </button>
-              <button onClick={() => setDeleteId(null)} className="flex-1 py-2.5 border border-black/[0.12] text-[#5A5550] text-[13px] font-medium rounded-full hover:bg-[#F0EBE3] transition-colors">
+              <button onClick={() => setDeleteId(null)} className="flex-1 py-2.5 border border-black/[0.12] text-[#5A5550] text-[13px] font-medium rounded-full hover:bg-[#F0EBE3] transition-colors cursor-pointer">
+                Batal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Live In modal */}
+      {deleteLiveinId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 backdrop-blur-sm">
+          <div className="bg-white rounded-xl border border-black/[0.08] shadow-lg p-7 w-80 flex flex-col gap-5">
+            <div>
+              <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[16px] font-bold text-[#2C2C2A] mb-1.5">Hapus Rumah Live In?</h3>
+              <p className="text-[13px] text-[#7A7065] leading-relaxed">Tindakan ini tidak dapat dibatalkan. Data rumah Live In akan dihapus secara permanen.</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button onClick={() => handleDeleteLivein(deleteLiveinId)} className="flex-1 py-2.5 bg-red-500 text-white text-[13px] font-semibold rounded-full hover:bg-red-600 transition-colors cursor-pointer">
+                Ya, Hapus
+              </button>
+              <button onClick={() => setDeleteLiveinId(null)} className="flex-1 py-2.5 border border-black/[0.12] text-[#5A5550] text-[13px] font-medium rounded-full hover:bg-[#F0EBE3] transition-colors cursor-pointer">
                 Batal
               </button>
             </div>
@@ -1016,24 +1878,5 @@ export function AdminPage({
       )}
 
     </div>
-  );
-}
-
-function PhoneInputIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-    </svg>
   );
 }

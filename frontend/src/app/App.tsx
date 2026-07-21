@@ -13,6 +13,7 @@ import { VillageLifePage } from "../pages/VillageLife";
 import { CampPage } from "../pages/Camp";
 import { LoginPage } from "../pages/Login";
 import { AdminPage } from "../pages/Admin";
+import { LiveInPage } from "../pages/LiveIn";
 
 export default function App() {
   const [page, setPage] = useState<Page>(() => {
@@ -21,6 +22,7 @@ export default function App() {
     if (path === "/profile") return "profile";
     if (path === "/village-life") return "village-life";
     if (path === "/camp") return "camp";
+    if (path === "/livein") return "livein";
     return "home";
   });
   const [scrolled, setScrolled] = useState(false);
@@ -49,6 +51,8 @@ export default function App() {
       document.title = `Kehidupan Dusun - ${vName}`;
     } else if (page === "camp") {
       document.title = `Gumuk Petung Camp - ${vName}`;
+    } else if (page === "livein") {
+      document.title = `Live In - ${vName}`;
     } else if (page === "admin") {
       document.title = `Admin Panel - ${vName}`;
     }
@@ -86,6 +90,7 @@ export default function App() {
       else if (path === "/profile") setPage("profile");
       else if (path === "/village-life") setPage("village-life");
       else if (path === "/camp") setPage("camp");
+      else if (path === "/livein") setPage("livein");
       else setPage("home");
     };
     window.addEventListener("popstate", handlePopState);
@@ -123,6 +128,8 @@ export default function App() {
       document.title = `Kehidupan Dusun - ${village}`;
     } else if (page === "camp") {
       document.title = `Gumuk Petung Camp - ${village}`;
+    } else if (page === "livein") {
+      document.title = `Live In - ${village}`;
     } else if (page === "admin") {
       document.title = `Panel Admin - ${village}`;
     } else {
@@ -150,6 +157,7 @@ export default function App() {
     { label: "Profil Dusun", page: "profile" as Page },
     { label: "Kehidupan Dusun", page: "village-life" as Page },
     { label: "Gumuk Petung Camp", page: "camp" as Page },
+    { label: "Live In", page: "livein" as Page },
   ];
 
   if (page === "admin") {
@@ -255,6 +263,7 @@ export default function App() {
       {page === "profile" && <ProfilePage nav={nav} settings={settings} />}
       {page === "village-life" && <VillageLifePage nav={nav} settings={settings} activities={activities} />}
       {page === "camp" && <CampPage nav={nav} settings={settings} />}
+      {page === "livein" && <LiveInPage nav={nav} settings={settings} />}
     </div>
   );
 }

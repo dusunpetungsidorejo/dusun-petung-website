@@ -42,6 +42,37 @@ async function initDb() {
     `);
     console.log('✓ Activities table created or verified.');
 
+    // Create Live In Table
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS livein (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        owner TEXT NOT NULL,
+        cover_image TEXT,
+        gallery TEXT,
+        description TEXT,
+        highlight TEXT,
+        overnight_active INTEGER DEFAULT 0,
+        overnight_price REAL,
+        overnight_checkin TEXT,
+        overnight_checkout TEXT,
+        hour24_active INTEGER DEFAULT 0,
+        hour24_price REAL,
+        hour24_description TEXT,
+        pricing_type TEXT DEFAULT 'house',
+        min_guests INTEGER,
+        max_guests INTEGER,
+        facilities TEXT,
+        facilities_other TEXT,
+        experiences TEXT,
+        experiences_other TEXT,
+        status TEXT NOT NULL DEFAULT 'Available',
+        updated_at TEXT NOT NULL
+      );
+    `);
+    console.log('✓ Live In table created or verified.');
+
+
     // 4. Seed Default Admin User if empty
     const userCheck = await db.execute('SELECT COUNT(*) as count FROM users');
     const userCount = userCheck.rows[0].count;

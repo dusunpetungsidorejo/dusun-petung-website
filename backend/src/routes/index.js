@@ -15,6 +15,7 @@ import authRouter from './authRoutes.js';
 import settingsRouter from './settingsRoutes.js';
 import activitiesRouter from './activitiesRoutes.js';
 import uploadRouter from './uploadRoutes.js';
+import liveinRouter from './liveinRoutes.js';
 
 // Auth router
 router.use('/auth', authRouter);
@@ -27,5 +28,8 @@ router.use('/activities', activitiesRouter);
 
 // Upload router
 router.use('/upload', uploadRouter);
+
+// Live In router
+router.use('/livein', liveinRouter);
 
 export default router;
