@@ -42,6 +42,7 @@ interface AdminPageProps {
   activities: Activity[];
   onUpdateActivities: (newActivities: any[]) => void;
   token: string;
+  showToast: (message: string, type?: "success" | "error") => void;
 }
 
 export function AdminPage({ 
@@ -51,7 +52,8 @@ export function AdminPage({
   onUpdateSettings, 
   activities, 
   onUpdateActivities, 
-  token 
+  token,
+  showToast
 }: AdminPageProps) {
   const [section, setSection] = useState<AdminSection>("dashboard");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -67,18 +69,6 @@ export function AdminPage({
   const [editingDocId, setEditingDocId] = useState<number | null>(null);
   const [titleInput, setTitleInput] = useState("");
   const [descInput, setDescInput] = useState("");
-
-  // Toast Notification States
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
-  const showToast = (message: string, type: "success" | "error" = "success") => {
-    setToast({ message, type });
-  };
-  useEffect(() => {
-    if (toast) {
-      const timer = setTimeout(() => setToast(null), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [toast]);
 
   // Settings states
   const [villageNameInput, setVillageNameInput] = useState(settings?.village_name || "");
@@ -100,6 +90,7 @@ export function AdminPage({
   const [submittingLivein, setSubmittingLivein] = useState(false);
   const [editingLiveinId, setEditingLiveinId] = useState<number | null>(null);
   const [deleteLiveinId, setDeleteLiveinId] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [liveinSearch, setLiveinSearch] = useState("");
   const [liveinFilterStatus, setLiveinFilterStatus] = useState<string>("all");
 
@@ -237,6 +228,16 @@ export function AdminPage({
   };
 
   const handleSaveSettings = async () => {
+    if (!villageNameInput.trim()) {
+      showToast("Nama dusun wajib diisi", "error");
+      return;
+    }
+    const cleanPhone = phoneNumberInput.replace(/[^0-9+]/g, "");
+    if (!cleanPhone || cleanPhone.length < 9) {
+      showToast("Nomor telepon tidak valid (minimal 9 digit)", "error");
+      return;
+    }
+
     setSavingSettings(true);
     try {
       const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -259,7 +260,8 @@ export function AdminPage({
       });
 
       if (!res.ok) {
-        throw new Error("Gagal memperbarui pengaturan");
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || "Gagal memperbarui pengaturan");
       }
 
       onUpdateSettings(payload);
@@ -373,7 +375,8 @@ export function AdminPage({
       }
 
       if (!res.ok) {
-        throw new Error(editingDocId ? "Gagal mengubah dokumentasi" : "Gagal menambahkan dokumentasi");
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || (editingDocId ? "Gagal mengubah dokumentasi" : "Gagal menambahkan dokumentasi"));
       }
 
       const savedAct = await res.json();
@@ -408,6 +411,7 @@ export function AdminPage({
   };
 
   const handleDeleteDoc = async (id: number) => {
+    setIsDeleting(true);
     try {
       const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
       const res = await fetch(`${baseUrl}/activities/${id}`, {
@@ -418,7 +422,8 @@ export function AdminPage({
       });
 
       if (!res.ok) {
-        throw new Error("Gagal menghapus dokumentasi");
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || "Gagal menghapus dokumentasi");
       }
 
       onUpdateActivities(activities.filter(act => act.id !== id));
@@ -426,14 +431,63 @@ export function AdminPage({
       setDeleteId(null);
     } catch (err: any) {
       showToast(err.message || "Gagal menghapus dokumentasi", "error");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   // Save Live In House
   const handleSaveLivein = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!liveinName.trim() || !liveinOwner.trim()) {
-      showToast("Nama rumah dan pemilik wajib diisi", "error");
+    if (!liveinName.trim()) {
+      showToast("Nama rumah wajib diisi", "error");
+      return;
+    }
+    if (!liveinOwner.trim()) {
+      showToast("Nama pemilik wajib diisi", "error");
+      return;
+    }
+    if (!liveinCoverImage) {
+      showToast("Foto cover rumah wajib diunggah", "error");
+      return;
+    }
+    if (!liveinOvernightActive && !liveinHour24Active) {
+      showToast("Pilih setidaknya satu paket (Paket Menginap atau Paket 24 Jam)", "error");
+      return;
+    }
+
+    if (liveinOvernightActive) {
+      const price = Number(liveinOvernightPrice);
+      if (!liveinOvernightPrice || isNaN(price) || price <= 0) {
+        showToast("Harga Paket Menginap harus berupa angka positif", "error");
+        return;
+      }
+      if (!liveinOvernightCheckin.trim() || !liveinOvernightCheckout.trim()) {
+        showToast("Jam Check-in dan Check-out untuk Paket Menginap wajib diisi", "error");
+        return;
+      }
+    }
+
+    if (liveinHour24Active) {
+      const price = Number(liveinHour24Price);
+      if (!liveinHour24Price || isNaN(price) || price <= 0) {
+        showToast("Harga Paket 24 Jam harus berupa angka positif", "error");
+        return;
+      }
+    }
+
+    const minG = Number(liveinMinGuests);
+    const maxG = Number(liveinMaxGuests);
+    if (!liveinMinGuests || isNaN(minG) || minG <= 0) {
+      showToast("Jumlah minimum tamu harus berupa angka positif", "error");
+      return;
+    }
+    if (!liveinMaxGuests || isNaN(maxG) || maxG <= 0) {
+      showToast("Jumlah maksimum tamu harus berupa angka positif", "error");
+      return;
+    }
+    if (minG > maxG) {
+      showToast("Jumlah minimum tamu tidak boleh melebihi jumlah maksimum tamu", "error");
       return;
     }
 
@@ -486,7 +540,7 @@ export function AdminPage({
       }
 
       if (!res.ok) {
-        const errData = await res.json();
+        const errData = await res.json().catch(() => ({}));
         throw new Error(errData.message || "Gagal menyimpan Rumah Live In");
       }
 
@@ -529,6 +583,7 @@ export function AdminPage({
   };
 
   const handleDeleteLivein = async (id: number) => {
+    setIsDeleting(true);
     try {
       const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
       const res = await fetch(`${baseUrl}/livein/${id}`, {
@@ -539,7 +594,8 @@ export function AdminPage({
       });
 
       if (!res.ok) {
-        throw new Error("Gagal menghapus Rumah Live In");
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || "Gagal menghapus Rumah Live In");
       }
 
       setLiveinHouses(prev => prev.filter(h => h.id !== id));
@@ -547,6 +603,8 @@ export function AdminPage({
       setDeleteLiveinId(null);
     } catch (err: any) {
       showToast(err.message || "Gagal menghapus Rumah Live In", "error");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -634,7 +692,6 @@ export function AdminPage({
 
   return (
     <div style={{ fontFamily: "'Inter', sans-serif" }} className="min-h-screen bg-[#FAF9F5] flex w-full">
-      {toast && <ToastContainer toast={toast} setToast={setToast} />}
 
       {/* Hidden inputs for uploads */}
       <input type="file" ref={logoFileRef} accept="image/*" className="hidden" onChange={e => handleFileChange(e, "logo")} />
@@ -1846,10 +1903,18 @@ export function AdminPage({
               <p className="text-[13px] text-[#7A7065] leading-relaxed">Tindakan ini tidak dapat dibatalkan. Dokumentasi akan dihapus permanen dari sistem.</p>
             </div>
             <div className="flex items-center gap-3">
-              <button onClick={() => handleDeleteDoc(deleteId)} className="flex-1 py-2.5 bg-red-500 text-white text-[13px] font-semibold rounded-full hover:bg-red-600 transition-colors cursor-pointer">
-                Ya, Hapus
+              <button 
+                onClick={() => handleDeleteDoc(deleteId)} 
+                disabled={isDeleting}
+                className="flex-1 py-2.5 bg-red-500 text-white text-[13px] font-semibold rounded-full hover:bg-red-600 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {isDeleting ? "Menghapus..." : "Ya, Hapus"}
               </button>
-              <button onClick={() => setDeleteId(null)} className="flex-1 py-2.5 border border-black/[0.12] text-[#5A5550] text-[13px] font-medium rounded-full hover:bg-[#F0EBE3] transition-colors cursor-pointer">
+              <button 
+                onClick={() => setDeleteId(null)} 
+                disabled={isDeleting}
+                className="flex-1 py-2.5 border border-black/[0.12] text-[#5A5550] text-[13px] font-medium rounded-full hover:bg-[#F0EBE3] transition-colors cursor-pointer disabled:opacity-50"
+              >
                 Batal
               </button>
             </div>
@@ -1866,10 +1931,18 @@ export function AdminPage({
               <p className="text-[13px] text-[#7A7065] leading-relaxed">Tindakan ini tidak dapat dibatalkan. Data rumah Live In akan dihapus secara permanen.</p>
             </div>
             <div className="flex items-center gap-3">
-              <button onClick={() => handleDeleteLivein(deleteLiveinId)} className="flex-1 py-2.5 bg-red-500 text-white text-[13px] font-semibold rounded-full hover:bg-red-600 transition-colors cursor-pointer">
-                Ya, Hapus
+              <button 
+                onClick={() => handleDeleteLivein(deleteLiveinId)} 
+                disabled={isDeleting}
+                className="flex-1 py-2.5 bg-red-500 text-white text-[13px] font-semibold rounded-full hover:bg-red-600 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {isDeleting ? "Menghapus..." : "Ya, Hapus"}
               </button>
-              <button onClick={() => setDeleteLiveinId(null)} className="flex-1 py-2.5 border border-black/[0.12] text-[#5A5550] text-[13px] font-medium rounded-full hover:bg-[#F0EBE3] transition-colors cursor-pointer">
+              <button 
+                onClick={() => setDeleteLiveinId(null)} 
+                disabled={isDeleting}
+                className="flex-1 py-2.5 border border-black/[0.12] text-[#5A5550] text-[13px] font-medium rounded-full hover:bg-[#F0EBE3] transition-colors cursor-pointer disabled:opacity-50"
+              >
                 Batal
               </button>
             </div>

@@ -36,10 +36,28 @@ app.use((req, res) => {
 
 // Global Error Handling Middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
+  console.error('Error stack:', err.stack);
+
+  let statusCode = err.status || err.statusCode || 500;
+  let message = err.message || 'Terjadi kesalahan pada server';
+
+  // Intercept SQLite/LibSQL database constraint errors
+  if (err.code === 'SQLITE_CONSTRAINT' || (err.message && err.message.includes('constraint failed'))) {
+    statusCode = 400;
+    if (err.message.includes('UNIQUE constraint failed: users.username')) {
+      message = 'Username sudah digunakan. Silakan pilih username lain.';
+    } else if (err.message.includes('UNIQUE constraint failed')) {
+      message = 'Data sudah ada di dalam sistem (terjadi duplikasi data).';
+    } else if (err.message.includes('NOT NULL constraint failed')) {
+      message = 'Mohon isi semua kolom wajib.';
+    } else {
+      message = `Gagal memproses data: Pelanggaran aturan database (${err.message})`;
+    }
+  }
+
+  res.status(statusCode).json({
     status: 'error',
-    message: 'Internal server error',
+    message: message,
   });
 });
 

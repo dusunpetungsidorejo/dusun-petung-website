@@ -40,6 +40,10 @@ export default function App() {
     }
   }, [appToast]);
 
+  const showToast = (message: string, type: "success" | "error" = "success") => {
+    setAppToast({ message, type });
+  };
+
   // Dynamic Document Title Updater
   useEffect(() => {
     const vName = settings?.village_name || "Dusun Petung";
@@ -168,6 +172,7 @@ export default function App() {
             onLogin={(t: string) => {
               setToken(t);
               localStorage.setItem("token", t);
+              showToast("Berhasil masuk!", "success");
             }}
             nav={nav}
             settings={settings}
@@ -177,23 +182,27 @@ export default function App() {
       );
     }
     return (
-      <AdminPage
-        nav={nav}
-        onLogout={() => {
-          setToken(null);
-          localStorage.removeItem("token");
-          setAppToast({ message: "Berhasil keluar!", type: "success" });
-        }}
-        settings={settings}
-        onUpdateSettings={(newSettings: any) => {
-          setSettings(newSettings);
-        }}
-        activities={activities}
-        onUpdateActivities={(newActivities: any[]) => {
-          setActivities(newActivities);
-        }}
-        token={token}
-      />
+      <>
+        <AdminPage
+          nav={nav}
+          onLogout={() => {
+            setToken(null);
+            localStorage.removeItem("token");
+            showToast("Berhasil keluar!", "success");
+          }}
+          settings={settings}
+          onUpdateSettings={(newSettings: any) => {
+            setSettings(newSettings);
+          }}
+          activities={activities}
+          onUpdateActivities={(newActivities: any[]) => {
+            setActivities(newActivities);
+          }}
+          token={token}
+          showToast={showToast}
+        />
+        {appToast && <ToastContainer toast={appToast} setToast={setAppToast} />}
+      </>
     );
   }
 
@@ -264,6 +273,7 @@ export default function App() {
       {page === "village-life" && <VillageLifePage nav={nav} settings={settings} activities={activities} />}
       {page === "camp" && <CampPage nav={nav} settings={settings} />}
       {page === "livein" && <LiveInPage nav={nav} settings={settings} />}
+      {appToast && <ToastContainer toast={appToast} setToast={setAppToast} />}
     </div>
   );
 }

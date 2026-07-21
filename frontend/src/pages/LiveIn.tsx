@@ -34,6 +34,7 @@ interface LiveInPageProps {
 export function LiveInPage({ nav, settings }: LiveInPageProps) {
   const [houses, setHouses] = useState<LiveInHouse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedHouse, setSelectedHouse] = useState<LiveInHouse | null>(null);
   
   // Search & Filter State
@@ -44,24 +45,27 @@ export function LiveInPage({ nav, settings }: LiveInPageProps) {
   // Modal Gallery State
   const [activeGalleryIndex, setActiveGalleryIndex] = useState(0);
 
+  const fetchHouses = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${baseUrl}/livein`);
+      if (!res.ok) throw new Error("Gagal memuat data dari server");
+      const data = await res.json();
+      // Filter out Inactive houses for public view
+      const activeHouses = data.filter((h: LiveInHouse) => h.status !== "Inactive");
+      setHouses(activeHouses);
+    } catch (err: any) {
+      console.error("Failed to fetch Live In houses:", err);
+      setError("Tidak dapat memuat data homestay saat ini. Silakan periksa koneksi internet Anda atau coba sesaat lagi.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Fetch Live In Houses from API
   useEffect(() => {
-    const fetchHouses = async () => {
-      try {
-        const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-        const res = await fetch(`${baseUrl}/livein`);
-        if (res.ok) {
-          const data = await res.json();
-          // Filter out Inactive houses for public view
-          const activeHouses = data.filter((h: LiveInHouse) => h.status !== "Inactive");
-          setHouses(activeHouses);
-        }
-      } catch (err) {
-        console.error("Failed to fetch Live In houses:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchHouses();
   }, []);
 
@@ -320,6 +324,20 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
             <div className="text-center py-20">
               <div className="inline-block w-8 h-8 border-4 border-[#3A6520] border-t-transparent rounded-full animate-spin mb-4" />
               <p className="text-[13px] text-[#7A7065]">Memuat data akomodasi warga...</p>
+            </div>
+          ) : error ? (
+            <div className="bg-white border border-black/[0.05] rounded-2xl p-12 text-center shadow-sm max-w-md mx-auto my-8">
+              <span className="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4 border border-red-100/50">
+                <Info className="w-6 h-6" />
+              </span>
+              <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[16px] font-bold text-[#2C2C2A] mb-2">Gagal Memuat Data</h3>
+              <p className="text-[13px] text-[#7A7065] mb-5 leading-relaxed">{error}</p>
+              <button
+                onClick={fetchHouses}
+                className="px-5 py-2.5 bg-[#3A6520] hover:bg-[#2D5016] text-white text-[12px] font-semibold rounded-full shadow-md transition-colors"
+              >
+                Coba Lagi
+              </button>
             </div>
           ) : filteredHouses.length === 0 ? (
             <div className="bg-white border border-black/[0.05] rounded-2xl p-16 text-center shadow-sm">
