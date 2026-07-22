@@ -161,9 +161,72 @@ export function AdminPage({
     { icon: Settings, label: "Pengaturan Website", key: "settings" as AdminSection },
   ];
 
+  const compressImage = (file: File, maxWidth = 1600, quality = 0.85): Promise<File> => {
+    return new Promise((resolve) => {
+      // Skip if not an image or is SVG
+      if (!file.type.startsWith("image/") || file.type === "image/svg+xml") {
+        return resolve(file);
+      }
+
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+
+          // Resize only if wider than maxWidth
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            return resolve(file);
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Force PNG/HEIC/etc. to JPEG for compression efficiency unless it is WEBP/GIF
+          const outputType = (file.type === "image/png" || file.type === "image/heic" || file.type === "image/heif") ? "image/jpeg" : file.type;
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                return resolve(file);
+              }
+              const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + (outputType === "image/jpeg" ? ".jpg" : ""), {
+                type: outputType,
+                lastModified: Date.now(),
+              });
+              resolve(compressedFile);
+            },
+            outputType,
+            quality
+          );
+        };
+        img.onload = img.onload;
+        img.onerror = () => resolve(file);
+      };
+      reader.onerror = () => resolve(file);
+    });
+  };
+
   const uploadMedia = async (file: File): Promise<string> => {
+    let fileToUpload = file;
+    try {
+      fileToUpload = await compressImage(file);
+    } catch (e) {
+      console.error("Gagal melakukan kompresi gambar, menggunakan file asli", e);
+    }
+
     const formData = new FormData();
-    formData.append("image", file);
+    formData.append("image", fileToUpload);
 
     const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
     const res = await fetch(`${baseUrl}/upload`, {
