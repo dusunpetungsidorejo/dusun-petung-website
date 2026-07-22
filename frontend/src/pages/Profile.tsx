@@ -67,7 +67,7 @@ export function ProfilePage({ nav, settings }: ProfilePageProps) {
             {/* Image */}
             <div className="bg-[#D4C9B5]">
               <img
-                src={IMGS.aboutVillage}
+                src="/images/profile/description.jpg"
                 alt="Hamparan sawah hijau dilihat dari udara di sekitar Dusun Petung"
                 className="w-full object-cover h-[280px] sm:h-[380px] lg:h-[540px]"
               />

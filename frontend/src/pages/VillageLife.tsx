@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Page, Activity } from "../types";
 import { SiteFooter } from "../components/SiteFooter";
@@ -10,6 +10,14 @@ interface VillageLifePageProps {
 }
 
 export function VillageLifePage({ nav, settings, activities }: VillageLifePageProps) {
+  const [activeLightboxItem, setActiveLightboxItem] = useState<any | null>(null);
+
+  const handleCardClick = (item: any) => {
+    if (window.innerWidth < 768) {
+      setActiveLightboxItem(item);
+    }
+  };
+
   const galleryItems = [
     {
       img: "https://images.unsplash.com/photo-1542897643-8158da5b4607?w=900&h=600&fit=crop&auto=format",
@@ -150,7 +158,7 @@ export function VillageLifePage({ nav, settings, activities }: VillageLifePagePr
           <div className="grid lg:grid-cols-[1fr_1fr] gap-16 lg:gap-28 items-start">
             <div className="bg-[#D4C9B5]">
               <img
-                src="https://images.unsplash.com/photo-1542897643-cfccd88c7127?w=900&h=700&fit=crop&auto=format"
+                src="/images/village-life/description.webp"
                 alt="Komunitas warga dusun dalam kegiatan bersama"
                 className="w-full object-cover h-[280px] sm:h-[380px] lg:h-[500px]"
               />
@@ -229,12 +237,14 @@ export function VillageLifePage({ nav, settings, activities }: VillageLifePagePr
                 return (
                   <div 
                     key={idx} 
-                    className={`${widthClass} h-[300px] sm:h-[380px] lg:h-[460px] shrink-0 overflow-hidden bg-[#D4C9B5] group relative snap-start`}
+                    onClick={() => handleCardClick(item)}
+                    className={`${widthClass} h-[300px] sm:h-[380px] lg:h-[460px] shrink-0 overflow-hidden bg-[#D4C9B5] group relative snap-start cursor-pointer md:cursor-default`}
                   >
                     <img src={item.img} alt={item.alt} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700" />
                     <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-5">
                       <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-white text-[14px] font-bold block mb-1">{item.title}</span>
                       <span className="text-white/70 text-[12px] line-clamp-2 leading-relaxed">{item.caption}</span>
+                      <span className="text-white/90 text-[11px] font-semibold mt-1.5 underline block md:hidden">Lihat Detail...</span>
                     </div>
                   </div>
                 );
@@ -244,12 +254,14 @@ export function VillageLifePage({ nav, settings, activities }: VillageLifePagePr
                     {col.items.map((item, subIdx) => (
                       <div 
                         key={subIdx} 
-                        className="flex-1 overflow-hidden bg-[#D4C9B5] group relative"
+                        onClick={() => handleCardClick(item)}
+                        className="flex-1 overflow-hidden bg-[#D4C9B5] group relative cursor-pointer md:cursor-default"
                       >
                         <img src={item.img} alt={item.alt} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700" />
                         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-4">
                           <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-white text-[13px] font-bold block mb-0.5">{item.title}</span>
                           <span className="text-white/70 text-[11.5px] line-clamp-2 leading-relaxed">{item.caption}</span>
+                          <span className="text-white/90 text-[10px] font-semibold mt-1 underline block md:hidden">Lihat Detail...</span>
                         </div>
                       </div>
                     ))}
@@ -260,6 +272,69 @@ export function VillageLifePage({ nav, settings, activities }: VillageLifePagePr
           </div>
         </div>
       </section>
+
+      {/* Lightbox Modal for Detail Documentation */}
+      {activeLightboxItem && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-md flex items-center justify-center p-4 sm:p-6"
+          onClick={() => setActiveLightboxItem(null)}
+        >
+          <div 
+            className="bg-white rounded-xl overflow-hidden max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close button */}
+            <button 
+              onClick={() => setActiveLightboxItem(null)}
+              className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/75 transition-colors text-[14px]"
+            >
+              ✕
+            </button>
+            
+            <div className="flex flex-col md:grid md:grid-cols-[1.1fr_0.9fr] h-full overflow-y-auto">
+              {/* Image container */}
+              <div className="bg-black flex items-center justify-center min-h-[220px] sm:min-h-[320px] md:h-full relative">
+                <img 
+                  src={activeLightboxItem.img} 
+                  alt={activeLightboxItem.alt} 
+                  className="w-full h-full max-h-[35vh] md:max-h-[75vh] object-contain"
+                />
+              </div>
+              
+              {/* Content Details */}
+              <div className="p-6 sm:p-8 flex flex-col justify-between h-full bg-[#FAF8F5]">
+                <div>
+                  <span className="text-[#C97C2A] text-[10px] font-bold tracking-[0.15em] uppercase block mb-2">
+                    Detail Kegiatan Dusun
+                  </span>
+                  <h3 
+                    style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} 
+                    className="text-[20px] sm:text-[24px] font-extrabold text-[#2C2C2A] leading-tight mb-4"
+                  >
+                    {activeLightboxItem.title}
+                  </h3>
+                  <div className="w-12 h-0.5 bg-[#3A6520] mb-5" />
+                  
+                  <div className="overflow-y-auto max-h-[180px] sm:max-h-[240px] pr-2 text-[#5A5550]">
+                    <p className="text-[13.5px] sm:text-[14.5px] leading-[1.7] whitespace-pre-line">
+                      {activeLightboxItem.caption}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="mt-6 pt-4 border-t border-black/5 flex justify-end">
+                  <button
+                    onClick={() => setActiveLightboxItem(null)}
+                    className="px-6 py-2.5 bg-[#3A6520] hover:bg-[#2D5016] text-white text-[12px] font-semibold rounded-full transition-colors uppercase tracking-wider"
+                  >
+                    Tutup
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <SiteFooter nav={nav} settings={settings} />
     </>
