@@ -147,7 +147,7 @@ export function VillageLifePage({ nav, settings, activities }: VillageLifePagePr
       {/* Introduction */}
       <section className="py-24 lg:py-36">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <div className="grid lg:grid-cols-[1fr_1fr] gap-16 lg:gap-28 items-center">
+          <div className="grid lg:grid-cols-[1fr_1fr] gap-16 lg:gap-28 items-start">
             <div className="bg-[#D4C9B5]">
               <img
                 src="https://images.unsplash.com/photo-1542897643-cfccd88c7127?w=900&h=700&fit=crop&auto=format"
@@ -163,16 +163,16 @@ export function VillageLifePage({ nav, settings, activities }: VillageLifePagePr
                 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "clamp(1.75rem, 3vw, 2.75rem)", lineHeight: 1.15 }}
                 className="font-extrabold text-[#2C2C2A] mb-6"
               >
-                Gotong Royong <br className="hidden sm:inline" />yang Tak Pernah Padam
+                Semangat Gumregah <br className="hidden sm:inline" />yang Terus Hidup
               </h2>
               <p className="text-[#5A5550] leading-[1.75] text-[15px] mb-4">
-                Kehidupan di Dusun Petung berputar di sekitar nilai-nilai kebersamaan yang telah diwariskan turun-temurun. Gotong royong bukan sekadar kata — ia adalah cara hidup yang terlihat dalam setiap aktivitas warga, dari mengerjakan sawah hingga merayakan hari besar.
+                Di Dusun Petung, gumregah bukan sekadar semangat, melainkan nilai yang hidup dalam keseharian masyarakat. Semangat untuk bergerak bersama, saling membantu, dan menjaga warisan leluhur hadir dalam setiap langkah kehidupan warga.
               </p>
               <p className="text-[#5A5550] leading-[1.75] text-[15px] mb-4">
-                Tradisi dan budaya lokal masih dirayakan dengan penuh kebanggaan. Upacara adat, pawai budaya, dan festival dusun menjadi momen di mana seluruh warga bersatu, menjaga akar identitas mereka.
+                Nilai itu tercermin dalam tradisi Nyadran, Babat Makam, Gumbretan, Wiwit, Kenduri, dan Mitoni yang terus dilestarikan sebagai wujud rasa syukur, kepedulian, serta kebersamaan antarwarga dari generasi ke generasi.
               </p>
               <p className="text-[#5A5550] leading-[1.75] text-[15px]">
-                Di tengah modernisasi, Dusun Petung tetap memelihara ritme kehidupan yang autentik — dekat dengan alam, dekat dengan sesama, dan terbuka untuk siapa saja yang ingin merasakannya.
+                Semangat gumregah juga tumbuh melalui berbagai inisiatif masyarakat, salah satunya Gumuk Petung Camp. Berawal dari keinginan menyediakan ruang berkegiatan bagi para pemuda, tempat ini kini menjadi simbol bahwa kebersamaan dapat melahirkan gagasan yang bermanfaat bagi dusun.
               </p>
             </div>
           </div>

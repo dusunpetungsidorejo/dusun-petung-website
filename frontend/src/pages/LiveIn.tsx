@@ -128,45 +128,43 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
   return (
     <>
       {/* Hero Section */}
-      <section className="relative overflow-hidden" style={{ height: "66vh", minHeight: 500 }}>
+      <section className="relative overflow-hidden" style={{ height: "40vh", minHeight: 330 }}>
         <img
           src="https://images.unsplash.com/photo-1566205865731-51803de32a35?w=1600&h=900&fit=crop&auto=format"
           alt="Suasana pedesaan lereng Gunung Merapi dengan pepohonan hijau rindang"
           className="absolute inset-0 w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/45 to-black/15" />
+        <div className="absolute inset-0 bg-black/52" />
         
-        <div className="relative h-full max-w-7xl mx-auto px-6 lg:px-12 flex items-center">
-          <div style={{ maxWidth: 580 }}>
-            <span className="inline-block text-white/55 text-[11px] font-semibold tracking-[0.18em] uppercase mb-5">
-              Live In Experience · Dusun Petung
-            </span>
-            <h1
-              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "clamp(2.5rem, 5vw, 3.5rem)", lineHeight: 1.1 }}
-              className="font-extrabold text-white mb-5"
+        <div className="relative h-full max-w-7xl mx-auto px-6 lg:px-12 flex flex-col justify-end pb-8 sm:pb-11">
+          <span className="text-white/50 text-[11px] font-bold tracking-[0.18em] uppercase block mb-2">
+            Live In Experience · Dusun Petung
+          </span>
+          <h1
+            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "clamp(1.85rem, 3.8vw, 2.65rem)", lineHeight: 1.15 }}
+            className="font-extrabold text-white mb-2"
+          >
+            Menyatu dengan Kehidupan Dusun
+          </h1>
+          <p className="text-white/65 text-[13px] sm:text-[14px] leading-[1.65] mb-4" style={{ maxWidth: 460 }}>
+            Undangan membaur dalam kehangatan keluarga lokal, belajar bertani, dan merangkul kedamaian kaki Merapi.
+          </p>
+          <div className="flex flex-wrap gap-2 sm:gap-2.5">
+            <a
+              href="#rumah-warga"
+              className="px-4.5 py-2 bg-[#3A6520] text-white text-[12px] font-semibold rounded-full hover:bg-[#2D5016] transition-colors"
             >
-              Menyatu dengan <br />Kehidupan Dusun
-            </h1>
-            <p className="text-white/75 text-[16px] sm:text-[17px] leading-[1.7] mb-9" style={{ maxWidth: 460 }}>
-              Bukan sekadar menyewa kamar tidur. Ini adalah undangan untuk membaur dalam kehangatan keluarga lokal, belajar bertani, memasak sayur lodeh di tungku kayu, dan merangkul kedamaian kaki Merapi.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <a
-                href="#rumah-warga"
-                className="px-7 py-3.5 bg-[#3A6520] text-white text-[13px] font-semibold rounded-full hover:bg-[#2D5016] transition-colors"
-              >
-                Pilih Rumah Warga
-              </a>
-              <a
-                href={`${defaultWaUrl}?text=Halo,%20saya%20tertarik%20bertanya%20mengenai%20kegiatan%20Live%20In%20di%20Dusun%20Petung`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-7 py-3.5 bg-white/12 text-white text-[13px] font-semibold rounded-full border border-white/25 hover:bg-white/22 transition-colors backdrop-blur-sm"
-              >
-                <Phone className="w-4 h-4" />
-                Tanya Pengelola
-              </a>
-            </div>
+              Pilih Rumah Warga
+            </a>
+            <a
+              href={`${defaultWaUrl}?text=Halo,%20saya%20tertarik%20bertanya%20mengenai%20kegiatan%20Live%20In%20di%20Dusun%20Petung`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-4.5 py-2 bg-white/12 text-white text-[12px] font-semibold rounded-full border border-white/25 hover:bg-white/22 transition-colors backdrop-blur-sm"
+            >
+              <Phone className="w-3.5 h-3.5" strokeWidth={2} />
+              Tanya Pengelola
+            </a>
           </div>
         </div>
       </section>

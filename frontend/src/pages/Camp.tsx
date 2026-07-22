@@ -65,46 +65,44 @@ export function CampPage({ nav, settings }: CampPageProps) {
   return (
     <>
       {/* Hero */}
-      <section className="relative overflow-hidden" style={{ height: "64vh", minHeight: 500 }}>
+      <section className="relative overflow-hidden" style={{ height: "40vh", minHeight: 330 }}>
         <img
           src="https://images.unsplash.com/photo-1763224017831-59e2b1a40882?w=1600&h=900&fit=crop&auto=format"
           alt="Puncak Gunung Merapi menembus awan emas saat fajar"
           className="absolute inset-0 w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/40 to-black/15" />
-        <div className="relative h-full max-w-7xl mx-auto px-6 lg:px-12 flex items-center">
-          <div style={{ maxWidth: 540 }}>
-            <span className="inline-block text-white/55 text-[11px] font-semibold tracking-[0.18em] uppercase mb-5">
-              Wisata Camping · Dusun Petung
-            </span>
-            <h1
-              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "clamp(2.5rem, 5vw, 3.75rem)", lineHeight: 1.08 }}
-              className="font-extrabold text-white mb-5"
+        <div className="absolute inset-0 bg-black/52" />
+        <div className="relative h-full max-w-7xl mx-auto px-6 lg:px-12 flex flex-col justify-end pb-6 sm:pb-8">
+          <span className="text-white/50 text-[11px] font-bold tracking-[0.18em] uppercase block mb-2">
+            Wisata Camping · Dusun Petung
+          </span>
+          <h1
+            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "clamp(1.85rem, 3.8vw, 2.65rem)", lineHeight: 1.15 }}
+            className="font-extrabold text-white mb-2"
+          >
+            Gumuk Petung Camp
+          </h1>
+          <p className="text-white/65 text-[13px] sm:text-[14px] leading-[1.65] mb-4" style={{ maxWidth: 460 }}>
+            Berkemah di bukit dengan panorama Gunung Merapi yang memukau. Tempat di mana alam berbicara dan jiwa menemukan ketenangannya.
+          </p>
+          <div className="flex flex-wrap gap-2 sm:gap-2.5">
+            <a
+              href={`${waUrl}?text=Halo,%20saya%20ingin%20reservasi%20Gumuk%20Petung%20Camp`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-4.5 py-2 bg-[#3A6520] text-white text-[12px] font-semibold rounded-full hover:bg-[#2D5016] transition-colors"
             >
-              Gumuk Petung <br className="hidden sm:inline" />Camp
-            </h1>
-            <p className="text-white/75 text-[17px] leading-[1.7] mb-9" style={{ maxWidth: 420 }}>
-              Berkemah di bukit dengan panorama Gunung Merapi yang memukau. Tempat di mana alam berbicara dan jiwa menemukan ketenangannya.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <a
-                href={`${waUrl}?text=Halo,%20saya%20ingin%20reservasi%20Gumuk%20Petung%20Camp`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-7 py-3.5 bg-[#3A6520] text-white text-[13px] font-semibold rounded-full hover:bg-[#2D5016] transition-colors"
-              >
-                <Phone className="w-4 h-4" />
-                Reservasi via WhatsApp
-              </a>
-              <a
-                href="https://maps.app.goo.gl/NeYgxRwN3ed3unXdA"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-7 py-3.5 bg-white/12 text-white text-[13px] font-semibold rounded-full border border-white/25 hover:bg-white/22 transition-colors backdrop-blur-sm"
-              >
-                Lihat Lokasi
-              </a>
-            </div>
+              <Phone className="w-3.5 h-3.5" strokeWidth={2} />
+              Reservasi via WhatsApp
+            </a>
+            <a
+              href="https://maps.app.goo.gl/NeYgxRwN3ed3unXdA"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4.5 py-2 bg-white/12 text-white text-[12px] font-semibold rounded-full border border-white/25 hover:bg-white/22 transition-colors backdrop-blur-sm"
+            >
+              Lihat Lokasi
+            </a>
           </div>
         </div>
       </section>

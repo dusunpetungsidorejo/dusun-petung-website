@@ -40,7 +40,7 @@ export function ProfilePage({ nav, settings }: ProfilePageProps) {
       {/* About the Village ─────────────────────────────────── */}
       <section className="py-24 lg:py-36">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <div className="grid lg:grid-cols-[1fr_1fr] gap-16 lg:gap-28 items-center">
+          <div className="grid lg:grid-cols-[1fr_1fr] gap-16 lg:gap-28 items-start">
 
             {/* Text */}
             <div>
@@ -54,13 +54,13 @@ export function ProfilePage({ nav, settings }: ProfilePageProps) {
                 Identitas <br className="hidden sm:inline" />Dusun Petung
               </h2>
               <p className="text-[#5A5550] leading-[1.75] text-[15px] mb-4">
-                Dusun Petung terletak di Desa Sidorejo, Kecamatan Kemalang, Kabupaten Klaten, Jawa Tengah. Berada di kaki barat daya Gunung Merapi — salah satu gunung berapi paling aktif di Indonesia — dusun ini dianugerahi pemandangan alam yang luar biasa.
+                Dusun Petung berada di Desa Sidorejo, Kecamatan Kemalang, Kabupaten Klaten, berada di kaki barat daya Gunung Merapi. Wilayah ini memiliki pemandangan alam yang indah, udara sejuk, serta tanah vulkanik yang subur sehingga sangat mendukung kegiatan pertanian, peternakan, dan pariwisata.
               </p>
               <p className="text-[#5A5550] leading-[1.75] text-[15px] mb-4">
-                Hamparan sawah yang membentang hijau, kebun yang subur, dan hutan yang rimbun menjadi bagian dari keseharian warganya. Udara sejuk dan tanah vulkanik yang kaya menjadikan wilayah ini sangat produktif.
+                Mayoritas warga bekerja sebagai petani dan peternak. Kehidupan masyarakat dipengaruhi aktivitas Merapi yang menghadirkan risiko erupsi, namun juga membawa material vulkanik yang menyuburkan lahan.
               </p>
               <p className="text-[#5A5550] leading-[1.75] text-[15px]">
-                Masyarakat Dusun Petung dikenal dengan semangat gotong royong yang masih terjaga erat. Kearifan lokal dan nilai kebersamaan menjadi fondasi kuat dalam setiap sendi kehidupan sosial warga.
+                Semangat gotong royong, budaya Jawa yang masih lestari, dan potensi wisata alam menjadikan Dusun Petung sebagai dusun yang asri, harmonis, dan kaya potensi.
               </p>
             </div>
 
@@ -140,32 +140,37 @@ export function ProfilePage({ nav, settings }: ProfilePageProps) {
             <div className="flex flex-col gap-12">
               {[
                 {
-                  year: "1830",
-                  title: "Awal Permukiman",
-                  desc: "Wilayah Dusun Petung mulai dihuni oleh masyarakat yang datang setelah aktivitas Gunung Merapi mereda. Lahan yang subur dan sumber air yang melimpah menjadi daya tarik utama.",
+                  year: "Awal Permukiman",
+                  title: "Terbentuknya Dusun Petung",
+                  desc: "Dusun Petung berkembang sebagai kawasan permukiman masyarakat yang mengandalkan sektor pertanian dan peternakan. Kehidupan warga tumbuh dengan memanfaatkan kesuburan lahan dan semangat kebersamaan.",
                 },
                 {
-                  year: "1945",
-                  title: "Era Kemerdekaan",
-                  desc: "Dusun Petung turut serta dalam semangat perjuangan kemerdekaan Indonesia. Warga bersatu padu membangun fondasi kehidupan baru yang merdeka dan bermartabat.",
+                  year: "Perkembangan Masyarakat",
+                  title: "Lahirnya Tradisi Lokal",
+                  desc: "Seiring berkembangnya kehidupan bermasyarakat, lahirlah berbagai tradisi seperti Nyadran, Babat Makam, Gumbretan, Wiwit, dan kenduri sebagai wujud rasa syukur, doa bersama, serta penguatan hubungan sosial antar warga.",
                 },
                 {
-                  year: "1980",
-                  title: "Berkembangnya Pertanian",
-                  desc: "Sistem irigasi diperbaiki dan produktivitas pertanian meningkat signifikan. Dusun Petung mulai dikenal sebagai penghasil sayuran and hasil bumi berkualitas tinggi.",
+                  year: "Perkembangan Seni Budaya",
+                  title: "Berkembangnya Kesenian Tradisional",
+                  desc: "Dusun Petung pernah menjadi tempat berkembangnya berbagai kesenian tradisional, seperti ketoprak, gamelan, drama perjuangan, dan jathilan yang kerap ditampilkan pada acara-acara masyarakat.",
                 },
                 {
-                  year: "2010",
-                  title: "Erupsi Merapi & Bangkit Bersama",
-                  desc: "Erupsi besar Gunung Merapi menjadi ujian terberat. Dengan semangat gotong royong yang mengakar, warga Dusun Petung bangkit dan membangun kembali kehidupan mereka.",
+                  year: "Era Modernisasi",
+                  title: "Perubahan Sistem Pertanian",
+                  desc: "Perkembangan teknologi membawa perubahan pada sistem pertanian menjadi lebih modern dan efisien. Di sisi lain, aktivitas kesenian tradisional mulai berkurang karena tingginya biaya penyelenggaraan dan menurunnya minat masyarakat untuk meneruskannya.",
                 },
                 {
-                  year: "2019",
-                  title: "Lahirnya Gumuk Petung Camp",
-                  desc: "Potensi wisata alam mulai dikembangkan secara serius. Gumuk Petung Camp didirikan sebagai destinasi berkemah berbasis komunitas yang mengedepankan keaslian alam dan keramahan warga.",
+                  year: "Masa Kini",
+                  title: "Menjaga Warisan Leluhur",
+                  desc: "Di tengah perubahan zaman, masyarakat Dusun Petung tetap melestarikan tradisi yang telah diwariskan secara turun-temurun. Berbagai kegiatan adat masih rutin dilaksanakan sebagai bagian dari identitas dan kekayaan budaya dusun.",
                 },
-              ].map(({ year, title, desc }) => (
-                <div key={year} className="pl-9 relative">
+                {
+                  year: "Masa Kini",
+                  title: "Berdirinya Gumuk Petung Camp",
+                  desc: "Pada akhir tahun 2025, masyarakat Dusun Petung menginisiasi pembangunan Gumuk Petung Camp sebagai ruang berkumpul dan berkegiatan bagi para pemuda. Camp ini dibangun agar generasi muda memiliki wadah untuk menyalurkan kreativitas, mengisi waktu luang dengan kegiatan yang bermanfaat, serta berkontribusi dalam pengembangan dusun.",
+                },
+              ].map(({ year, title, desc }, idx) => (
+                <div key={idx} className="pl-9 relative">
                   <div className="absolute left-0 top-[6px] w-3.5 h-3.5 rounded-full border-2 border-[#3A6520] bg-[#F7F4EF]" />
                   <span
                     style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
@@ -205,35 +210,43 @@ export function ProfilePage({ nav, settings }: ProfilePageProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {[
               {
-                img: IMGS.pot1,
+                img: "/images/profile/Harmoni di Lereng Merapi.webp",
                 alt: "Pemandangan alam pegunungan sekitar Dusun Petung",
-                title: "Alam yang Murni",
-                desc: "Hamparan sawah, kebun, dan hutan yang hijau membentang mengelilingi dusun sepanjang tahun.",
+                title: "Harmoni di Lereng Merapi",
+                desc: "Dipeluk oleh lereng Gunung Merapi, Dusun Petung dianugerahi bentang alam yang subur. Dari tanah inilah tumbuh pertanian, peternakan, dan pembuatan arang yang menjadi bagian dari kehidupan masyarakat.",
                 cta: "Jelajahi",
+                page: "village-life" as Page,
               },
               {
-                img: IMGS.pot2,
+                img: "/images/profile/Tradisi Turun-Temurun.webp",
                 alt: "Petani di sawah Dusun Petung",
-                title: "Pertanian Subur",
-                desc: "Tanah vulkanik Gunung Merapi menjadikan lahan di sini sangat produktif dan kaya hasil bumi.",
-                cta: "Pelajari",
+                title: "Tradisi Turun-Temurun",
+                desc: "Melalui tradisi Nyadran, Babat Makam, Gumbretan, Wiwit, dan Mitoni, masyarakat Dusun Petung terus merawat warisan leluhur yang mempererat persaudaraan dan memperkokoh nilai gotong royong.",
+                cta: "Kenali",
+                page: "village-life" as Page,
+              },
+              {
+                img: "/images/profile/Gumuk Petung Camp.webp",
+                alt: "Gumuk Petung Camp dengan latar Gunung Merapi",
+                title: "Gumuk Petung Camp",
+                desc: "Destinasi wisata berbasis komunitas yang menawarkan pengalaman berkemah dengan panorama alam yang asri sekaligus mendukung pemberdayaan pemuda Dusun Petung.",
+                cta: "Reservasi",
+                page: "camp" as Page,
               },
               {
                 img: IMGS.pot3,
                 alt: "Kegiatan komunitas dan gotong royong warga dusun",
-                title: "Komunitas Hangat",
-                desc: "Gotong royong dan kearifan lokal yang masih hidup kuat dalam keseharian warga Dusun Petung.",
-                cta: "Temukan",
+                title: "Live In Bersama Warga",
+                desc: "Rasakan pengalaman tinggal bersama warga dan mengenal secara langsung kehidupan, budaya, serta aktivitas sehari-hari masyarakat Dusun Petung.",
+                cta: "Ikuti Pengalaman",
+                page: "livein" as Page,
               },
-              {
-                img: IMGS.pot4,
-                alt: "Gumuk Petung Camp dengan latar Gunung Merapi",
-                title: "Gumuk Petung Camp",
-                desc: "Destinasi berkemah berbasis komunitas dengan panorama Gunung Merapi yang memukau.",
-                cta: "Reservasi",
-              },
-            ].map(({ img, alt, title, desc, cta }) => (
-              <div key={title} className="bg-white border border-black/5 overflow-hidden group cursor-pointer">
+            ].map(({ img, alt, title, desc, cta, page }) => (
+              <div 
+                key={title} 
+                className="bg-white border border-black/5 overflow-hidden group cursor-pointer"
+                onClick={() => nav(page)}
+              >
                 <div className="overflow-hidden bg-[#D4C9B5]" style={{ height: 200 }}>
                   <img
                     src={img}

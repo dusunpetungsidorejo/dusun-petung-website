@@ -55,6 +55,7 @@ export function SiteFooter({ nav, settings }: SiteFooterProps) {
                 { label: "Profil Dusun", p: "profile" as Page },
                 { label: "Kehidupan Dusun", p: "village-life" as Page },
                 { label: "Gumuk Petung Camp", p: "camp" as Page },
+                { label: "Live In", p: "livein" as Page },
               ].map(({ label, p }) => (
                 <button
                   key={label}
