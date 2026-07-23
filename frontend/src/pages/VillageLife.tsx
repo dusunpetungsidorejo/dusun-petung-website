@@ -18,65 +18,6 @@ export function VillageLifePage({ nav, settings, activities }: VillageLifePagePr
     }
   };
 
-  const galleryItems = [
-    {
-      img: "https://images.unsplash.com/photo-1542897643-8158da5b4607?w=900&h=600&fit=crop&auto=format",
-      alt: "Pawai budaya warga Dusun Petung di jalan dusun",
-      title: "Pawai Budaya",
-      caption: "Warga bersama merayakan hari kemerdekaan dengan penuh semangat",
-      tall: true,
-    },
-    {
-      img: "https://images.unsplash.com/photo-1585704123905-b89826d5daa6?w=700&h=500&fit=crop&auto=format",
-      alt: "Upacara adat wanita berbusana tradisional",
-      title: "Upacara Adat",
-      caption: "Tradisi yang masih terjaga dan dirayakan dengan penuh makna",
-      tall: false,
-    },
-    {
-      img: "https://images.unsplash.com/photo-1572908721147-0a9eb395762d?w=700&h=500&fit=crop&auto=format",
-      alt: "Warga menanam padi di sawah bersama-sama",
-      title: "Musim Tanam",
-      caption: "Gotong royong dalam menanam padi, tradisi yang terus dijaga",
-      tall: false,
-    },
-    {
-      img: "https://images.unsplash.com/photo-1701590219284-c3cce0148be1?w=900&h=600&fit=crop&auto=format",
-      alt: "Parade bendera warga dusun",
-      title: "Hari Kemerdekaan",
-      caption: "Semangat persatuan warga dalam merayakan kemerdekaan",
-      tall: false,
-    },
-    {
-      img: "https://images.unsplash.com/photo-1530507629858-e4977d30e9e0?w=700&h=900&fit=crop&auto=format",
-      alt: "Petani perempuan memanen padi di sawah",
-      title: "Panen Raya",
-      caption: "Musim panen yang dinantikan — buah dari kerja keras bersama",
-      tall: true,
-    },
-    {
-      img: "https://images.unsplash.com/photo-1505471768190-275e2ad7b3f9?w=700&h=500&fit=crop&auto=format",
-      alt: "Petani bertopi menanam padi dengan telaten",
-      title: "Ketekunan Petani",
-      caption: "Setiap benih ditanam dengan penuh kesabaran dan dedikasi",
-      tall: false,
-    },
-    {
-      img: "https://images.unsplash.com/photo-1650247452475-b5866374545d?w=700&h=500&fit=crop&auto=format",
-      alt: "Warga berjalan bersama di hutan",
-      title: "Jelajah Alam",
-      caption: "Kebersamaan warga dalam menjaga dan menikmati alam dusun",
-      tall: false,
-    },
-    {
-      img: "https://images.unsplash.com/photo-1566205865731-51803de32a35?w=900&h=600&fit=crop&auto=format",
-      alt: "Kehidupan sehari-hari di lingkungan dusun",
-      title: "Keseharian Dusun",
-      caption: "Kehidupan yang sederhana, hangat, dan penuh kebersamaan",
-      tall: false,
-    },
-  ];
-
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: "left" | "right") => {
@@ -99,11 +40,36 @@ export function VillageLifePage({ nav, settings, activities }: VillageLifePagePr
   }));
 
   const allItems: any[] = [...displayItems];
-  galleryItems.forEach(item => {
-    if (!displayItems.some(act => act.title.toLowerCase() === item.title.toLowerCase())) {
-      allItems.push(item);
+
+  const sortOrder = [
+    "pertanian",
+    "peternakan",
+    "gumuk petung camp",
+    "merapi",
+    "produksi arang",
+    "pembuatan arang",
+    "pawai budaya",
+    "upacara adat",
+    "musim tanam",
+    "hari panen raya",
+    "panen raya",
+    "ketekunan petani",
+    "jelajah alam",
+    "keseharian dusun"
+  ];
+
+  const getSortIndex = (title: string) => {
+    const t = title.toLowerCase();
+    for (let index = 0; index < sortOrder.length; index++) {
+      const keyword = sortOrder[index];
+      if (t === keyword || t.includes(keyword)) {
+        return index;
+      }
     }
-  });
+    return 999;
+  };
+
+  allItems.sort((a, b) => getSortIndex(a.title) - getSortIndex(b.title));
 
   // Group allItems into collage columns
   const columns: { type: "single" | "double"; items: any[] }[] = [];
@@ -129,14 +95,14 @@ export function VillageLifePage({ nav, settings, activities }: VillageLifePagePr
   return (
     <>
       {/* Hero */}
-      <section className="relative overflow-hidden" style={{ height: "40vh", minHeight: 300 }}>
+      <section className="relative overflow-hidden pt-16 pb-12 h-auto sm:py-0 sm:h-[40vh] sm:min-h-[300px]">
         <img
           src="https://images.unsplash.com/photo-1542897643-8158da5b4607?w=1600&h=700&fit=crop&auto=format"
           alt="Pawai komunitas warga Dusun Petung"
           className="absolute inset-0 w-full h-full object-cover object-center"
         />
         <div className="absolute inset-0 bg-black/55" />
-        <div className="relative h-full max-w-7xl mx-auto px-6 lg:px-12 flex flex-col justify-end pb-14">
+        <div className="relative max-w-7xl mx-auto px-6 lg:px-12 flex flex-col justify-end h-auto sm:h-full pb-0 sm:pb-14">
           <span className="text-white/50 text-[11px] font-bold tracking-[0.18em] uppercase block mb-3">
             Kehidupan Dusun
           </span>
@@ -153,7 +119,7 @@ export function VillageLifePage({ nav, settings, activities }: VillageLifePagePr
       </section>
 
       {/* Introduction */}
-      <section className="py-24 lg:py-36">
+      <section className="py-8 lg:py-16">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <div className="grid lg:grid-cols-[1fr_1fr] gap-16 lg:gap-28 items-start">
             <div className="bg-[#D4C9B5]">

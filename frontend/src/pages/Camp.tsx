@@ -96,7 +96,7 @@ export function CampPage({ nav, settings }: CampPageProps) {
     { img: "/images/camp/Berkemah.webp", icon: Mountain, title: "Berkemah", desc: "Rasakan malam di alam terbuka dengan bintang sebagai atap dan semilir gunung sebagai selimut." },
     { img: "/images/camp/Menyambut Fajar.webp", icon: Sunrise, title: "Menyambut Fajar", desc: "Saksikan matahari terbit di balik puncak Merapi dari ketinggian bukit yang tenang." },
     { img: "/images/camp/City Light.webp", icon: Star, title: "Menikmati City Light", desc: "Hamparan lampu kota yang berkilauan dari ketinggian menciptakan panorama malam yang memukau." },
-    { img: "/images/camp/Fotografi Alam.webp", icon: Camera, title: "Fotografi Alam", desc: "Setiap sudut menawarkan komposisi indah — dari panorama puncak hingga kabut pagi yang dramatis." },
+    { img: "/images/camp/Fotografi Alam.webp", icon: Camera, title: "Fotografi Alam", desc: "Setiap sudut menawarkan komposisi indah, dari panorama puncak hingga kabut pagi yang dramatis." },
     { img: "/images/camp/Menikmati Alam.webp", icon: Wind, title: "Menikmati Alam", desc: "Biarkan udara pegunungan dan keheningan alam memulihkan pikiran dan jiwa Anda." },
     { img: "/images/camp/Api Unggun.webp", icon: Flame, title: "Api Unggun", desc: "Kumpul bersama di sekitar api unggun, berbagi cerita, dan menikmati hangatnya malam bersama." },
   ];
@@ -177,7 +177,7 @@ export function CampPage({ nav, settings }: CampPageProps) {
       </section>
 
       {/* About Gumuk Petung Camp */}
-      <section className="py-24 lg:py-36">
+      <section className="py-8 lg:py-16">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <div className="grid lg:grid-cols-[1fr_1fr] gap-16 lg:gap-28 items-start mb-20">
             <div>
@@ -424,15 +424,15 @@ export function CampPage({ nav, settings }: CampPageProps) {
                     <div className="w-full h-px bg-black/5" />
 
                     <div>
-                      <div className="text-[10px] font-bold text-[#7A7065] tracking-[0.15em] uppercase mb-1.5">Harga Tiket & Parkir</div>
+                      <div className="text-[10px] font-bold text-[#7A7065] tracking-[0.15em] uppercase mb-1.5">Harga Tiket Masuk</div>
                       <div className="flex flex-col gap-1">
                         <div className="flex justify-between text-[13px]">
-                          <span className="text-[#5A5550]">Tiket Masuk (HTM)</span>
-                          <span className="font-semibold text-[#2C2C2A]">Rp 10.000 / orang</span>
+                          <span className="text-[#5A5550]">Tiket Masuk (Inc. Parkir)</span>
+                          <span className="font-semibold text-[#2C2C2A]">Rp 15.000 / orang</span>
                         </div>
                         <div className="flex justify-between text-[13px]">
-                          <span className="text-[#5A5550]">Parkir Kendaraan</span>
-                          <span className="font-semibold text-[#2C2C2A]">Rp 5.000 / unit</span>
+                          <span className="text-[#5A5550]">Tambahan Campervan Pribadi</span>
+                          <span className="font-semibold text-[#2C2C2A]">+ Rp 50.000 / unit</span>
                         </div>
                       </div>
                     </div>
@@ -528,34 +528,60 @@ export function CampPage({ nav, settings }: CampPageProps) {
                 )}
 
                 {activeInfoTab === "sewa" && (
-                  <div className="flex flex-col gap-1 py-1">
-                    <div className="text-[10px] font-bold text-[#7A7065] tracking-[0.15em] uppercase mb-1.5">Harga Sewa Alat Satuan</div>
-                    <div className="flex flex-col divide-y divide-black/5">
-                      {[
-                        { name: "Tenda Kapasitas 8–10 Orang", price: "Rp 140.000" },
-                        { name: "Tenda Kapasitas 4 Orang", price: "Rp 65.000" },
-                        { name: "Kayu Bakar", price: "Rp 45.000" },
-                        { name: "Meja Lipat", price: "Rp 20.000" },
-                        { name: "Kompor Portable Besar", price: "Rp 20.000" },
-                        { name: "Sleeping Bag", price: "Rp 15.000" },
-                        { name: "Kursi Lipat", price: "Rp 10.000" },
-                        { name: "Kompor Portable Kecil", price: "Rp 10.000" },
-                        { name: "Cooking Nesting", price: "Rp 10.000" },
-                        { name: "Grill Pan", price: "Rp 10.000" },
-                        { name: "Gas Portable", price: "Rp 10.000" },
-                        { name: "Matras (2m x 2m)", price: "Rp 10.000" },
-                        { name: "Flysheet", price: "Rp 10.000" },
-                        { name: "Selimut", price: "Rp 10.000" },
-                        { name: "Lampu Tenda", price: "Rp 10.000" },
-                        { name: "Hammock", price: "Rp 10.000" },
-                        { name: "Rol Kabel", price: "Rp 5.000" },
-                      ].map((item, idx) => (
-                        <div key={idx} className="flex justify-between py-1.5 text-[13px]">
-                          <span className="text-[#5A5550]">{item.name}</span>
-                          <span className="font-semibold text-[#2C2C2A]">{item.price}</span>
+                  <div className="flex flex-col gap-5 py-1">
+                    {[
+                      {
+                        category: "Tenda & Perlengkapan Tidur",
+                        items: [
+                          { name: "Tenda Kapasitas 8–10 Orang", price: "Rp 140.000" },
+                          { name: "Tenda Kapasitas 4 Orang", price: "Rp 65.000" },
+                          { name: "Sleeping Bag", price: "Rp 15.000" },
+                          { name: "Matras (2m x 2m)", price: "Rp 10.000" },
+                          { name: "Selimut", price: "Rp 10.000" },
+                          { name: "Flysheet", price: "Rp 10.000" },
+                          { name: "Hammock", price: "Rp 10.000" },
+                        ]
+                      },
+                      {
+                        category: "Peralatan Memasak",
+                        items: [
+                          { name: "Kompor Portable Besar", price: "Rp 20.000" },
+                          { name: "Kompor Portable Kecil", price: "Rp 10.000" },
+                          { name: "Cooking Nesting", price: "Rp 10.000" },
+                          { name: "Grill Pan", price: "Rp 10.000" },
+                          { name: "Gas Portable", price: "Rp 10.000" },
+                        ]
+                      },
+                      {
+                        category: "Furnitur",
+                        items: [
+                          { name: "Meja Lipat", price: "Rp 20.000" },
+                          { name: "Kursi Lipat", price: "Rp 10.000" },
+                        ]
+                      },
+                      {
+                        category: "Lain-lain",
+                        items: [
+                          { name: "Kayu Bakar", price: "Rp 45.000" },
+                          { name: "Lampu Tenda", price: "Rp 10.000" },
+                          { name: "Rol Kabel", price: "Rp 5.000" },
+                        ]
+                      }
+                    ].map((cat, catIdx) => (
+                      <div key={catIdx} className="flex flex-col">
+                        <div className="text-[10px] font-bold text-[#3A6520] tracking-[0.12em] uppercase mb-1.5 pb-1 border-b border-black/5">
+                          {cat.category}
                         </div>
-                      ))}
-                    </div>
+                        <div className="flex flex-col divide-y divide-black/5">
+                          {cat.items.map((item, itemIdx) => (
+                            <div key={itemIdx} className="flex justify-between py-1.5 text-[13px]">
+                              <span className="text-[#5A5550]">{item.name}</span>
+                              <span className="font-semibold text-[#2C2C2A]">{item.price}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>

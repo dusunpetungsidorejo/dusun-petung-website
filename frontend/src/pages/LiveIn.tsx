@@ -128,7 +128,7 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
   return (
     <>
       {/* Hero Section */}
-      <section className="relative overflow-hidden" style={{ height: "40vh", minHeight: 330 }}>
+      <section className="relative overflow-hidden pt-16 pb-12 h-auto sm:py-0 sm:h-[40vh] sm:min-h-[330px]">
         <img
           src="https://images.unsplash.com/photo-1566205865731-51803de32a35?w=1600&h=900&fit=crop&auto=format"
           alt="Suasana pedesaan lereng Gunung Merapi dengan pepohonan hijau rindang"
@@ -136,7 +136,7 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
         />
         <div className="absolute inset-0 bg-black/52" />
         
-        <div className="relative h-full max-w-7xl mx-auto px-6 lg:px-12 flex flex-col justify-end pb-8 sm:pb-11">
+        <div className="relative max-w-7xl mx-auto px-6 lg:px-12 flex flex-col justify-end h-auto sm:h-full pb-0 sm:pb-20">
           <span className="text-white/50 text-[11px] font-bold tracking-[0.18em] uppercase block mb-2">
             Live In Experience · Dusun Petung
           </span>
@@ -170,7 +170,7 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
       </section>
 
       {/* Concept Philosophy Section */}
-      <section className="py-24 lg:py-36 bg-[#FAF9F5]">
+      <section className="py-8 lg:py-16 bg-[#FAF9F5]">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-16 lg:gap-24 items-center">
             
@@ -196,7 +196,7 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
               </div>
 
               {/* Three Value Pillars */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-12 pt-8 border-t border-black/[0.06]">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-2 pt-8 border-t border-black/[0.06]">
                 <div>
                   <span className="block text-[#3A6520] font-bold text-[17px] mb-2">01. Autentik</span>
                   <span className="block text-[13px] text-[#7A7065] leading-relaxed">Menjalani rutinitas riil warga dusun tanpa skenario.</span>
@@ -233,7 +233,7 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
       </section>
 
       {/* Interactive Explorer / Houses Section */}
-      <section id="rumah-warga" className="py-24 lg:py-36 bg-[#F7F4EF] border-t border-black/[0.04]">
+      <section id="rumah-warga" className="py-8 lg:py-16 bg-[#F7F4EF] border-t border-black/[0.04]">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           
           {/* Section title */}
@@ -440,7 +440,7 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
       </section>
 
       {/* Experience Showcase (Bertani, Kuliner, dll) */}
-      <section className="py-24 lg:py-36 bg-[#FAF9F5] border-t border-black/[0.04]">
+      <section className="py-8 lg:py-16 bg-[#FAF9F5] border-t border-black/[0.04]">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           
           <div className="flex flex-col lg:flex-row items-stretch lg:items-end justify-between mb-16 gap-4">
@@ -500,7 +500,7 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
       </section>
 
       {/* Guide Lines & FAQ */}
-      <section className="py-24 lg:py-36 bg-[#F7F4EF] border-t border-black/[0.04]">
+      <section className="py-8 lg:py-16 bg-[#F7F4EF] border-t border-black/[0.04]">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           
           <div className="grid lg:grid-cols-2 gap-16 items-start">

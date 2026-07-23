@@ -22,7 +22,7 @@ export function HomePage({ nav, settings }: HomePageProps) {
   return (
     <>
       {/* Hero ─────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden" style={{ height: "68vh", minHeight: 520 }}>
+      <section className="relative overflow-hidden pt-16 pb-12 h-auto sm:py-0 sm:h-[68vh] sm:min-h-[520px]">
         <img
           src={heroImg}
           alt={`Hamparan hijau kaki Gunung Merapi di ${villageName}`}
@@ -30,7 +30,7 @@ export function HomePage({ nav, settings }: HomePageProps) {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/40 to-black/10" />
 
-        <div className="relative h-full max-w-7xl mx-auto px-6 lg:px-12 flex items-center">
+        <div className="relative max-w-7xl mx-auto px-6 lg:px-12 flex items-center h-auto sm:h-full pb-0 sm:pb-16">
           <div style={{ maxWidth: 520 }}>
             <span className="inline-block text-white/55 text-[10px] sm:text-[11px] font-semibold tracking-[0.10em] sm:tracking-[0.18em] uppercase mb-5">
               Desa Sidorejo · Kecamatan Kemalang · Kabupaten Klaten · Jawa Tengah
@@ -63,7 +63,7 @@ export function HomePage({ nav, settings }: HomePageProps) {
       </section>
 
       {/* Preview Profile ───────────────────────────────────── */}
-      <section className="py-24 lg:py-36">
+      <section className="py-8 lg:py-16">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <div className="grid lg:grid-cols-[1fr_1fr] gap-16 lg:gap-28 items-center">
 
@@ -109,7 +109,7 @@ export function HomePage({ nav, settings }: HomePageProps) {
       </section>
 
       {/* Preview Gumuk Petung Camp ─────────────────────────── */}
-      <section className="py-24 lg:py-36 bg-[#1E1E1C]">
+      <section className="py-8 lg:py-16 bg-[#1E1E1C]">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
 
           {/* Header row */}
@@ -167,7 +167,7 @@ export function HomePage({ nav, settings }: HomePageProps) {
       </section>
 
       {/* Preview Live In ──────────────────────────────────── */}
-      <section className="py-24 lg:py-36 bg-[#FAF9F5]">
+      <section className="py-8 lg:py-16 bg-[#FAF9F5]">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <div className="grid lg:grid-cols-[1fr_1.1fr] gap-16 lg:gap-24 items-center">
             
@@ -238,7 +238,7 @@ export function HomePage({ nav, settings }: HomePageProps) {
       </section>
 
       {/* Preview Village Life ──────────────────────────────── */}
-      <section className="py-24 lg:py-36">
+      <section className="py-8 lg:py-16">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
 
           <div className="flex items-end justify-between mb-12">

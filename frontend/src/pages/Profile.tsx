@@ -14,14 +14,14 @@ export function ProfilePage({ nav, settings }: ProfilePageProps) {
   return (
     <>
       {/* Profile Hero ──────────────────────────────────────── */}
-      <section className="relative overflow-hidden" style={{ height: "40vh", minHeight: 300 }}>
+      <section className="relative overflow-hidden pt-16 pb-12 h-auto sm:py-0 sm:h-[40vh] sm:min-h-[300px]">
         <img
           src={IMGS.profileHero}
           alt="Panorama Gunung Merapi dari kejauhan"
           className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-black/52" />
-        <div className="relative h-full max-w-7xl mx-auto px-6 lg:px-12 flex flex-col justify-end pb-14">
+        <div className="relative max-w-7xl mx-auto px-6 lg:px-12 flex flex-col justify-end h-auto sm:h-full pb-0 sm:pb-20">
           <span className="text-white/50 text-[11px] font-bold tracking-[0.18em] uppercase block mb-3">
             Profil Dusun
           </span>
@@ -38,7 +38,7 @@ export function ProfilePage({ nav, settings }: ProfilePageProps) {
       </section>
 
       {/* About the Village ─────────────────────────────────── */}
-      <section className="py-24 lg:py-36">
+      <section className="py-8 lg:py-16">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <div className="grid lg:grid-cols-[1fr_1fr] gap-16 lg:gap-28 items-start">
 
@@ -77,7 +77,7 @@ export function ProfilePage({ nav, settings }: ProfilePageProps) {
       </section>
 
       {/* Village Statistics ────────────────────────────────── */}
-      <section className="py-20 bg-[#F0EBE3]">
+      <section className="py-16 bg-[#F0EBE3]">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <div className="text-center mb-14">
             <span className="text-[#C97C2A] text-[11px] font-bold tracking-[0.18em] uppercase block mb-3">
@@ -120,7 +120,7 @@ export function ProfilePage({ nav, settings }: ProfilePageProps) {
       </section>
 
       {/* Short History — Timeline ─────────────────────────── */}
-      <section className="py-24 lg:py-36">
+      <section className="py-8 lg:py-16">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <div className="mb-16">
             <span className="text-[#C97C2A] text-[11px] font-bold tracking-[0.18em] uppercase block mb-5">
@@ -193,7 +193,7 @@ export function ProfilePage({ nav, settings }: ProfilePageProps) {
       </section>
 
       {/* Village Potentials ─────────────────────────────────── */}
-      <section className="py-24 lg:py-36 bg-[#F0EBE3]">
+      <section className="py-8 lg:py-16 bg-[#F0EBE3]">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <div className="mb-16">
             <span className="text-[#C97C2A] text-[11px] font-bold tracking-[0.18em] uppercase block mb-5">
