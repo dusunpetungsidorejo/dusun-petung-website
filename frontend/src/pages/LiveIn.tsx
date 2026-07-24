@@ -45,6 +45,9 @@ export function LiveInPage({ nav, settings }: LiveInPageProps) {
   // Modal Gallery State
   const [activeGalleryIndex, setActiveGalleryIndex] = useState(0);
 
+  // FAQ Accordion State
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+
   const fetchHouses = async () => {
     setLoading(true);
     setError(null);
@@ -128,7 +131,7 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
   return (
     <>
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-16 pb-12 h-auto sm:py-0 sm:h-[40vh] sm:min-h-[330px]">
+      <section className="relative overflow-hidden pt-16 pb-10 h-auto sm:py-0 sm:h-[40vh] sm:min-h-[330px]">
         <img
           src="https://images.unsplash.com/photo-1566205865731-51803de32a35?w=1600&h=900&fit=crop&auto=format"
           alt="Suasana pedesaan lereng Gunung Merapi dengan pepohonan hijau rindang"
@@ -136,7 +139,7 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
         />
         <div className="absolute inset-0 bg-black/52" />
         
-        <div className="relative max-w-7xl mx-auto px-6 lg:px-12 flex flex-col justify-end h-auto sm:h-full pb-0 sm:pb-20">
+        <div className="relative max-w-7xl mx-auto px-6 lg:px-12 flex flex-col justify-end h-auto sm:h-full pb-0 sm:pb-14">
           <span className="text-white/50 text-[11px] font-bold tracking-[0.18em] uppercase block mb-2">
             Live In Experience · Dusun Petung
           </span>
@@ -147,7 +150,7 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
             Menyatu dengan Kehidupan Dusun
           </h1>
           <p className="text-white/65 text-[13px] sm:text-[14px] leading-[1.65] mb-4" style={{ maxWidth: 460 }}>
-            Undangan membaur dalam kehangatan keluarga lokal, belajar bertani, dan merangkul kedamaian kaki Merapi.
+            Nikmati pengalaman hidup bersama warga lokal, mengenal tradisi dan keseharian desa, serta merasakan ketenangan alam di kaki Merapi.
           </p>
           <div className="flex flex-wrap gap-2 sm:gap-2.5">
             <a
@@ -188,7 +191,7 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
               
               <div className="space-y-6 text-[#5A5550] text-[15px] leading-[1.75]">
                 <p>
-                  Di Dusun Petung, kami percaya bahwa pariwisata terbaik adalah pariwisata yang mendekatkan hati ke hati. Fitur <strong>Live In</strong> kami rancang agar para pelancong perkotaan dapat melepaskan penat dan kembali terhubung dengan alam serta kebiasaan hidup bersahaja.
+                  Di Dusun Petung, kami percaya bahwa pariwisata terbaik adalah pariwisata yang mendekatkan hati ke hati. Wisata <strong>Live In</strong> kami rancang agar para wisatawan dapat melepaskan penat dan kembali terhubung dengan alam serta kebiasaan hidup bersahaja.
                 </p>
                 <p>
                   Setiap rumah warga yang terdaftar telah dikurasi agar menjamin kenyamanan mendasar Anda, namun tetap mempertahankan keaslian bentuk hunian lereng Merapi. Anda tidak akan menemukan kemewahan hotel berbintang, melainkan kemewahan obrolan hangat malam hari di bale-bale bambu sembari menikmati teh jahe hangat buatan simbah.
@@ -199,15 +202,15 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-2 pt-8 border-t border-black/[0.06]">
                 <div>
                   <span className="block text-[#3A6520] font-bold text-[17px] mb-2">01. Autentik</span>
-                  <span className="block text-[13px] text-[#7A7065] leading-relaxed">Menjalani rutinitas riil warga dusun tanpa skenario.</span>
+                  <span className="block text-[13px] text-[#7A7065] leading-relaxed">Merasakan keseharian warga dan suasana dusun secara langsung.</span>
                 </div>
                 <div>
-                  <span className="block text-[#3A6520] font-bold text-[17px] mb-2">02. Gotong Royong</span>
-                  <span className="block text-[13px] text-[#7A7065] leading-relaxed">Kontribusi langsung pada ekonomi mandiri masyarakat.</span>
+                  <span className="block text-[#3A6520] font-bold text-[17px] mb-2">02. Kebersamaan</span>
+                  <span className="block text-[13px] text-[#7A7065] leading-relaxed">Berinteraksi dengan keluarga tuan rumah dan menjadi bagian dari kehidupan desa.</span>
                 </div>
                 <div>
                   <span className="block text-[#3A6520] font-bold text-[17px] mb-2">03. Edukatif</span>
-                  <span className="block text-[13px] text-[#7A7065] leading-relaxed">Mempelajari cara bercocok tanam dan kearifan lereng gunung.</span>
+                  <span className="block text-[13px] text-[#7A7065] leading-relaxed">Belajar mengenal budaya, tradisi, dan kehidupan masyarakat lereng Merapi.</span>
                 </div>
               </div>
             </div>
@@ -223,8 +226,8 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
               </div>
               <div className="absolute -bottom-6 -left-6 bg-white p-5 border border-black/[0.05] rounded-xl shadow-md max-w-[240px] hidden sm:block">
                 <Heart className="w-6 h-6 text-[#C97C2A] mb-3" />
-                <span className="block text-[13.5px] font-bold text-[#2C2C2A] mb-1">Dikelola Komunitas</span>
-                <span className="block text-[11px] text-[#7A7065] leading-relaxed">100% pendapatan disalurkan langsung ke pemilik rumah.</span>
+                <span className="block text-[13.5px] font-bold text-[#2C2C2A] mb-1">Dikelola Masyarakat</span>
+                <span className="block text-[11px] text-[#7A7065] leading-relaxed">Program dijalankan bersama oleh masyarakat dusun dan keluarga tuan rumah.</span>
               </div>
             </div>
 
@@ -464,17 +467,17 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
             {[
               {
                 title: "Bertani & Berkebun",
-                desc: "Turun ke sawah lereng Merapi, belajar bercocok tanam padi, mencangkul, atau memetik buah kopi segar langsung dari kebun pekarangan.",
+                desc: "Ikut berkegiatan di kebun maupun sawah bersama warga, mulai dari menanam, merawat, hingga memanen hasil sesuai musim.",
                 img: "https://images.unsplash.com/photo-1572908721147-0a9eb395762d?w=600&h=420&fit=crop&auto=format"
               },
               {
-                title: "Kuliner Pawon Tradisional",
-                desc: "Memasak makanan tradisional dengan bahan sayur organik segar yang Anda petik sendiri, dimasak di tungku api berbahan kayu bakar khas pedesaan.",
+                title: "Kuliner Tradisional",
+                desc: "Menikmati cita rasa masakan khas keluarga lokal yang disajikan langsung oleh tuan rumah.",
                 img: "https://images.unsplash.com/photo-1623042392888-1f87e36a5b64?w=600&h=420&fit=crop&auto=format"
               },
               {
-                title: "Mengurus Hewan Ternak",
-                desc: "Ikut memandikan kambing atau menyuapkan pakan rumput segar untuk sapi perah di pagi hari bersama pemuda karang taruna dusun.",
+                title: "Beternak",
+                desc: "Merasakan pengalaman berinteraksi dengan hewan ternak dan mengenal kehidupan peternakan warga.",
                 img: "https://images.unsplash.com/photo-1650247452475-b5866374545d?w=600&h=420&fit=crop&auto=format"
               }
             ].map((item, idx) => (
@@ -516,14 +519,14 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
                 Hal Penting Sebelum <br />Anda Bertamu
               </h2>
               <p className="text-[14px] text-[#7A7065] leading-relaxed mb-6">
-                Untuk menjaga kenyamanan bersama dan adat istiadat dusun, kami memohon agar setiap pengunjung memperhatikan beberapa panduan mendasar berikut.
+                Untuk menjaga kenyamanan bersama dan adat istiadat dusun, kami memohon agar setiap pengunjung memperhatikan beberapa panduan berikut.
               </p>
               
               <div className="space-y-4">
                 {[
                   { title: "Bawa Pakaian Hangat", desc: "Dusun Petung berada di lereng tinggi Gunung Merapi, udara malam dan pagi hari cukup dingin." },
-                  { title: "Sopan Santun & Ramah", desc: "Saling menyapa ketika berpapasan dengan warga dusun merupakan tradisi mulia yang kami junjung tinggi." },
-                  { title: "Konsumsi Makanan Lokal", desc: "Nikmati hidangan lokal yang dimasak oleh tuan rumah untuk merasakan kearifan rasa yang otentik." }
+                  { title: "Gunakan Alas Kaki yang Nyaman", desc: "Area dusun memiliki jalan menanjak. Gunakan alas kaki yang nyaman untuk memudahkan aktivitas." },
+                  { title: "Hormati Kebiasaan Warga", desc: "Jaga sopan santun, sapa warga dengan ramah, dan ikuti arahan dari keluarga tuan rumah selama beraktivitas." }
                 ].map((item, idx) => (
                   <div key={idx} className="flex gap-4">
                     <span className="w-6 h-6 rounded-full bg-[#3A6520]/8 flex items-center justify-center text-[#3A6520] font-bold text-[11px] shrink-0 mt-0.5">
@@ -539,21 +542,77 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
             </div>
 
             <div className="bg-white border border-black/[0.06] rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm">
-              <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[16px] font-bold text-[#2C2C2A] pb-4 border-b border-black/[0.05]">
+              <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="mb-0 text-[16px] font-bold text-[#2C2C2A] pb-4 border-b border-black/[0.05]">
                 Pertanyaan Umum (FAQ)
               </h3>
               
-              <div className="space-y-4">
+              <div className="space-y-1">
                 {[
-                  { q: "Apakah kamar mandi di dalam rumah?", a: "Mayoritas rumah warga memiliki kamar mandi di dalam rumah, beberapa memiliki kamar mandi pribadi tepat di sebelah samping teras luar." },
-                  { q: "Bagaimana dengan konsumsi makanan?", a: "Jika mengambil Paket 24 Jam, makan 3x sehari telah disediakan oleh pemilik rumah. Jika mengambil Paket Overnight biasa, Anda bisa berkoordinasi langsung dengan tuan rumah." },
-                  { q: "Apakah anak-anak diperbolehkan ikut?", a: "Sangat diperbolehkan. Ini adalah sarana edukasi yang sangat mendidik bagi anak-anak untuk mengenal alam pedesaan." }
-                ].map((faq, idx) => (
-                  <div key={idx} className="space-y-1.5">
-                    <span className="block text-[13px] font-bold text-[#2C2C2A]">Q: {faq.q}</span>
-                    <p className="text-[12px] text-[#7A7065] leading-relaxed">A: {faq.a}</p>
-                  </div>
-                ))}
+                  {
+                    q: "Apakah saya akan menginap di rumah warga?",
+                    a: "Ya. Selama program Live In, Anda akan menginap di rumah keluarga tuan rumah dan merasakan suasana kehidupan sehari-hari masyarakat Dusun Petung."
+                  },
+                  {
+                    q: "Apa saja kegiatan yang bisa dilakukan?",
+                    a: "Aktivitas menyesuaikan dengan keseharian keluarga tuan rumah dan kondisi musim. Anda dapat mengikuti kegiatan seperti berkebun, beternak, berinteraksi dengan warga, menikmati kuliner lokal, atau aktivitas lain yang sedang berlangsung."
+                  },
+                  {
+                    q: "Apakah saya harus mengikuti semua kegiatan?",
+                    a: "Tidak. Anda bebas memilih untuk mengikuti aktivitas yang tersedia sesuai minat dan kenyamanan selama program berlangsung."
+                  },
+                  {
+                    q: "Berapa lama durasi Live In?",
+                    a: "Tersedia pilihan paket Overnight dan 24 Hours. Detail jadwal dan waktu pelaksanaan dapat dilihat pada masing-masing pilihan rumah."
+                  },
+                  {
+                    q: "Apakah makanan sudah disediakan?",
+                    a: "Ya. Keluarga tuan rumah akan menyiapkan hidangan selama Anda menginap. Jika memiliki alergi atau pantangan makanan tertentu, mohon informasikan sebelum kedatangan."
+                  },
+                  {
+                    q: "Bagaimana cara melakukan reservasi?",
+                    a: "Lakukan reservasi melalui tombol yang tersedia. Selanjutnya, Anda akan diarahkan ke WhatsApp untuk proses konfirmasi bersama pengelola."
+                  },
+                  {
+                    q: "Apakah Live In cocok untuk rombongan?",
+                    a: "Ya. Program dapat diikuti secara individu maupun berkelompok. Untuk rombongan, kami menyarankan melakukan reservasi lebih awal agar penempatan rumah dapat disesuaikan dengan ketersediaan."
+                  },
+                  {
+                    q: "Apa yang perlu saya bawa?",
+                    a: "Disarankan membawa pakaian hangat, alas kaki yang nyaman, perlengkapan pribadi, serta obat-obatan pribadi apabila diperlukan."
+                  }
+                ].map((faq, idx) => {
+                  const isOpen = openFaqIndex === idx;
+                  return (
+                    <div 
+                      key={idx} 
+                      className="border-b border-black/[0.05] pb-1.5 last:border-0 last:pb-0"
+                    >
+                      <button
+                        onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
+                        className="w-full flex items-center justify-between text-left py-1.5 focus:outline-none group"
+                      >
+                        <span className="text-[13px] font-bold text-[#2C2C2A] group-hover:text-[#3A6520] transition-colors leading-snug">
+                          {faq.q}
+                        </span>
+                        <ChevronRight 
+                          className={`w-4 h-4 text-[#7A7065] shrink-0 transition-transform duration-200 ml-3 ${
+                            isOpen ? "rotate-90 text-[#3A6520]" : ""
+                          }`} 
+                        />
+                      </button>
+                      
+                      <div 
+                        className={`overflow-hidden transition-all duration-250 ${
+                          isOpen ? "max-h-[200px] mt-1.5 opacity-100" : "max-h-0 opacity-0"
+                        }`}
+                      >
+                        <p className="text-[12px] text-[#7A7065] leading-relaxed pr-6">
+                          {faq.a}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 

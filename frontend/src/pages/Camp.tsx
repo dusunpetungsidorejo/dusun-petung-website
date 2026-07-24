@@ -127,7 +127,7 @@ export function CampPage({ nav, settings }: CampPageProps) {
   return (
     <>
       {/* Hero */}
-      <section className="relative overflow-hidden" style={{ height: "40vh", minHeight: 330 }}>
+      <section className="relative overflow-hidden pt-16 pb-10 h-auto sm:py-0 sm:h-[40vh] sm:min-h-[330px]">
         <img
           src="/images/camp/Hero.webp"
           alt="Pemandangan Gumuk Petung Camp"
@@ -135,7 +135,7 @@ export function CampPage({ nav, settings }: CampPageProps) {
           style={{ objectPosition: "center 75%" }}
         />
         <div className="absolute inset-0 bg-black/52" />
-        <div className="relative h-full max-w-7xl mx-auto px-6 lg:px-12 flex flex-col justify-end pb-6 sm:pb-8">
+        <div className="relative max-w-7xl mx-auto px-6 lg:px-12 flex flex-col justify-end h-auto sm:h-full pb-0 sm:pb-14">
           <span className="text-white/50 text-[11px] font-bold tracking-[0.18em] uppercase block mb-2">
             Wisata Camping · Dusun Petung
           </span>
