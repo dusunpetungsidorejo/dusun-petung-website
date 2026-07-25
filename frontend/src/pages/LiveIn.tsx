@@ -288,7 +288,7 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
             >
               Paket Kunjungan Live In
             </h2>
-            <p className="text-[14.5px] text-[#7A7065] leading-relaxed">
+            <p className="text-[14.5px] text-[#7A7065] leading-relaxed text-center">
               Pilih paket kunjungan yang paling sesuai dengan kebutuhan Anda. Semua homestay warga memiliki tarif, fasilitas, dan kehangatan pelayanan yang seragam.
             </p>
           </div>
@@ -417,7 +417,7 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
             >
               Suasana Homestay Warga
             </h2>
-            <p className="text-[14.5px] text-[#7A7065] leading-relaxed">
+            <p className="text-[14.5px] text-[#7A7065] leading-relaxed text-center">
               Intip kehangatan dan keaslian suasana rumah tinggal warga Dusun Petung yang siap menyambut kehadiran Anda.
             </p>
           </div>

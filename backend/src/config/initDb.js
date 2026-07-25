@@ -181,6 +181,123 @@ async function initDb() {
       console.log('• Settings table is already seeded.');
     }
 
+    // 6. Create Camp Tables
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS camp_packages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        capacity TEXT NOT NULL,
+        price REAL NOT NULL,
+        description TEXT,
+        active INTEGER DEFAULT 1,
+        updated_at TEXT NOT NULL
+      );
+    `);
+    console.log('✓ Camp Packages table created or verified.');
+
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS camp_rentals (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        category TEXT NOT NULL,
+        price REAL NOT NULL,
+        active INTEGER DEFAULT 1,
+        updated_at TEXT NOT NULL
+      );
+    `);
+    console.log('✓ Camp Rentals table created or verified.');
+
+    // Create Demographics Table
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS demographics (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        icon TEXT NOT NULL,
+        value TEXT NOT NULL,
+        label TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+    `);
+    console.log('✓ Demographics table created or verified.');
+
+    // Seed default demographics if empty
+    const demoCheck = await db.execute('SELECT COUNT(*) as count FROM demographics');
+    if (demoCheck.rows[0].count === 0) {
+      const date = new Date().toISOString().split('T')[0];
+      const defaultDemos = [
+        { icon: 'Users', value: '3.247', label: 'Jiwa Penduduk' },
+        { icon: 'Home', value: '892', label: 'Kepala Keluarga' },
+        { icon: 'Map', value: '485 Ha', label: 'Luas Wilayah' },
+        { icon: 'Building2', value: '1 RW / 2 RT', label: 'Pembagian Administrasi' }
+      ];
+      for (const d of defaultDemos) {
+        await db.execute({
+          sql: `INSERT INTO demographics (icon, value, label, updated_at)
+                VALUES (?, ?, ?, ?)`,
+          args: [d.icon, d.value, d.label, date]
+        });
+      }
+      console.log('✓ Seeded default demographics.');
+    }
+
+    // Seed camp_packages if empty
+    const campPackageCheck = await db.execute('SELECT COUNT(*) as count FROM camp_packages');
+    if (campPackageCheck.rows[0].count === 0) {
+      const date = new Date().toISOString().split('T')[0];
+      const defaultCampPkgs = [
+        { name: 'Paket Small', capacity: 'Kapasitas 4 Orang', price: 185000, description: 'Tenda 4p, 2 Matras (2x2m), 4 Selimut, Lampu Tenda, HTM' },
+        { name: 'Paket Medium', capacity: 'Kapasitas 4 Orang', price: 210000, description: 'Paket Small + Cooking Set (Kompor, Gas, Nesting)' },
+        { name: 'Paket Large', capacity: 'Kapasitas 4 Orang', price: 265000, description: 'Paket Medium + 1 Meja Lipat & 4 Kursi Lipat' },
+        { name: 'Paket Small', capacity: 'Kapasitas 10 Orang', price: 425000, description: 'Tenda 10p, 4 Matras (2x2m), 10 Selimut, Lampu Tenda, HTM' },
+        { name: 'Paket Medium', capacity: 'Kapasitas 10 Orang', price: 460000, description: 'Paket Small + Cooking Set (Kompor, Gas, Nesting)' },
+        { name: 'Paket Large', capacity: 'Kapasitas 10 Orang', price: 560000, description: 'Paket Medium + 2 Meja Lipat & 8 Kursi Lipat' }
+      ];
+      for (const p of defaultCampPkgs) {
+        await db.execute({
+          sql: `INSERT INTO camp_packages (name, capacity, price, description, active, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?)`,
+          args: [p.name, p.capacity, p.price, p.description, 1, date]
+        });
+      }
+      console.log('✓ Seeded default camp packages.');
+    }
+
+    // Seed camp_rentals if empty
+    const campRentalCheck = await db.execute('SELECT COUNT(*) as count FROM camp_rentals');
+    if (campRentalCheck.rows[0].count === 0) {
+      const date = new Date().toISOString().split('T')[0];
+      const defaultCampRentals = [
+        // Tenda & Perlengkapan Tidur
+        { name: 'Tenda Kapasitas 8–10 Orang', category: 'Tenda & Perlengkapan Tidur', price: 150000 },
+        { name: 'Tenda Kapasitas 4 Orang', category: 'Tenda & Perlengkapan Tidur', price: 65000 },
+        { name: 'Sleeping Bag', category: 'Tenda & Perlengkapan Tidur', price: 15000 },
+        { name: 'Matras (2m x 2m)', category: 'Tenda & Perlengkapan Tidur', price: 10000 },
+        { name: 'Selimut', category: 'Tenda & Perlengkapan Tidur', price: 10000 },
+        { name: 'Flysheet', category: 'Tenda & Perlengkapan Tidur', price: 10000 },
+        { name: 'Hammock', category: 'Tenda & Perlengkapan Tidur', price: 10000 },
+        // Peralatan Memasak
+        { name: 'Kompor Portable Besar', category: 'Peralatan Memasak', price: 20000 },
+        { name: 'Kompor Portable Kecil', category: 'Peralatan Memasak', price: 10000 },
+        { name: 'Cooking Nesting', category: 'Peralatan Memasak', price: 10000 },
+        { name: 'Grill Pan', category: 'Peralatan Memasak', price: 10000 },
+        { name: 'Gas Portable', category: 'Peralatan Memasak', price: 10000 },
+        // Furnitur
+        { name: 'Meja Lipat', category: 'Furnitur', price: 20000 },
+        { name: 'Kursi Lipat', category: 'Furnitur', price: 10000 },
+        // Lain-lain
+        { name: 'Kayu Bakar', category: 'Lain-lain', price: 45000 },
+        { name: 'Lampu Tenda', category: 'Lain-lain', price: 10000 },
+        { name: 'Rol Kabel', category: 'Lain-lain', price: 5000 }
+      ];
+      for (const r of defaultCampRentals) {
+        await db.execute({
+          sql: `INSERT INTO camp_rentals (name, category, price, active, updated_at)
+                VALUES (?, ?, ?, ?, ?)`,
+          args: [r.name, r.category, r.price, 1, date]
+        });
+      }
+      console.log('✓ Seeded default camp rentals.');
+    }
+
     console.log('Database initialization completed successfully.');
   } catch (error) {
     console.error('Error initializing database:', error);

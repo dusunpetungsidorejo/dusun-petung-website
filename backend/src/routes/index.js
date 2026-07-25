@@ -16,6 +16,8 @@ import settingsRouter from './settingsRoutes.js';
 import activitiesRouter from './activitiesRoutes.js';
 import uploadRouter from './uploadRoutes.js';
 import liveinRouter from './liveinRoutes.js';
+import campRouter from './campRoutes.js';
+import demographicsRouter from './demographicsRoutes.js';
 
 // Auth router
 router.use('/auth', authRouter);
@@ -31,5 +33,11 @@ router.use('/upload', uploadRouter);
 
 // Live In router
 router.use('/livein', liveinRouter);
+
+// Camp router
+router.use('/camp', campRouter);
+
+// Demographics router
+router.use('/demographics', demographicsRouter);
 
 export default router;

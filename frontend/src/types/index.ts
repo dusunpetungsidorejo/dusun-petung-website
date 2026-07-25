@@ -57,4 +57,29 @@ export interface LiveInPackage {
   updated_at?: string;
 }
 
+export interface CampPackage {
+  id?: number;
+  name: string;
+  capacity: string;
+  price: number;
+  description: string;
+  active: boolean;
+  updated_at?: string;
+}
 
+export interface CampRental {
+  id?: number;
+  name: string;
+  category: string;
+  price: number;
+  active: boolean;
+  updated_at?: string;
+}
+
+export interface Demographic {
+  id?: number;
+  icon: string;
+  value: string;
+  label: string;
+  updated_at?: string;
+}

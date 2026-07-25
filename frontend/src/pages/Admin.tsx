@@ -27,12 +27,13 @@ import {
   Eye,
   EyeOff,
   DollarSign,
-  AlertCircle
+  AlertCircle,
+  Tent
 } from "lucide-react";
-import { Page, Activity, LiveInHouse, LiveInPackage } from "../types";
+import { Page, Activity, LiveInHouse, LiveInPackage, CampPackage, CampRental, Demographic } from "../types";
 import { ToastContainer } from "../components/ToastContainer";
 
-type AdminSection = "dashboard" | "docs" | "add-doc" | "settings" | "livein" | "add-livein" | "add-livein-package";
+type AdminSection = "dashboard" | "docs" | "add-doc" | "settings" | "livein" | "add-livein" | "add-livein-package" | "camp" | "add-camp-package" | "add-camp-rental" | "demographics" | "add-demographic";
 
 const DEFAULT_PACKAGES: LiveInPackage[] = [
   {
@@ -149,6 +150,45 @@ export function AdminPage({
   const [packageIcon, setPackageIcon] = useState("clock");
   const [packageActive, setPackageActive] = useState(true);
 
+  // Camp State Management
+  const [campPackages, setCampPackages] = useState<CampPackage[]>([]);
+  const [campRentals, setCampRentals] = useState<CampRental[]>([]);
+  const [loadingCampPackages, setLoadingCampPackages] = useState(false);
+  const [loadingCampRentals, setLoadingCampRentals] = useState(false);
+  const [activeCampTab, setActiveCampTab] = useState<"paket" | "sewa">("paket");
+
+  // Camp Package Form States
+  const [editingCampPackageId, setEditingCampPackageId] = useState<number | null>(null);
+  const [campPackageName, setCampPackageName] = useState("");
+  const [campPackageCapacity, setCampPackageCapacity] = useState("Kapasitas 4 Orang");
+  const [campPackagePrice, setCampPackagePrice] = useState("");
+  const [campPackageDescription, setCampPackageDescription] = useState("");
+  const [campPackageActive, setCampPackageActive] = useState(true);
+  const [submittingCampPackage, setSubmittingCampPackage] = useState(false);
+  const [deleteCampPackageId, setDeleteCampPackageId] = useState<number | null>(null);
+
+  // Camp Rental Form States
+  const [editingCampRentalId, setEditingCampRentalId] = useState<number | null>(null);
+  const [campRentalName, setCampRentalName] = useState("");
+  const [campRentalCategory, setCampRentalCategory] = useState("Tenda & Perlengkapan Tidur");
+  const [campRentalPrice, setCampRentalPrice] = useState("");
+  const [campRentalActive, setCampRentalActive] = useState(true);
+  const [submittingCampRental, setSubmittingCampRental] = useState(false);
+  const [deleteCampRentalId, setDeleteCampRentalId] = useState<number | null>(null);
+
+  const [isDeletingCampPkg, setIsDeletingCampPkg] = useState(false);
+  const [isDeletingCampRental, setIsDeletingCampRental] = useState(false);
+
+  // Demographics State Management
+  const [demographics, setDemographics] = useState<Demographic[]>([]);
+  const [loadingDemographics, setLoadingDemographics] = useState(false);
+  const [editingDemographicId, setEditingDemographicId] = useState<number | null>(null);
+  const [demographicIcon, setDemographicIcon] = useState("Users");
+  const [demographicValue, setDemographicValue] = useState("");
+  const [demographicLabel, setDemographicLabel] = useState("");
+  const [submittingDemographic, setSubmittingDemographic] = useState(false);
+  const [deleteDemographicId, setDeleteDemographicId] = useState<number | null>(null);
+  const [isDeletingDemographic, setIsDeletingDemographic] = useState(false);
 
   // Live In Form States
   const [liveinName, setLiveinName] = useState("");
@@ -225,16 +265,53 @@ export function AdminPage({
     }
   };
 
+  const fetchCampPackages = async () => {
+    setLoadingCampPackages(true);
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${baseUrl}/camp/packages`);
+      if (res.ok) {
+        const data = await res.json();
+        setCampPackages(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch Camp packages:", err);
+    } finally {
+      setLoadingCampPackages(false);
+    }
+  };
+
+  const fetchCampRentals = async () => {
+    setLoadingCampRentals(true);
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${baseUrl}/camp/rentals`);
+      if (res.ok) {
+        const data = await res.json();
+        setCampRentals(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch Camp rentals:", err);
+    } finally {
+      setLoadingCampRentals(false);
+    }
+  };
+
   useEffect(() => {
     fetchLiveinHouses();
     fetchLiveinPackages();
+    fetchCampPackages();
+    fetchCampRentals();
+    fetchDemographics();
   }, []);
 
 
   const sideNav = [
     { icon: LayoutDashboard, label: "Dashboard", key: "dashboard" as AdminSection },
+    { icon: Users, label: "Data Statistik Dusun", key: "demographics" as AdminSection },
+    { icon: FileText, label: "Dokumentasi Dusun", key: "docs" as AdminSection },
+    { icon: Tent, label: "Gumuk Petung Camp", key: "camp" as AdminSection },
     { icon: Home, label: "Live In", key: "livein" as AdminSection },
-    { icon: FileText, label: "Dokumentasi", key: "docs" as AdminSection },
     { icon: Settings, label: "Pengaturan Website", key: "settings" as AdminSection },
   ];
 
@@ -864,6 +941,327 @@ export function AdminPage({
   };
 
 
+  // --- CAMP PACKAGES CRUD HANDLERS ---
+  const handleResetCampPackageForm = () => {
+    setEditingCampPackageId(null);
+    setCampPackageName("");
+    setCampPackageCapacity("Kapasitas 4 Orang");
+    setCampPackagePrice("");
+    setCampPackageDescription("");
+    setCampPackageActive(true);
+  };
+
+  const handleEditCampPackageClick = (pkg: CampPackage) => {
+    setEditingCampPackageId(pkg.id || null);
+    setCampPackageName(pkg.name);
+    setCampPackageCapacity(pkg.capacity);
+    setCampPackagePrice(String(pkg.price));
+    setCampPackageDescription(pkg.description || "");
+    setCampPackageActive(!!pkg.active);
+    setSection("add-camp-package");
+  };
+
+  const handleSubmitCampPackage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!campPackageName.trim()) {
+      showToast("Nama paket wajib diisi", "error");
+      return;
+    }
+    const priceVal = Number(campPackagePrice);
+    if (!campPackagePrice || isNaN(priceVal) || priceVal < 0) {
+      showToast("Harga paket harus berupa angka positif", "error");
+      return;
+    }
+
+    setSubmittingCampPackage(true);
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const payload = {
+        name: campPackageName,
+        capacity: campPackageCapacity,
+        price: priceVal,
+        description: campPackageDescription,
+        active: campPackageActive
+      };
+
+      let res;
+      if (editingCampPackageId) {
+        res = await fetch(`${baseUrl}/camp/packages/${editingCampPackageId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+      } else {
+        res = await fetch(`${baseUrl}/camp/packages`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+      }
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Gagal menyimpan Paket");
+      }
+
+      showToast(editingCampPackageId ? "Paket Camp berhasil diubah" : "Paket Camp berhasil ditambahkan", "success");
+      handleResetCampPackageForm();
+      fetchCampPackages();
+      setSection("camp");
+    } catch (err: any) {
+      showToast(err.message || "Gagal menyimpan Paket", "error");
+    } finally {
+      setSubmittingCampPackage(false);
+    }
+  };
+
+  const handleDeleteCampPackage = async (id: number) => {
+    setIsDeletingCampPkg(true);
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${baseUrl}/camp/packages/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Gagal menghapus Paket");
+      }
+      showToast("Paket Camp berhasil dihapus", "success");
+      setDeleteCampPackageId(null);
+      fetchCampPackages();
+    } catch (err: any) {
+      showToast(err.message || "Gagal menghapus Paket", "error");
+    } finally {
+      setIsDeletingCampPkg(false);
+    }
+  };
+
+  // --- CAMP RENTALS CRUD HANDLERS ---
+  const handleResetCampRentalForm = () => {
+    setEditingCampRentalId(null);
+    setCampRentalName("");
+    setCampRentalCategory("Tenda & Perlengkapan Tidur");
+    setCampRentalPrice("");
+    setCampRentalActive(true);
+  };
+
+  const handleEditCampRentalClick = (rent: CampRental) => {
+    setEditingCampRentalId(rent.id || null);
+    setCampRentalName(rent.name);
+    setCampRentalCategory(rent.category);
+    setCampRentalPrice(String(rent.price));
+    setCampRentalActive(!!rent.active);
+    setSection("add-camp-rental");
+  };
+
+  const handleSubmitCampRental = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!campRentalName.trim()) {
+      showToast("Nama alat wajib diisi", "error");
+      return;
+    }
+    const priceVal = Number(campRentalPrice);
+    if (!campRentalPrice || isNaN(priceVal) || priceVal < 0) {
+      showToast("Tarif sewa harus berupa angka positif", "error");
+      return;
+    }
+
+    setSubmittingCampRental(true);
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const payload = {
+        name: campRentalName,
+        category: campRentalCategory,
+        price: priceVal,
+        active: campRentalActive
+      };
+
+      let res;
+      if (editingCampRentalId) {
+        res = await fetch(`${baseUrl}/camp/rentals/${editingCampRentalId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+      } else {
+        res = await fetch(`${baseUrl}/camp/rentals`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+      }
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Gagal menyimpan Sewa Alat");
+      }
+
+      showToast(editingCampRentalId ? "Sewa Alat berhasil diubah" : "Sewa Alat berhasil ditambahkan", "success");
+      handleResetCampRentalForm();
+      fetchCampRentals();
+      setSection("camp");
+    } catch (err: any) {
+      showToast(err.message || "Gagal menyimpan Sewa Alat", "error");
+    } finally {
+      setSubmittingCampRental(false);
+    }
+  };
+
+  const handleDeleteCampRental = async (id: number) => {
+    setIsDeletingCampRental(true);
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${baseUrl}/camp/rentals/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Gagal menghapus Sewa Alat");
+      }
+      showToast("Sewa Alat berhasil dihapus", "success");
+      setDeleteCampRentalId(null);
+      fetchCampRentals();
+    } catch (err: any) {
+      showToast(err.message || "Gagal menghapus Sewa Alat", "error");
+    } finally {
+      setIsDeletingCampRental(false);
+    }
+  };
+
+
+  // --- DEMOGRAPHICS CRUD HANDLERS ---
+  const fetchDemographics = async () => {
+    setLoadingDemographics(true);
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${baseUrl}/demographics`);
+      if (res.ok) {
+        const data = await res.json();
+        setDemographics(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch Demographics:", err);
+    } finally {
+      setLoadingDemographics(false);
+    }
+  };
+
+  const handleResetDemographicForm = () => {
+    setEditingDemographicId(null);
+    setDemographicIcon("Users");
+    setDemographicValue("");
+    setDemographicLabel("");
+  };
+
+  const handleEditDemographic = (d: Demographic) => {
+    setEditingDemographicId(d.id || null);
+    setDemographicIcon(d.icon);
+    setDemographicValue(d.value);
+    setDemographicLabel(d.label);
+    setSection("add-demographic");
+  };
+
+  const handleAddDemographicClick = () => {
+    handleResetDemographicForm();
+    setSection("add-demographic");
+  };
+
+  const handleSubmitDemographic = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!demographicIcon.trim() || !demographicValue.trim() || !demographicLabel.trim()) {
+      showToast("Semua field wajib diisi", "error");
+      return;
+    }
+
+    setSubmittingDemographic(true);
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const payload = {
+        icon: demographicIcon,
+        value: demographicValue,
+        label: demographicLabel
+      };
+
+      let res;
+      if (editingDemographicId) {
+        res = await fetch(`${baseUrl}/demographics/${editingDemographicId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+      } else {
+        res = await fetch(`${baseUrl}/demographics`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+      }
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Gagal menyimpan Data Dusun");
+      }
+
+      showToast(editingDemographicId ? "Data Dusun berhasil diubah" : "Data Dusun berhasil ditambahkan", "success");
+      handleResetDemographicForm();
+      fetchDemographics();
+      setSection("demographics");
+    } catch (err: any) {
+      showToast(err.message || "Gagal menyimpan Data Dusun", "error");
+    } finally {
+      setSubmittingDemographic(false);
+    }
+  };
+
+  const handleDeleteDemographic = async (id: number) => {
+    setIsDeletingDemographic(true);
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${baseUrl}/demographics/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Gagal menghapus Data Dusun");
+      }
+      showToast("Data Dusun berhasil dihapus", "success");
+      setDeleteDemographicId(null);
+      fetchDemographics();
+    } catch (err: any) {
+      showToast(err.message || "Gagal menghapus Data Dusun", "error");
+    } finally {
+      setIsDeletingDemographic(false);
+    }
+  };
+
+
   const toggleFacility = (facility: string) => {
     setSelectedFacilities(prev => 
       prev.includes(facility) 
@@ -921,6 +1319,11 @@ export function AdminPage({
   const unavailableLiveinCount = liveinHouses.filter(h => h.status === "Unavailable").length;
   const inactiveLiveinCount = liveinHouses.filter(h => h.status === "Inactive").length;
 
+  const jiwaDemo = demographics.find(d => d.label.toLowerCase().includes("jiwa") || d.label.toLowerCase().includes("penduduk"));
+  const kkDemo = demographics.find(d => d.label.toLowerCase().includes("kepala") || d.label.toLowerCase().includes("kk"));
+  const jiwaValue = jiwaDemo ? jiwaDemo.value : "3.247";
+  const kkValue = kkDemo ? kkDemo.value : "892";
+
   return (
     <div style={{ fontFamily: "'Inter', sans-serif" }} className="min-h-screen bg-[#FAF9F5] flex w-full">
 
@@ -976,7 +1379,9 @@ export function AdminPage({
                 }}
                 className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-lg text-[13px] font-semibold transition-all ${
                   section === key || 
-                  (key === "livein" && section === "add-livein") ||
+                  (key === "livein" && (section === "add-livein" || section === "add-livein-package")) ||
+                  (key === "camp" && (section === "add-camp-package" || section === "add-camp-rental")) ||
+                  (key === "demographics" && section === "add-demographic") ||
                   (key === "docs" && section === "add-doc")
                     ? "bg-[#3A6520] text-white shadow-sm"
                     : "text-[#7A7065] hover:text-[#2C2C2A] hover:bg-[#F0EBE3]"
@@ -1024,9 +1429,14 @@ export function AdminPage({
               {section === "livein" && "Manajemen Live In"}
               {section === "add-livein" && (editingLiveinId ? "Ubah Homestay" : "Tambah Homestay Baru")}
               {section === "add-livein-package" && (editingPackageId ? "Ubah Paket Live In" : "Tambah Paket Live In Baru")}
+              {section === "camp" && "Manajemen Camping & Sewa Alat"}
+              {section === "add-camp-package" && (editingCampPackageId ? "Ubah Paket Camp" : "Tambah Paket Camp Baru")}
+              {section === "add-camp-rental" && (editingCampRentalId ? "Ubah Sewa Alat" : "Tambah Sewa Alat Baru")}
               {section === "docs" && "Manajemen Dokumentasi"}
               {section === "add-doc" && (editingDocId ? "Ubah Dokumentasi" : "Tambah Dokumentasi Baru")}
               {section === "settings" && "Pengaturan Website"}
+              {section === "demographics" && "Manajemen Data Statistik Dusun"}
+              {section === "add-demographic" && (editingDemographicId ? "Ubah Data Dusun" : "Tambah Data Dusun Baru")}
             </h1>
           </div>
 
@@ -1051,50 +1461,58 @@ export function AdminPage({
           {section === "dashboard" && (
             <div className="flex flex-col gap-8 w-full max-w-7xl">
               
-              {/* Live In Statistics Row */}
+              {/* Unified Statistics Cards */}
               <div>
-                <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[13px] font-bold text-[#7A7065] uppercase tracking-wider mb-4">Statistik Live In</h3>
+                <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[13px] font-bold text-[#7A7065] uppercase tracking-wider mb-4">Statistik Dashboard</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                   {[
-                    { label: "Total Rumah Live In", value: totalLiveinCount, icon: Home, desc: "Seluruh rumah terdaftar", color: "text-[#3A6520] bg-[#3A6520]/8" },
-                    { label: "Tersedia (Available)", value: availableLiveinCount, icon: Check, desc: "Siap disewa pengunjung", color: "text-emerald-600 bg-emerald-50" },
-                    { label: "Penuh (Unavailable)", value: unavailableLiveinCount, icon: X, desc: "Sedang tidak tersedia", color: "text-amber-600 bg-amber-50" },
-                    { label: "Tidak Aktif (Inactive)", value: inactiveLiveinCount, icon: EyeOff, desc: "Disembunyikan dari publik", color: "text-gray-500 bg-gray-100" }
-                  ].map(({ label, value, icon: Icon, desc, color }) => (
-                    <div key={label} className="bg-white border border-black/[0.06] rounded-xl p-5 shadow-sm flex items-start justify-between">
+                    { 
+                      label: "Jumlah Penduduk", 
+                      value: `${jiwaValue}`, 
+                      icon: Users, 
+                      color: "text-[#3A6520] bg-[#3A6520]/8",
+                      action: () => setSection("demographics")
+                    },
+                    { 
+                      label: "Kepala Keluarga", 
+                      value: `${kkValue}`, 
+                      icon: Home,
+                      color: "text-[#3A6520] bg-[#3A6520]/8",
+                      action: () => setSection("demographics")
+                    },
+                    { 
+                      label: "Jumlah Kegiatan", 
+                      value: activities.length, 
+                      icon: FileText, 
+                      color: "text-[#3A6520] bg-[#3A6520]/8",
+                      action: () => setSection("docs")
+                    },
+                    { 
+                      label: "Jumlah Live In", 
+                      value: totalLiveinCount, 
+                      icon: Home,
+                      color: "text-[#3A6520] bg-[#3A6520]/8",
+                      action: () => setSection("livein")
+                    }
+                  ].map(({ label, value, icon: Icon, color, action }) => (
+                    <div 
+                      key={label} 
+                      onClick={action}
+                      className="bg-white border border-black/[0.06] rounded-xl p-5 shadow-sm flex items-start justify-between hover:border-[#3A6520]/30 hover:shadow-md transition cursor-pointer group"
+                    >
                       <div>
-                        <span className="text-[11px] font-bold text-[#7A7065] uppercase tracking-wider">{label}</span>
-                        <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-2xl font-extrabold text-[#2C2C2A] mt-1.5 mb-0.5">
+                        <span className="text-[11px] font-bold text-[#7A7065] uppercase tracking-wider group-hover:text-[#3A6520] transition-colors">{label}</span>
+                        <div 
+                          style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} 
+                          className={`font-extrabold text-[#2C2C2A] mt-1.5 mb-0.5 ${
+                            String(value).length > 8 ? "text-xl sm:text-2xl" : "text-3xl"
+                          }`}
+                        >
                           {value}
                         </div>
-                        <span className="text-[11px] text-[#B8AFA3]">{desc}</span>
                       </div>
-                      <span className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${color}`}>
-                        <Icon className="w-[18px] h-[18px]" strokeWidth={2} />
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Documentation Stats */}
-              <div>
-                <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[13px] font-bold text-[#7A7065] uppercase tracking-wider mb-4">Statistik Kegiatan & Dokumentasi</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  {[
-                    { label: "Jumlah Kegiatan", value: activities.length, icon: FileText, desc: "Total dokumentasi terbit", color: "text-[#3A6520] bg-[#3A6520]/8" },
-                    { label: "Kegiatan (7 Hari Terakhir)", value: last7DaysCount, icon: Clock, desc: "Dokumentasi baru minggu ini", color: "text-[#3A6520] bg-[#3A6520]/8" },
-                  ].map(({ label, value, icon: Icon, desc, color }) => (
-                    <div key={label} className="bg-white border border-black/[0.06] rounded-xl p-5 shadow-sm flex items-start justify-between">
-                      <div>
-                        <span className="text-[11px] font-bold text-[#7A7065] uppercase tracking-wider">{label}</span>
-                        <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-2xl font-extrabold text-[#2C2C2A] mt-1.5 mb-0.5">
-                          {value}
-                        </div>
-                        <span className="text-[11px] text-[#B8AFA3]">{desc}</span>
-                      </div>
-                      <span className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${color}`}>
-                        <Icon className="w-[18px] h-[18px]" strokeWidth={2} />
+                      <span className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform ${color}`}>
+                        <Icon className="w-5 h-5" strokeWidth={2} />
                       </span>
                     </div>
                   ))}
@@ -1395,6 +1813,541 @@ export function AdminPage({
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Section: Camp (Packages & Rentals list) */}
+          {section === "camp" && (
+            <div className="space-y-6">
+              
+              {/* Tab Selector */}
+              <div className="flex border-b border-black/[0.06] -mx-4 px-4 sm:mx-0 sm:px-0">
+                <button
+                  onClick={() => setActiveCampTab("paket")}
+                  className={`pb-3.5 text-[13.5px] font-bold border-b-2 px-4 transition-all ${
+                    activeCampTab === "paket"
+                      ? "border-[#3A6520] text-[#3A6520]"
+                      : "border-transparent text-[#7A7065] hover:text-[#2C2C2A]"
+                  }`}
+                >
+                  Paket Camping
+                </button>
+                <button
+                  onClick={() => setActiveCampTab("sewa")}
+                  className={`pb-3.5 text-[13.5px] font-bold border-b-2 px-4 transition-all ${
+                    activeCampTab === "sewa"
+                      ? "border-[#3A6520] text-[#3A6520]"
+                      : "border-transparent text-[#7A7065] hover:text-[#2C2C2A]"
+                  }`}
+                >
+                  Sewa Alat
+                </button>
+              </div>
+
+              {/* Sub-Section: Paket Camping */}
+              {activeCampTab === "paket" && (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h2 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[16px] font-extrabold text-[#2C2C2A]">
+                        Daftar Paket Camping
+                      </h2>
+                      <p className="text-[12px] text-[#7A7065] mt-0.5">
+                        Kelola paket berkemah yang ditawarkan di Gumuk Petung.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => { handleResetCampPackageForm(); setSection("add-camp-package"); }}
+                      className="flex items-center gap-2 bg-[#3A6520] text-white px-4 py-2 rounded-lg text-[12.5px] font-bold hover:bg-[#2D5016] shadow-sm transition"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Tambah Paket
+                    </button>
+                  </div>
+
+                  <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-[#FAF9F5] border-b border-black/[0.06] text-[#7A7065] text-[11px] font-bold uppercase tracking-wider">
+                            <th className="py-3 px-4 font-bold">Nama Paket</th>
+                            <th className="py-3 px-4 font-bold">Kapasitas</th>
+                            <th className="py-3 px-4 font-bold">Harga</th>
+                            <th className="py-3 px-4 font-bold">Fasilitas / Deskripsi</th>
+                            <th className="py-3 px-4 font-bold text-center">Status</th>
+                            <th className="py-3 px-4 font-bold text-right">Aksi</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-black/[0.04] text-[13px] text-[#2C2C2A]">
+                          {campPackages.map((pkg) => (
+                            <tr key={pkg.id} className="hover:bg-[#FAF9F5]/40 transition-colors">
+                              <td className="py-4 px-4 font-bold">{pkg.name}</td>
+                              <td className="py-4 px-4 text-[#5A5550]">{pkg.capacity}</td>
+                              <td className="py-4 px-4 font-extrabold text-[#3A6520]">
+                                Rp {pkg.price.toLocaleString("id-ID")}
+                              </td>
+                              <td className="py-4 px-4 text-[#5A5550] max-w-xs truncate" title={pkg.description}>
+                                {pkg.description || "-"}
+                              </td>
+                              <td className="py-4 px-4 text-center">
+                                <span className={`inline-flex px-2 py-0.5 rounded-full text-[10.5px] font-bold ${
+                                  pkg.active 
+                                    ? "bg-green-50 text-green-700 border border-green-200" 
+                                    : "bg-red-50 text-red-700 border border-red-200"
+                                }`}>
+                                  {pkg.active ? "Aktif" : "Nonaktif"}
+                                </span>
+                              </td>
+                              <td className="py-4 px-4 text-right">
+                                <div className="flex justify-end gap-1.5">
+                                  <button
+                                    onClick={() => handleEditCampPackageClick(pkg)}
+                                    className="p-2 border border-black/[0.08] hover:bg-[#FAF9F5] rounded text-[#7A7065] hover:text-[#2C2C2A] transition"
+                                    title="Ubah"
+                                  >
+                                    <Pencil className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => setDeleteCampPackageId(pkg.id || null)}
+                                    className="p-2 border border-black/[0.08] hover:bg-red-50 rounded text-red-500 hover:text-red-700 transition"
+                                    title="Hapus"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                          {campPackages.length === 0 && (
+                            <tr>
+                              <td colSpan={6} className="text-center py-12 text-[#7A7065]">
+                                Belum ada paket camping terdaftar.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Sub-Section: Sewa Alat */}
+              {activeCampTab === "sewa" && (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h2 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[16px] font-extrabold text-[#2C2C2A]">
+                        Daftar Alat Sewa
+                      </h2>
+                      <p className="text-[12px] text-[#7A7065] mt-0.5">
+                        Kelola inventaris dan tarif alat sewa untuk berkemah.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => { handleResetCampRentalForm(); setSection("add-camp-rental"); }}
+                      className="flex items-center gap-2 bg-[#3A6520] text-white px-4 py-2 rounded-lg text-[12.5px] font-bold hover:bg-[#2D5016] shadow-sm transition"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Tambah Alat
+                    </button>
+                  </div>
+
+                  <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-[#FAF9F5] border-b border-black/[0.06] text-[#7A7065] text-[11px] font-bold uppercase tracking-wider">
+                            <th className="py-3 px-4 font-bold">Nama Alat</th>
+                            <th className="py-3 px-4 font-bold">Kategori</th>
+                            <th className="py-3 px-4 font-bold">Tarif Sewa</th>
+                            <th className="py-3 px-4 font-bold text-center">Status</th>
+                            <th className="py-3 px-4 font-bold text-right">Aksi</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-black/[0.04] text-[13px] text-[#2C2C2A]">
+                          {campRentals.map((rent) => (
+                            <tr key={rent.id} className="hover:bg-[#FAF9F5]/40 transition-colors">
+                              <td className="py-4 px-4 font-bold">{rent.name}</td>
+                              <td className="py-4 px-4 text-[#5A5550]">{rent.category}</td>
+                              <td className="py-4 px-4 font-extrabold text-[#3A6520]">
+                                Rp {rent.price.toLocaleString("id-ID")}
+                              </td>
+                              <td className="py-4 px-4 text-center">
+                                <span className={`inline-flex px-2 py-0.5 rounded-full text-[10.5px] font-bold ${
+                                  rent.active 
+                                    ? "bg-green-50 text-green-700 border border-green-200" 
+                                    : "bg-red-50 text-red-700 border border-red-200"
+                                }`}>
+                                  {rent.active ? "Aktif" : "Nonaktif"}
+                                </span>
+                              </td>
+                              <td className="py-4 px-4 text-right">
+                                <div className="flex justify-end gap-1.5">
+                                  <button
+                                    onClick={() => handleEditCampRentalClick(rent)}
+                                    className="p-2 border border-black/[0.08] hover:bg-[#FAF9F5] rounded text-[#7A7065] hover:text-[#2C2C2A] transition"
+                                    title="Ubah"
+                                  >
+                                    <Pencil className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => setDeleteCampRentalId(rent.id || null)}
+                                    className="p-2 border border-black/[0.08] hover:bg-red-50 rounded text-red-500 hover:text-red-700 transition"
+                                    title="Hapus"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                          {campRentals.length === 0 && (
+                            <tr>
+                              <td colSpan={5} className="text-center py-12 text-[#7A7065]">
+                                Belum ada alat sewa terdaftar.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Section: Add/Edit Camp Package Form */}
+          {section === "add-camp-package" && (
+            <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm p-5 sm:p-8 max-w-xl w-full">
+              <button 
+                onClick={() => { setSection("camp"); handleResetCampPackageForm(); }} 
+                className="flex items-center gap-1 text-[#7A7065] hover:text-[#2C2C2A] text-[12.5px] font-semibold mb-8 transition"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Kembali ke Manajemen Camp
+              </button>
+
+              <form onSubmit={handleSubmitCampPackage} className="space-y-5">
+                <div className="flex items-center gap-3 border-l-4 border-[#3A6520] pl-3 mb-6">
+                  <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[15px] font-bold text-[#2C2C2A]">
+                    {editingCampPackageId ? "Ubah Paket Camping" : "Tambah Paket Camping Baru"}
+                  </h3>
+                </div>
+
+                <div>
+                  <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Nama Paket</label>
+                  <input
+                    type="text"
+                    required
+                    value={campPackageName}
+                    onChange={(e) => setCampPackageName(e.target.value)}
+                    placeholder="Contoh: Paket Small, Paket Medium"
+                    className="w-full px-3.5 py-2.5 text-[13.5px] border border-black/[0.12] rounded-lg focus:outline-none focus:border-[#3A6520] focus:ring-1 focus:ring-[#3A6520] transition bg-[#FAF9F5]/30"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Kapasitas</label>
+                  <select
+                    value={campPackageCapacity}
+                    onChange={(e) => setCampPackageCapacity(e.target.value)}
+                    className="w-full px-3.5 py-2.5 text-[13.5px] border border-black/[0.12] rounded-lg focus:outline-none focus:border-[#3A6520] focus:ring-1 focus:ring-[#3A6520] bg-white transition"
+                  >
+                    <option value="Kapasitas 4 Orang">Kapasitas 4 Orang</option>
+                    <option value="Kapasitas 10 Orang">Kapasitas 10 Orang</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Harga Paket (Rp)</label>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    value={campPackagePrice}
+                    onChange={(e) => setCampPackagePrice(e.target.value)}
+                    placeholder="Contoh: 185000"
+                    className="w-full px-3.5 py-2.5 text-[13.5px] border border-black/[0.12] rounded-lg focus:outline-none focus:border-[#3A6520] focus:ring-1 focus:ring-[#3A6520] transition bg-[#FAF9F5]/30"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Deskripsi / Fasilitas</label>
+                  <textarea
+                    rows={4}
+                    value={campPackageDescription}
+                    onChange={(e) => setCampPackageDescription(e.target.value)}
+                    placeholder="Masukkan rincian fasilitas paket..."
+                    className="w-full px-3.5 py-2.5 text-[13.5px] border border-black/[0.12] rounded-lg focus:outline-none focus:border-[#3A6520] focus:ring-1 focus:ring-[#3A6520] transition bg-[#FAF9F5]/30"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 py-2">
+                  <input
+                    type="checkbox"
+                    id="campPackageActive"
+                    checked={campPackageActive}
+                    onChange={(e) => setCampPackageActive(e.target.checked)}
+                    className="w-4 h-4 text-[#3A6520] border-black/[0.15] rounded focus:ring-[#3A6520]"
+                  />
+                  <label htmlFor="campPackageActive" className="text-[13px] text-[#5A5550] font-medium cursor-pointer">
+                    Aktifkan Paket (Tampilkan di halaman website)
+                  </label>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4 border-t border-black/[0.06]">
+                  <button
+                    type="button"
+                    onClick={() => { setSection("camp"); handleResetCampPackageForm(); }}
+                    className="px-5 py-2.5 border border-black/[0.1] text-[#7A7065] text-[13px] font-bold rounded-lg hover:bg-[#FAF9F5] transition"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submittingCampPackage}
+                    className="px-6 py-2.5 bg-[#3A6520] text-white text-[13px] font-bold rounded-lg hover:bg-[#2D5016] shadow-sm transition disabled:opacity-50"
+                  >
+                    {submittingCampPackage ? "Menyimpan..." : "Simpan Paket"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* Section: Add/Edit Camp Rental Form */}
+          {section === "add-camp-rental" && (
+            <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm p-5 sm:p-8 max-w-xl w-full">
+              <button 
+                onClick={() => { setSection("camp"); handleResetCampRentalForm(); }} 
+                className="flex items-center gap-1 text-[#7A7065] hover:text-[#2C2C2A] text-[12.5px] font-semibold mb-8 transition"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Kembali ke Manajemen Camp
+              </button>
+
+              <form onSubmit={handleSubmitCampRental} className="space-y-5">
+                <div className="flex items-center gap-3 border-l-4 border-[#3A6520] pl-3 mb-6">
+                  <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[15px] font-bold text-[#2C2C2A]">
+                    {editingCampRentalId ? "Ubah Informasi Alat Sewa" : "Tambah Alat Sewa Baru"}
+                  </h3>
+                </div>
+
+                <div>
+                  <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Nama Alat</label>
+                  <input
+                    type="text"
+                    required
+                    value={campRentalName}
+                    onChange={(e) => setCampRentalName(e.target.value)}
+                    placeholder="Contoh: Tenda Kapasitas 4 Orang, Matras (2m x 2m)"
+                    className="w-full px-3.5 py-2.5 text-[13.5px] border border-black/[0.12] rounded-lg focus:outline-none focus:border-[#3A6520] focus:ring-1 focus:ring-[#3A6520] transition bg-[#FAF9F5]/30"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Kategori</label>
+                  <select
+                    value={campRentalCategory}
+                    onChange={(e) => setCampRentalCategory(e.target.value)}
+                    className="w-full px-3.5 py-2.5 text-[13.5px] border border-black/[0.12] rounded-lg focus:outline-none focus:border-[#3A6520] focus:ring-1 focus:ring-[#3A6520] bg-white transition"
+                  >
+                    <option value="Tenda & Perlengkapan Tidur">Tenda & Perlengkapan Tidur</option>
+                    <option value="Peralatan Memasak">Peralatan Memasak</option>
+                    <option value="Furnitur">Furnitur</option>
+                    <option value="Lain-lain">Lain-lain</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Tarif Sewa (Rp)</label>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    value={campRentalPrice}
+                    onChange={(e) => setCampRentalPrice(e.target.value)}
+                    placeholder="Contoh: 15000"
+                    className="w-full px-3.5 py-2.5 text-[13.5px] border border-black/[0.12] rounded-lg focus:outline-none focus:border-[#3A6520] focus:ring-1 focus:ring-[#3A6520] transition bg-[#FAF9F5]/30"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 py-2">
+                  <input
+                    type="checkbox"
+                    id="campRentalActive"
+                    checked={campRentalActive}
+                    onChange={(e) => setCampRentalActive(e.target.checked)}
+                    className="w-4 h-4 text-[#3A6520] border-black/[0.15] rounded focus:ring-[#3A6520]"
+                  />
+                  <label htmlFor="campRentalActive" className="text-[13px] text-[#5A5550] font-medium cursor-pointer">
+                    Aktifkan Alat (Tampilkan di halaman website)
+                  </label>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4 border-t border-black/[0.06]">
+                  <button
+                    type="button"
+                    onClick={() => { setSection("camp"); handleResetCampRentalForm(); }}
+                    className="px-5 py-2.5 border border-black/[0.1] text-[#7A7065] text-[13px] font-bold rounded-lg hover:bg-[#FAF9F5] transition"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submittingCampRental}
+                    className="px-6 py-2.5 bg-[#3A6520] text-white text-[13px] font-bold rounded-lg hover:bg-[#2D5016] shadow-sm transition disabled:opacity-50"
+                  >
+                    {submittingCampRental ? "Menyimpan..." : "Simpan Alat"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* Section: Demographics List */}
+          {section === "demographics" && (
+            <div className="flex flex-col gap-6 w-full max-w-5xl">
+
+              {loadingDemographics ? (
+                <div className="bg-white border border-black/[0.06] rounded-xl p-12 text-center shadow-sm">
+                  <div className="text-[13.5px] text-[#7A7065]">Memuat data...</div>
+                </div>
+              ) : (
+                <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-[#FAF9F5] border-b border-black/[0.06] text-[11px] font-bold text-[#7A7065] uppercase tracking-wider">
+                          <th className="py-3 px-5 w-16">Ikon</th>
+                          <th className="py-3 px-5">Label / Data</th>
+                          <th className="py-3 px-5">Nilai</th>
+                          <th className="py-3 px-5 w-28 text-right">Aksi</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-black/[0.05] text-[13px]">
+                        {demographics.map((demo) => (
+                          <tr key={demo.id} className="hover:bg-[#FAF9F5]/40 transition">
+                            <td className="py-4 px-5">
+                              <div className="w-9 h-9 rounded-lg bg-[#3A6520]/8 flex items-center justify-center text-[#3A6520]">
+                                {demo.icon === "Users" && <Users className="w-4 h-4" />}
+                                {demo.icon === "Home" && <Home className="w-4 h-4" />}
+                                {demo.icon === "Map" && <MapPin className="w-4 h-4" />}
+                                {demo.icon === "Building2" && <Building2 className="w-4 h-4" />}
+                              </div>
+                            </td>
+                            <td className="py-4 px-5 font-semibold text-[#2C2C2A]">{demo.label}</td>
+                            <td className="py-4 px-5 font-bold text-[#3A6520] text-[14px]">{demo.value}</td>
+                            <td className="py-4 px-5 text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <button
+                                  onClick={() => handleEditDemographic(demo)}
+                                  className="p-1.5 text-[#5A5550] hover:text-[#2C2C2A] hover:bg-black/5 rounded transition"
+                                  title="Ubah"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => setDeleteDemographicId(demo.id || null)}
+                                  className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition"
+                                  title="Hapus"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                        {demographics.length === 0 && (
+                          <tr>
+                            <td colSpan={4} className="py-8 text-center text-[13px] text-[#7A7065]">
+                              Belum ada data demografi terdaftar.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Section: Add/Edit Demographic Form */}
+          {section === "add-demographic" && (
+            <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm p-5 sm:p-8 max-w-xl w-full">
+              <button 
+                onClick={() => { setSection("demographics"); handleResetDemographicForm(); }} 
+                className="flex items-center gap-1 text-[#7A7065] hover:text-[#2C2C2A] text-[12.5px] font-semibold mb-8 transition"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Kembali ke Manajemen Data
+              </button>
+
+              <form onSubmit={handleSubmitDemographic} className="space-y-5">
+                <div className="flex items-center gap-3 border-l-4 border-[#3A6520] pl-3 mb-6">
+                  <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[15px] font-bold text-[#2C2C2A]">
+                    {editingDemographicId ? "Ubah Data Dusun" : "Tambah Data Dusun Baru"}
+                  </h3>
+                </div>
+
+                <div>
+                  <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Ikon Representasi</label>
+                  <select
+                    value={demographicIcon}
+                    onChange={(e) => setDemographicIcon(e.target.value)}
+                    className="w-full px-3.5 py-2.5 text-[13.5px] border border-black/[0.12] rounded-lg focus:outline-none focus:border-[#3A6520] focus:ring-1 focus:ring-[#3A6520] bg-white transition"
+                  >
+                    <option value="Users">Penduduk (Ikon Orang/Masyarakat)</option>
+                    <option value="Home">Hunian (Ikon Rumah/KK)</option>
+                    <option value="Map">Geografis (Ikon Peta/Pin Wilayah)</option>
+                    <option value="Building2">Administrasi (Ikon Kantor/RT/RW)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Nama Parameter (Label)</label>
+                  <input
+                    type="text"
+                    required
+                    value={demographicLabel}
+                    onChange={(e) => setDemographicLabel(e.target.value)}
+                    placeholder="Contoh: Jiwa Penduduk, Kepala Keluarga, Luas Wilayah"
+                    className="w-full px-3.5 py-2.5 text-[13.5px] border border-black/[0.12] rounded-lg focus:outline-none focus:border-[#3A6520] focus:ring-1 focus:ring-[#3A6520] transition bg-[#FAF9F5]/30"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Nilai Data (Value)</label>
+                  <input
+                    type="text"
+                    required
+                    value={demographicValue}
+                    onChange={(e) => setDemographicValue(e.target.value)}
+                    placeholder="Contoh: 3.247, 892, 485 Ha, 1 RW / 2 RT"
+                    className="w-full px-3.5 py-2.5 text-[13.5px] border border-black/[0.12] rounded-lg focus:outline-none focus:border-[#3A6520] focus:ring-1 focus:ring-[#3A6520] transition bg-[#FAF9F5]/30"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4 border-t border-black/[0.06]">
+                  <button
+                    type="button"
+                    onClick={() => { setSection("demographics"); handleResetDemographicForm(); }}
+                    className="px-5 py-2.5 border border-black/[0.1] text-[#7A7065] text-[13px] font-bold rounded-lg hover:bg-[#FAF9F5] transition"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submittingDemographic}
+                    className="px-6 py-2.5 bg-[#3A6520] text-white text-[13px] font-bold rounded-lg hover:bg-[#2D5016] shadow-sm transition disabled:opacity-50"
+                  >
+                    {submittingDemographic ? "Menyimpan..." : "Simpan Data"}
+                  </button>
+                </div>
+              </form>
             </div>
           )}
 
@@ -2113,6 +3066,90 @@ export function AdminPage({
               <button 
                 onClick={() => setDeletePackageId(null)} 
                 disabled={isDeleting}
+                className="flex-1 py-2.5 border border-black/[0.12] text-[#5A5550] text-[13px] font-medium rounded-full hover:bg-[#F0EBE3] transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Batal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Camp Package modal */}
+      {deleteCampPackageId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 backdrop-blur-sm">
+          <div className="bg-white rounded-xl border border-black/[0.08] shadow-lg p-7 w-80 flex flex-col gap-5">
+            <div>
+              <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[16px] font-bold text-[#2C2C2A] mb-1.5">Hapus Paket Camp?</h3>
+              <p className="text-[13px] text-[#7A7065] leading-relaxed">Tindakan ini tidak dapat dibatalkan. Paket camp ini akan dihapus secara permanen.</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => handleDeleteCampPackage(deleteCampPackageId)} 
+                disabled={isDeletingCampPkg}
+                className="flex-1 py-2.5 bg-red-500 text-white text-[13px] font-semibold rounded-full hover:bg-red-600 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {isDeletingCampPkg ? "Menghapus..." : "Ya, Hapus"}
+              </button>
+              <button 
+                onClick={() => setDeleteCampPackageId(null)} 
+                disabled={isDeletingCampPkg}
+                className="flex-1 py-2.5 border border-black/[0.12] text-[#5A5550] text-[13px] font-medium rounded-full hover:bg-[#F0EBE3] transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Batal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Camp Rental modal */}
+      {deleteCampRentalId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 backdrop-blur-sm">
+          <div className="bg-white rounded-xl border border-black/[0.08] shadow-lg p-7 w-80 flex flex-col gap-5">
+            <div>
+              <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[16px] font-bold text-[#2C2C2A] mb-1.5">Hapus Alat Sewa?</h3>
+              <p className="text-[13px] text-[#7A7065] leading-relaxed">Tindakan ini tidak dapat dibatalkan. Alat sewa ini akan dihapus secara permanen.</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => handleDeleteCampRental(deleteCampRentalId)} 
+                disabled={isDeletingCampRental}
+                className="flex-1 py-2.5 bg-red-500 text-white text-[13px] font-semibold rounded-full hover:bg-red-600 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {isDeletingCampRental ? "Menghapus..." : "Ya, Hapus"}
+              </button>
+              <button 
+                onClick={() => setDeleteCampRentalId(null)} 
+                disabled={isDeletingCampRental}
+                className="flex-1 py-2.5 border border-black/[0.12] text-[#5A5550] text-[13px] font-medium rounded-full hover:bg-[#F0EBE3] transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Batal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Demographic modal */}
+      {deleteDemographicId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 backdrop-blur-sm">
+          <div className="bg-white rounded-xl border border-black/[0.08] shadow-lg p-7 w-80 flex flex-col gap-5">
+            <div>
+              <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[16px] font-bold text-[#2C2C2A] mb-1.5">Hapus Data Dusun?</h3>
+              <p className="text-[13px] text-[#7A7065] leading-relaxed">Tindakan ini tidak dapat dibatalkan. Data dusun ini akan dihapus secara permanen.</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => handleDeleteDemographic(deleteDemographicId)} 
+                disabled={isDeletingDemographic}
+                className="flex-1 py-2.5 bg-red-500 text-white text-[13px] font-semibold rounded-full hover:bg-red-600 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {isDeletingDemographic ? "Menghapus..." : "Ya, Hapus"}
+              </button>
+              <button 
+                onClick={() => setDeleteDemographicId(null)} 
+                disabled={isDeletingDemographic}
                 className="flex-1 py-2.5 border border-black/[0.12] text-[#5A5550] text-[13px] font-medium rounded-full hover:bg-[#F0EBE3] transition-colors cursor-pointer disabled:opacity-50"
               >
                 Batal

@@ -11,6 +11,39 @@ interface ProfilePageProps {
 }
 
 export function ProfilePage({ nav, settings }: ProfilePageProps) {
+  const [demographics, setDemographics] = React.useState<any[]>([]);
+
+  React.useEffect(() => {
+    const fetchDemographics = async () => {
+      try {
+        const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        const res = await fetch(`${baseUrl}/demographics`);
+        if (res.ok) {
+          const data = await res.json();
+          setDemographics(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch demographics:", err);
+      }
+    };
+    fetchDemographics();
+  }, []);
+
+  const defaultDemos = [
+    { icon: "Users", value: "3.247", label: "Jiwa Penduduk" },
+    { icon: "Home", value: "892", label: "Kepala Keluarga" },
+    { icon: "Map", value: "485 Ha", label: "Luas Wilayah" },
+    { icon: "Building2", value: "1 RW / 2 RT", label: "Pembagian Administrasi" },
+  ];
+
+  const displayDemos = demographics.length > 0 ? demographics : defaultDemos;
+  const ICON_MAP: Record<string, any> = {
+    Users,
+    Home,
+    Map,
+    Building2
+  };
+
   return (
     <>
       {/* Profile Hero ──────────────────────────────────────── */}
@@ -92,29 +125,27 @@ export function ProfilePage({ nav, settings }: ProfilePageProps) {
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
-            {[
-              { Icon: Users, value: "3.247", label: "Jiwa Penduduk" },
-              { Icon: Home, value: "892", label: "Kepala Keluarga" },
-              { Icon: Map, value: "485 Ha", label: "Luas Wilayah" },
-              { Icon: Building2, value: "1 RW / 2 RT", label: "Pembagian Administrasi" },
-            ].map(({ Icon, value, label }) => (
-              <div key={label} className="bg-white p-4 sm:p-6 lg:p-8 border border-black/5 flex flex-col justify-between">
-                <div>
-                  <Icon className="w-4 h-4 sm:w-[18px] sm:h-[18px] text-[#3A6520] mb-4 sm:mb-5" strokeWidth={1.5} />
-                  <div
-                    style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-                    className={`font-extrabold text-[#2C2C2A] leading-none mb-2 ${
-                      value.length > 7
-                        ? "text-[18px] xs:text-[20px] sm:text-[24px] md:text-[28px] lg:text-[32px]"
-                        : "text-[24px] xs:text-[26px] sm:text-[32px] md:text-[36px] lg:text-[40px]"
-                    }`}
-                  >
-                    <RollingCounter value={value} />
+            {displayDemos.map(({ icon, value, label }) => {
+              const Icon = ICON_MAP[icon] || Users;
+              return (
+                <div key={label} className="bg-white p-4 sm:p-6 lg:p-8 border border-black/5 flex flex-col justify-between">
+                  <div>
+                    <Icon className="w-4 h-4 sm:w-[18px] sm:h-[18px] text-[#3A6520] mb-4 sm:mb-5" strokeWidth={1.5} />
+                    <div
+                      style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                      className={`font-extrabold text-[#2C2C2A] leading-none mb-2 ${
+                        value.length > 7
+                          ? "text-[18px] xs:text-[20px] sm:text-[24px] md:text-[28px] lg:text-[32px]"
+                          : "text-[24px] xs:text-[26px] sm:text-[32px] md:text-[36px] lg:text-[40px]"
+                      }`}
+                    >
+                      <RollingCounter value={value} />
+                    </div>
                   </div>
+                  <div className="text-[11px] sm:text-[12px] lg:text-[13px] text-[#7A7065] font-medium leading-tight">{label}</div>
                 </div>
-                <div className="text-[11px] sm:text-[12px] lg:text-[13px] text-[#7A7065] font-medium leading-tight">{label}</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>

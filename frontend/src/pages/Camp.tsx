@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { 
   ChevronDown,
   ChevronUp,
@@ -19,7 +19,7 @@ import {
   Wifi,
   Zap
 } from "lucide-react";
-import { Page } from "../types";
+import { Page, CampPackage, CampRental } from "../types";
 import { Tiktok } from "../components/Tiktok";
 import { SiteFooter } from "../components/SiteFooter";
 
@@ -66,6 +66,35 @@ const MosqueIcon = ({ className, strokeWidth }: { className?: string; strokeWidt
   </svg>
 );
 
+const DEFAULT_CAMP_PACKAGES: CampPackage[] = [
+  { id: 1, name: 'Paket Small', capacity: 'Kapasitas 4 Orang', price: 185000, description: 'Tenda 4p, 2 Matras (2x2m), 4 Selimut, Lampu Tenda, HTM', active: true },
+  { id: 2, name: 'Paket Medium', capacity: 'Kapasitas 4 Orang', price: 210000, description: 'Paket Small + Cooking Set (Kompor, Gas, Nesting)', active: true },
+  { id: 3, name: 'Paket Large', capacity: 'Kapasitas 4 Orang', price: 265000, description: 'Paket Medium + 1 Meja Lipat & 4 Kursi Lipat', active: true },
+  { id: 4, name: 'Paket Small', capacity: 'Kapasitas 10 Orang', price: 425000, description: 'Tenda 10p, 4 Matras (2x2m), 10 Selimut, Lampu Tenda, HTM', active: true },
+  { id: 5, name: 'Paket Medium', capacity: 'Kapasitas 10 Orang', price: 460000, description: 'Paket Small + Cooking Set (Kompor, Gas, Nesting)', active: true },
+  { id: 6, name: 'Paket Large', capacity: 'Kapasitas 10 Orang', price: 560000, description: 'Paket Medium + 2 Meja Lipat & 8 Kursi Lipat', active: true }
+];
+
+const DEFAULT_CAMP_RENTALS: CampRental[] = [
+  { id: 1, name: 'Tenda Kapasitas 8–10 Orang', category: 'Tenda & Perlengkapan Tidur', price: 150000, active: true },
+  { id: 2, name: 'Tenda Kapasitas 4 Orang', category: 'Tenda & Perlengkapan Tidur', price: 65000, active: true },
+  { id: 3, name: 'Sleeping Bag', category: 'Tenda & Perlengkapan Tidur', price: 15000, active: true },
+  { id: 4, name: 'Matras (2m x 2m)', category: 'Tenda & Perlengkapan Tidur', price: 10000, active: true },
+  { id: 5, name: 'Selimut', category: 'Tenda & Perlengkapan Tidur', price: 10000, active: true },
+  { id: 6, name: 'Flysheet', category: 'Tenda & Perlengkapan Tidur', price: 10000, active: true },
+  { id: 7, name: 'Hammock', category: 'Tenda & Perlengkapan Tidur', price: 10000, active: true },
+  { id: 8, name: 'Kompor Portable Besar', category: 'Peralatan Memasak', price: 20000, active: true },
+  { id: 9, name: 'Kompor Portable Kecil', category: 'Peralatan Memasak', price: 10000, active: true },
+  { id: 10, name: 'Cooking Nesting', category: 'Peralatan Memasak', price: 10000, active: true },
+  { id: 11, name: 'Grill Pan', category: 'Peralatan Memasak', price: 10000, active: true },
+  { id: 12, name: 'Gas Portable', category: 'Peralatan Memasak', price: 10000, active: true },
+  { id: 13, name: 'Meja Lipat', category: 'Furnitur', price: 20000, active: true },
+  { id: 14, name: 'Kursi Lipat', category: 'Furnitur', price: 10000, active: true },
+  { id: 15, name: 'Kayu Bakar', category: 'Lain-lain', price: 45000, active: true },
+  { id: 16, name: 'Lampu Tenda', category: 'Lain-lain', price: 10000, active: true },
+  { id: 17, name: 'Rol Kabel', category: 'Lain-lain', price: 5000, active: true }
+];
+
 interface CampPageProps {
   nav: (p: Page) => void;
   settings: any;
@@ -79,8 +108,66 @@ export function CampPage({ nav, settings }: CampPageProps) {
   }
   const waUrl = formattedPhone ? `https://wa.me/${formattedPhone}` : "https://wa.me/6285138097972";
 
-  const [isExpanded, setIsExpanded] = React.useState(false);
-  const [activeInfoTab, setActiveInfoTab] = React.useState<"info" | "paket" | "sewa">("info");
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [activeInfoTab, setActiveInfoTab] = useState<"info" | "paket" | "sewa">("info");
+  const [campPackages, setCampPackages] = useState<CampPackage[]>(DEFAULT_CAMP_PACKAGES);
+  const [campRentals, setCampRentals] = useState<CampRental[]>(DEFAULT_CAMP_RENTALS);
+
+  useEffect(() => {
+    const fetchCampData = async () => {
+      try {
+        const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        const [resPkgs, resRentals] = await Promise.all([
+          fetch(`${baseUrl}/camp/packages`),
+          fetch(`${baseUrl}/camp/rentals`)
+        ]);
+        if (resPkgs.ok) {
+          const pkgs = await resPkgs.json();
+          setCampPackages(pkgs.filter((p: any) => p.active));
+        }
+        if (resRentals.ok) {
+          const rentals = await resRentals.json();
+          setCampRentals(rentals.filter((r: any) => r.active));
+        }
+      } catch (err) {
+        console.error("Error fetching camp data:", err);
+      }
+    };
+    fetchCampData();
+  }, []);
+
+  const groupedPackages = campPackages.reduce((acc, pkg) => {
+    const cap = pkg.capacity || "Kapasitas Lain";
+    if (!acc[cap]) {
+      acc[cap] = [];
+    }
+    acc[cap].push(pkg);
+    return acc;
+  }, {} as Record<string, CampPackage[]>);
+
+  const groupedRentals = campRentals.reduce((acc, rent) => {
+    const cat = rent.category || "Lain-lain";
+    if (!acc[cat]) {
+      acc[cat] = [];
+    }
+    acc[cat].push(rent);
+    return acc;
+  }, {} as Record<string, CampRental[]>);
+
+  const CATEGORY_ORDER = [
+    "Tenda & Perlengkapan Tidur",
+    "Peralatan Memasak",
+    "Furnitur",
+    "Lain-lain"
+  ];
+
+  const sortedGroupedRentals = Object.entries(groupedRentals).sort(([catA], [catB]) => {
+    const idxA = CATEGORY_ORDER.indexOf(catA);
+    const idxB = CATEGORY_ORDER.indexOf(catB);
+    const pA = idxA === -1 ? 999 : idxA;
+    const pB = idxB === -1 ? 999 : idxB;
+    return pA - pB;
+  });
 
   const showCampingPackages = () => {
     setActiveInfoTab("paket");
@@ -469,119 +556,53 @@ export function CampPage({ nav, settings }: CampPageProps) {
 
                 {activeInfoTab === "paket" && (
                   <div className="flex flex-col gap-4 py-1">
-                    <div>
-                      <div className="text-[10px] font-bold text-[#7A7065] tracking-[0.15em] uppercase mb-2">Kapasitas 4 Orang</div>
-                      <div className="flex flex-col gap-2">
-                        <div className="p-2.5 bg-[#F7F4EF] border border-black/5 rounded">
-                          <div className="flex justify-between items-center mb-0.5">
-                            <span className="font-bold text-[13px] text-[#2C2C2A]">Paket Small</span>
-                            <span className="font-extrabold text-[13px] text-[#3A6520]">Rp 185.000</span>
-                          </div>
-                          <p className="text-[11px] text-[#5A5550]">Tenda 4p, 2 Matras (2x2m), 4 Selimut, Lampu Tenda, HTM</p>
-                        </div>
-                        <div className="p-2.5 bg-[#F7F4EF] border border-black/5 rounded">
-                          <div className="flex justify-between items-center mb-0.5">
-                            <span className="font-bold text-[13px] text-[#2C2C2A]">Paket Medium</span>
-                            <span className="font-extrabold text-[13px] text-[#3A6520]">Rp 210.000</span>
-                          </div>
-                          <p className="text-[11px] text-[#5A5550]">Paket Small + Cooking Set (Kompor, Gas, Nesting)</p>
-                        </div>
-                        <div className="p-2.5 bg-[#F7F4EF] border border-black/5 rounded">
-                          <div className="flex justify-between items-center mb-0.5">
-                            <span className="font-bold text-[13px] text-[#2C2C2A]">Paket Large</span>
-                            <span className="font-extrabold text-[13px] text-[#3A6520]">Rp 265.000</span>
-                          </div>
-                          <p className="text-[11px] text-[#5A5550]">Paket Medium + 1 Meja Lipat & 4 Kursi Lipat</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="w-full h-px bg-black/5" />
-
-                    <div>
-                      <div className="text-[10px] font-bold text-[#7A7065] tracking-[0.15em] uppercase mb-2">Kapasitas 10 Orang</div>
-                      <div className="flex flex-col gap-2">
-                        <div className="p-2.5 bg-[#F7F4EF] border border-black/5 rounded">
-                          <div className="flex justify-between items-center mb-0.5">
-                            <span className="font-bold text-[13px] text-[#2C2C2A]">Paket Small</span>
-                            <span className="font-extrabold text-[13px] text-[#3A6520]">Rp 425.000</span>
-                          </div>
-                          <p className="text-[11px] text-[#5A5550]">Tenda 10p, 4 Matras (2x2m), 10 Selimut, Lampu Tenda, HTM</p>
-                        </div>
-                        <div className="p-2.5 bg-[#F7F4EF] border border-black/5 rounded">
-                          <div className="flex justify-between items-center mb-0.5">
-                            <span className="font-bold text-[13px] text-[#2C2C2A]">Paket Medium</span>
-                            <span className="font-extrabold text-[13px] text-[#3A6520]">Rp 460.000</span>
-                          </div>
-                          <p className="text-[11px] text-[#5A5550]">Paket Small + Cooking Set (Kompor, Gas, Nesting)</p>
-                        </div>
-                        <div className="p-2.5 bg-[#F7F4EF] border border-black/5 rounded">
-                          <div className="flex justify-between items-center mb-0.5">
-                            <span className="font-bold text-[13px] text-[#2C2C2A]">Paket Large</span>
-                            <span className="font-extrabold text-[13px] text-[#3A6520]">Rp 560.000</span>
-                          </div>
-                          <p className="text-[11px] text-[#5A5550]">Paket Medium + 2 Meja Lipat & 8 Kursi Lipat</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {activeInfoTab === "sewa" && (
-                  <div className="flex flex-col gap-5 py-1">
-                    {[
-                      {
-                        category: "Tenda & Perlengkapan Tidur",
-                        items: [
-                          { name: "Tenda Kapasitas 8–10 Orang", price: "Rp 150.000" },
-                          { name: "Tenda Kapasitas 4 Orang", price: "Rp 65.000" },
-                          { name: "Sleeping Bag", price: "Rp 15.000" },
-                          { name: "Matras (2m x 2m)", price: "Rp 10.000" },
-                          { name: "Selimut", price: "Rp 10.000" },
-                          { name: "Flysheet", price: "Rp 10.000" },
-                          { name: "Hammock", price: "Rp 10.000" },
-                        ]
-                      },
-                      {
-                        category: "Peralatan Memasak",
-                        items: [
-                          { name: "Kompor Portable Besar", price: "Rp 20.000" },
-                          { name: "Kompor Portable Kecil", price: "Rp 10.000" },
-                          { name: "Cooking Nesting", price: "Rp 10.000" },
-                          { name: "Grill Pan", price: "Rp 10.000" },
-                          { name: "Gas Portable", price: "Rp 10.000" },
-                        ]
-                      },
-                      {
-                        category: "Furnitur",
-                        items: [
-                          { name: "Meja Lipat", price: "Rp 20.000" },
-                          { name: "Kursi Lipat", price: "Rp 10.000" },
-                        ]
-                      },
-                      {
-                        category: "Lain-lain",
-                        items: [
-                          { name: "Kayu Bakar", price: "Rp 45.000" },
-                          { name: "Lampu Tenda", price: "Rp 10.000" },
-                          { name: "Rol Kabel", price: "Rp 5.000" },
-                        ]
-                      }
-                    ].map((cat, catIdx) => (
-                      <div key={catIdx} className="flex flex-col">
-                        <div className="text-[10px] font-bold text-[#3A6520] tracking-[0.12em] uppercase mb-1.5 pb-1 border-b border-black/5">
-                          {cat.category}
-                        </div>
-                        <div className="flex flex-col divide-y divide-black/5">
-                          {cat.items.map((item, itemIdx) => (
-                            <div key={itemIdx} className="flex justify-between py-1.5 text-[13px]">
-                              <span className="text-[#5A5550]">{item.name}</span>
-                              <span className="font-semibold text-[#2C2C2A]">{item.price}</span>
+                    {Object.entries(groupedPackages).map(([capacity, pkgs], groupIdx) => (
+                      <div key={capacity}>
+                        {groupIdx > 0 && <div className="w-full h-px bg-black/5 my-3" />}
+                        <div className="text-[10px] font-bold text-[#7A7065] tracking-[0.15em] uppercase mb-2">{capacity}</div>
+                        <div className="flex flex-col gap-2">
+                          {pkgs.map((pkg) => (
+                            <div key={pkg.id} className="p-2.5 bg-[#F7F4EF] border border-black/5 rounded">
+                              <div className="flex justify-between items-center mb-0.5">
+                                <span className="font-bold text-[13px] text-[#2C2C2A]">{pkg.name}</span>
+                                <span className="font-extrabold text-[13px] text-[#3A6520]">
+                                  Rp {pkg.price.toLocaleString("id-ID")}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-[#5A5550]">{pkg.description}</p>
                             </div>
                           ))}
                         </div>
                       </div>
                     ))}
+                    {campPackages.length === 0 && (
+                      <div className="text-center py-6 text-[12.5px] text-[#7A7065]">Belum ada paket camping terdaftar.</div>
+                    )}
+                  </div>
+                )}
+
+                {activeInfoTab === "sewa" && (
+                  <div className="flex flex-col gap-5 py-1">
+                    {sortedGroupedRentals.map(([category, items]) => (
+                      <div key={category} className="flex flex-col">
+                        <div className="text-[10px] font-bold text-[#3A6520] tracking-[0.12em] uppercase mb-1.5 pb-1 border-b border-black/5">
+                          {category}
+                        </div>
+                        <div className="flex flex-col divide-y divide-black/5">
+                          {items.map((item) => (
+                            <div key={item.id} className="flex justify-between py-1.5 text-[13px]">
+                              <span className="text-[#5A5550]">{item.name}</span>
+                              <span className="font-semibold text-[#2C2C2A]">
+                                Rp {item.price.toLocaleString("id-ID")}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                    {campRentals.length === 0 && (
+                      <div className="text-center py-6 text-[12.5px] text-[#7A7065]">Belum ada alat sewa terdaftar.</div>
+                    )}
                   </div>
                 )}
               </div>
