@@ -29,10 +29,47 @@ import {
   DollarSign,
   AlertCircle
 } from "lucide-react";
-import { Page, Activity, LiveInHouse } from "../types";
+import { Page, Activity, LiveInHouse, LiveInPackage } from "../types";
 import { ToastContainer } from "../components/ToastContainer";
 
-type AdminSection = "dashboard" | "docs" | "add-doc" | "settings" | "livein" | "add-livein";
+type AdminSection = "dashboard" | "docs" | "add-doc" | "settings" | "livein" | "add-livein" | "add-livein-package";
+
+const DEFAULT_PACKAGES: LiveInPackage[] = [
+  {
+    id: 1,
+    name: "Paket Menginap Semalam (Overnight)",
+    price: 150000,
+    pricing_type: "per orang",
+    description: "Paket menginap semalam (check-out pagi/siang berikutnya). Cocok untuk istirahat dan berburu sunrise di Gumuk Petung Camp.",
+    facilities: [
+      "Kamar tidur pribadi bersih",
+      "Kamar mandi & air bersih",
+      "Sprei & selimut hangat",
+      "Teh jahe hangat / kopi",
+      "Welcome snack lokal",
+      "Area parkir kendaraan aman"
+    ],
+    icon: "sun",
+    active: true
+  },
+  {
+    id: 2,
+    name: "Paket 24 Jam (Full Day)",
+    price: 250000,
+    pricing_type: "per orang",
+    description: "Pengalaman 24 jam membaur dengan warga. Ikuti langsung aktivitas keseharian seperti bertani, berkebun, dan beternak.",
+    facilities: [
+      "Kamar tidur pribadi bersih",
+      "Makan 3x sehari bersama warga",
+      "Ikut aktivitas berkebun/ternak",
+      "Air bersih pegunungan",
+      "Welcome drink & jajanan lokal",
+      "Area parkir kendaraan aman"
+    ],
+    icon: "clock",
+    active: true
+  }
+];
 
 interface AdminPageProps {
   nav: (p: Page) => void;
@@ -94,6 +131,25 @@ export function AdminPage({
   const [liveinSearch, setLiveinSearch] = useState("");
   const [liveinFilterStatus, setLiveinFilterStatus] = useState<string>("all");
 
+  // Tab & Package States
+  const [liveinTab, setLiveinTab] = useState<"homes" | "packages">("homes");
+  const [liveinPackages, setLiveinPackages] = useState<LiveInPackage[]>(DEFAULT_PACKAGES);
+  const [loadingPackages, setLoadingPackages] = useState(false);
+  const [submittingPackage, setSubmittingPackage] = useState(false);
+  const [editingPackageId, setEditingPackageId] = useState<number | null>(null);
+  const [deletePackageId, setDeletePackageId] = useState<number | null>(null);
+
+  // Package Form States
+  const [packageName, setPackageName] = useState("");
+  const [packagePrice, setPackagePrice] = useState("");
+  const [packagePricingType, setPackagePricingType] = useState("per orang");
+  const [packageDescription, setPackageDescription] = useState("");
+  const [packageFacilities, setPackageFacilities] = useState<string[]>([]);
+  const [newFacilityInput, setNewFacilityInput] = useState("");
+  const [packageIcon, setPackageIcon] = useState("clock");
+  const [packageActive, setPackageActive] = useState(true);
+
+
   // Live In Form States
   const [liveinName, setLiveinName] = useState("");
   const [liveinOwner, setLiveinOwner] = useState("");
@@ -150,9 +206,30 @@ export function AdminPage({
     }
   };
 
+  // Fetch Live In Packages
+  const fetchLiveinPackages = async () => {
+    setLoadingPackages(true);
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${baseUrl}/livein/packages`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.length > 0) {
+          setLiveinPackages(data);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch Live In packages:", err);
+    } finally {
+      setLoadingPackages(false);
+    }
+  };
+
   useEffect(() => {
     fetchLiveinHouses();
+    fetchLiveinPackages();
   }, []);
+
 
   const sideNav = [
     { icon: LayoutDashboard, label: "Dashboard", key: "dashboard" as AdminSection },
@@ -499,11 +576,11 @@ export function AdminPage({
     }
   };
 
-  // Save Live In House
+  // Save Live In House (Homestay)
   const handleSaveLivein = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!liveinName.trim()) {
-      showToast("Nama rumah wajib diisi", "error");
+      showToast("Nama homestay wajib diisi", "error");
       return;
     }
     if (!liveinOwner.trim()) {
@@ -511,46 +588,7 @@ export function AdminPage({
       return;
     }
     if (!liveinCoverImage) {
-      showToast("Foto cover rumah wajib diunggah", "error");
-      return;
-    }
-    if (!liveinOvernightActive && !liveinHour24Active) {
-      showToast("Pilih setidaknya satu paket (Paket Menginap atau Paket 24 Jam)", "error");
-      return;
-    }
-
-    if (liveinOvernightActive) {
-      const price = Number(liveinOvernightPrice);
-      if (!liveinOvernightPrice || isNaN(price) || price <= 0) {
-        showToast("Harga Paket Menginap harus berupa angka positif", "error");
-        return;
-      }
-      if (!liveinOvernightCheckin.trim() || !liveinOvernightCheckout.trim()) {
-        showToast("Jam Check-in dan Check-out untuk Paket Menginap wajib diisi", "error");
-        return;
-      }
-    }
-
-    if (liveinHour24Active) {
-      const price = Number(liveinHour24Price);
-      if (!liveinHour24Price || isNaN(price) || price <= 0) {
-        showToast("Harga Paket 24 Jam harus berupa angka positif", "error");
-        return;
-      }
-    }
-
-    const minG = Number(liveinMinGuests);
-    const maxG = Number(liveinMaxGuests);
-    if (!liveinMinGuests || isNaN(minG) || minG <= 0) {
-      showToast("Jumlah minimum tamu harus berupa angka positif", "error");
-      return;
-    }
-    if (!liveinMaxGuests || isNaN(maxG) || maxG <= 0) {
-      showToast("Jumlah maksimum tamu harus berupa angka positif", "error");
-      return;
-    }
-    if (minG > maxG) {
-      showToast("Jumlah minimum tamu tidak boleh melebihi jumlah maksimum tamu", "error");
+      showToast("Foto homestay wajib diunggah", "error");
       return;
     }
 
@@ -561,24 +599,24 @@ export function AdminPage({
         name: liveinName,
         owner: liveinOwner,
         cover_image: liveinCoverImage,
-        gallery: liveinGallery,
-        description: liveinDescription,
-        highlight: liveinHighlight,
-        overnight_active: liveinOvernightActive,
-        overnight_price: liveinOvernightActive ? Number(liveinOvernightPrice) || 0 : null,
-        overnight_checkin: liveinOvernightActive ? liveinOvernightCheckin : null,
-        overnight_checkout: liveinOvernightActive ? liveinOvernightCheckout : null,
-        hour24_active: liveinHour24Active,
-        hour24_price: liveinHour24Active ? Number(liveinHour24Price) || 0 : null,
-        hour24_description: liveinHour24Active ? liveinHour24Description : null,
-        pricing_type: liveinPricingType,
-        min_guests: Number(liveinMinGuests) || 1,
-        max_guests: Number(liveinMaxGuests) || 10,
-        facilities: selectedFacilities,
-        facilities_other: selectedFacilities.includes("Others") ? facilitiesOther : null,
-        experiences: selectedExperiences,
-        experiences_other: selectedExperiences.includes("Others") ? experiencesOther : null,
-        status: liveinStatus
+        gallery: [],
+        description: "Homestay di Dusun Petung",
+        highlight: "",
+        overnight_active: true,
+        overnight_price: 0,
+        overnight_checkin: "",
+        overnight_checkout: "",
+        hour24_active: true,
+        hour24_price: 0,
+        hour24_description: "",
+        pricing_type: "person",
+        min_guests: 1,
+        max_guests: 10,
+        facilities: [],
+        facilities_other: "",
+        experiences: [],
+        experiences_other: "",
+        status: "Available"
       };
 
       let res;
@@ -604,13 +642,14 @@ export function AdminPage({
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.message || "Gagal menyimpan Rumah Live In");
+        throw new Error(errData.message || "Gagal menyimpan Homestay");
       }
 
-      showToast(editingLiveinId ? "Rumah Live In berhasil diperbarui!" : "Rumah Live In berhasil ditambahkan!");
+      showToast(editingLiveinId ? "Homestay berhasil diperbarui!" : "Homestay berhasil ditambahkan!");
       fetchLiveinHouses();
       handleResetLiveinForm();
       setSection("livein");
+
     } catch (err: any) {
       showToast(err.message || "Gagal menyimpan Rumah Live In", "error");
     } finally {
@@ -695,6 +734,135 @@ export function AdminPage({
     setExperiencesOther("");
     setLiveinStatus("Available");
   };
+
+  // Save Live In Package
+  const handleSavePackage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!packageName.trim()) {
+      showToast("Nama paket wajib diisi", "error");
+      return;
+    }
+    const priceVal = Number(packagePrice);
+    if (!packagePrice || isNaN(priceVal) || priceVal < 0) {
+      showToast("Harga paket harus berupa angka positif", "error");
+      return;
+    }
+
+    setSubmittingPackage(true);
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const payload = {
+        name: packageName,
+        price: priceVal,
+        pricing_type: packagePricingType,
+        description: packageDescription,
+        facilities: packageFacilities,
+        icon: packageIcon,
+        active: packageActive
+      };
+
+      let res;
+      if (editingPackageId) {
+        res = await fetch(`${baseUrl}/livein/packages/${editingPackageId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+      } else {
+        res = await fetch(`${baseUrl}/livein/packages`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+      }
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || "Gagal menyimpan Paket");
+      }
+
+      showToast(editingPackageId ? "Paket berhasil diperbarui!" : "Paket berhasil ditambahkan!");
+      fetchLiveinPackages();
+      handleResetPackageForm();
+      setSection("livein");
+      setLiveinTab("packages");
+    } catch (err: any) {
+      showToast(err.message || "Gagal menyimpan Paket", "error");
+    } finally {
+      setSubmittingPackage(false);
+    }
+  };
+
+  const handleEditPackageClick = (pkg: LiveInPackage) => {
+    setEditingPackageId(pkg.id || null);
+    setPackageName(pkg.name);
+    setPackagePrice(String(pkg.price));
+    setPackagePricingType(pkg.pricing_type);
+    setPackageDescription(pkg.description || "");
+    setPackageFacilities(pkg.facilities || []);
+    setPackageIcon(pkg.icon || "clock");
+    setPackageActive(!!pkg.active);
+    
+    setSection("add-livein-package");
+  };
+
+  const handleDeletePackage = async (id: number) => {
+    setIsDeleting(true);
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${baseUrl}/livein/packages/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || "Gagal menghapus Paket");
+      }
+
+      setLiveinPackages(prev => prev.filter(p => p.id !== id));
+      showToast("Paket berhasil dihapus!");
+      setDeletePackageId(null);
+    } catch (err: any) {
+      showToast(err.message || "Gagal menghapus Paket", "error");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleResetPackageForm = () => {
+    setEditingPackageId(null);
+    setPackageName("");
+    setPackagePrice("");
+    setPackagePricingType("per orang");
+    setPackageDescription("");
+    setPackageFacilities([]);
+    setNewFacilityInput("");
+    setPackageIcon("clock");
+    setPackageActive(true);
+  };
+
+  const handleAddFacilityTag = () => {
+    if (newFacilityInput.trim()) {
+      if (!packageFacilities.includes(newFacilityInput.trim())) {
+        setPackageFacilities(prev => [...prev, newFacilityInput.trim()]);
+      }
+      setNewFacilityInput("");
+    }
+  };
+
+  const handleRemoveFacilityTag = (idx: number) => {
+    setPackageFacilities(prev => prev.filter((_, i) => i !== idx));
+  };
+
 
   const toggleFacility = (facility: string) => {
     setSelectedFacilities(prev => 
@@ -854,7 +1022,8 @@ export function AdminPage({
             <h1 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[15px] sm:text-[17px] font-extrabold text-[#2C2C2A] truncate">
               {section === "dashboard" && "Dashboard Overview"}
               {section === "livein" && "Manajemen Live In"}
-              {section === "add-livein" && (editingLiveinId ? "Ubah Rumah Live In" : "Tambah Rumah Live In Baru")}
+              {section === "add-livein" && (editingLiveinId ? "Ubah Homestay" : "Tambah Homestay Baru")}
+              {section === "add-livein-package" && (editingPackageId ? "Ubah Paket Live In" : "Tambah Paket Live In Baru")}
               {section === "docs" && "Manajemen Dokumentasi"}
               {section === "add-doc" && (editingDocId ? "Ubah Dokumentasi" : "Tambah Dokumentasi Baru")}
               {section === "settings" && "Pengaturan Website"}
@@ -1039,121 +1208,199 @@ export function AdminPage({
 
           {/* Section: Live In List */}
           {section === "livein" && (
-            <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm overflow-hidden flex flex-col w-full max-w-7xl">
-              
-              {/* Toolbar */}
-              <div className="p-5 border-b border-black/[0.06] flex flex-col md:flex-row items-center justify-between gap-4">
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-                  
-                  {/* Search */}
-                  <div className="relative w-full sm:w-64">
-                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Search className="w-4 h-4 text-[#B8AFA3]" />
-                    </span>
-                    <input
-                      type="text"
-                      value={liveinSearch}
-                      onChange={e => setLiveinSearch(e.target.value)}
-                      placeholder="Cari nama rumah / pemilik..."
-                      className="w-full pl-9 pr-4 py-2 bg-[#FAF9F5] border border-black/[0.08] rounded-lg text-[13px] text-[#2C2C2A] placeholder:text-[#B8AFA3] outline-none focus:ring-1 focus:ring-[#3A6520]/25 transition"
-                    />
-                  </div>
-
-                  {/* Filter */}
-                  <div className="flex items-center gap-2">
-                    <Filter className="w-4 h-4 text-[#7A7065] shrink-0" />
-                    <select
-                      value={liveinFilterStatus}
-                      onChange={e => setLiveinFilterStatus(e.target.value)}
-                      className="px-3 py-2 bg-[#FAF9F5] border border-black/[0.08] rounded-lg text-[12.5px] text-[#5A5550] outline-none focus:ring-1 focus:ring-[#3A6520]/25"
-                    >
-                      <option value="all">Semua Status</option>
-                      <option value="available">Tersedia</option>
-                      <option value="unavailable">Penuh</option>
-                      <option value="inactive">Tidak Aktif</option>
-                    </select>
-                  </div>
-
-                </div>
-
-                <button 
-                  onClick={() => { handleResetLiveinForm(); setSection("add-livein"); }}
-                  className="flex items-center gap-1.5 px-5 py-2.5 bg-[#3A6520] hover:bg-[#2D5016] text-white text-[12.5px] font-semibold rounded-full shadow-sm transition shrink-0 cursor-pointer"
+            <div className="flex flex-col w-full max-w-7xl gap-6">
+              {/* Tab Selector */}
+              <div className="flex border-b border-black/[0.06] w-full shrink-0 bg-white px-2 rounded-t-xl">
+                <button
+                  onClick={() => setLiveinTab("homes")}
+                  className={`px-6 py-3 text-[13.5px] font-bold transition-all border-b-2 -mb-[1px] cursor-pointer ${
+                    liveinTab === "homes"
+                      ? "border-[#3A6520] text-[#3A6520]"
+                      : "border-transparent text-[#7A7065] hover:text-[#2C2C2A]"
+                  }`}
                 >
-                  <Plus className="w-4 h-4" />
-                  Tambah Rumah Live In
+                  Foto Homestay Warga
+                </button>
+                <button
+                  onClick={() => setLiveinTab("packages")}
+                  className={`px-6 py-3 text-[13.5px] font-bold transition-all border-b-2 -mb-[1px] cursor-pointer ${
+                    liveinTab === "packages"
+                      ? "border-[#3A6520] text-[#3A6520]"
+                      : "border-transparent text-[#7A7065] hover:text-[#2C2C2A]"
+                  }`}
+                >
+                  Paket Reservasi Live In
                 </button>
               </div>
 
-              {/* Table */}
-              <div className="overflow-x-auto w-full">
-                <table className="w-full text-left border-collapse min-w-[700px]">
-                  <thead>
-                    <tr className="bg-[#FAF9F5] border-b border-black/[0.06] text-[11px] font-bold text-[#7A7065] uppercase tracking-wider">
-                      <th className="py-4 px-5">Foto</th>
-                      <th className="py-4 px-5">Nama Rumah</th>
-                      <th className="py-4 px-5">Pemilik</th>
-                      <th className="py-4 px-5">Kapasitas</th>
-                      <th className="py-4 px-5">Status</th>
-                      <th className="py-4 px-5">Terakhir Update</th>
-                      <th className="py-4 px-5 text-right">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-black/[0.04]">
-                    {filteredLivein.map((house, idx) => (
-                      <tr key={house.id || idx} className="hover:bg-black/[0.01] transition-colors text-[13px] text-[#2C2C2A]">
-                        <td className="py-4 px-5">
-                          {house.cover_image ? (
-                            <img src={house.cover_image} alt="" className="w-14 h-11 object-cover rounded border border-black/[0.05] bg-[#FAF9F5]" />
-                          ) : (
-                            <div className="w-14 h-11 rounded border border-black/[0.05] bg-[#FAF9F5] flex items-center justify-center text-[#B8AFA3]">
-                              <ImageIcon className="w-5 h-5" />
-                            </div>
-                          )}
-                        </td>
-                        <td className="py-4 px-5 font-bold text-[#2C2C2A]">{house.name}</td>
-                        <td className="py-4 px-5 text-[#5A5550]">{house.owner}</td>
-                        <td className="py-4 px-5 text-[#5A5550]">{house.min_guests || 1} - {house.max_guests || 10} Orang</td>
-                        <td className="py-4 px-5">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                            house.status === "Available" ? "bg-emerald-50 text-emerald-700 border border-emerald-100" :
-                            house.status === "Unavailable" ? "bg-amber-50 text-amber-700 border border-amber-100" :
-                            "bg-gray-100 text-gray-700 border border-gray-200"
-                          }`}>
-                            {house.status === "Available" ? "Tersedia" :
-                             house.status === "Unavailable" ? "Penuh" : "Tidak Aktif"}
-                          </span>
-                        </td>
-                        <td className="py-4 px-5 text-[#7A7065]">{house.updated_at}</td>
-                        <td className="py-4 px-5 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <button onClick={() => handleEditLiveinClick(house)} className="p-2 border border-black/[0.08] hover:bg-[#FAF9F5] rounded text-[#7A7065] hover:text-[#2C2C2A] transition" title="Ubah">
-                              <Pencil className="w-4 h-4" />
-                            </button>
-                            <button onClick={() => setDeleteLiveinId(house.id || null)} className="p-2 border border-black/[0.08] hover:bg-red-50 rounded text-red-500 hover:text-red-700 transition" title="Hapus">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                    {filteredLivein.length === 0 && (
-                      <tr>
-                        <td colSpan={7} className="text-center py-12 text-[#7A7065]">
-                          Tidak ada rumah Live In ditemukan.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+              {/* Tab Content: Homes */}
+              {liveinTab === "homes" ? (
+                <div className="bg-white border border-black/[0.06] rounded-b-xl rounded-tr-xl shadow-sm overflow-hidden flex flex-col w-full">
+                  {/* Toolbar */}
+                  <div className="p-5 border-b border-black/[0.06] flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+                      {/* Search */}
+                      <div className="relative w-full sm:w-64">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Search className="w-4 h-4 text-[#B8AFA3]" />
+                        </span>
+                        <input
+                          type="text"
+                          value={liveinSearch}
+                          onChange={e => setLiveinSearch(e.target.value)}
+                          placeholder="Cari homestay..."
+                          className="w-full pl-9 pr-4 py-2 bg-[#FAF9F5] border border-black/[0.08] rounded-lg text-[13px] text-[#2C2C2A] placeholder:text-[#B8AFA3] outline-none focus:ring-1 focus:ring-[#3A6520]/25 transition"
+                        />
+                      </div>
+                    </div>
 
+                    <button 
+                      onClick={() => { handleResetLiveinForm(); setSection("add-livein"); }}
+                      className="flex items-center gap-1.5 px-5 py-2.5 bg-[#3A6520] hover:bg-[#2D5016] text-white text-[12.5px] font-semibold rounded-full shadow-sm transition shrink-0 cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Tambah Homestay
+                    </button>
+                  </div>
+
+                  {/* Table */}
+                  <div className="overflow-x-auto w-full">
+                    <table className="w-full text-left border-collapse min-w-[600px]">
+                      <thead>
+                        <tr className="bg-[#FAF9F5] border-b border-black/[0.06] text-[11px] font-bold text-[#7A7065] uppercase tracking-wider">
+                          <th className="py-4 px-5 w-24">Foto</th>
+                          <th className="py-4 px-5">Nama Homestay</th>
+                          <th className="py-4 px-5">Pemilik / Tuan Rumah</th>
+                          <th className="py-4 px-5 text-right w-32">Aksi</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-black/[0.04]">
+                        {filteredLivein.map((house, idx) => (
+                          <tr key={house.id || idx} className="hover:bg-black/[0.01] transition-colors text-[13px] text-[#2C2C2A]">
+                            <td className="py-4 px-5">
+                              {house.cover_image ? (
+                                <img src={house.cover_image} alt="" className="w-14 h-11 object-cover rounded border border-black/[0.05] bg-[#FAF9F5]" />
+                              ) : (
+                                <div className="w-14 h-11 rounded border border-black/[0.05] bg-[#FAF9F5] flex items-center justify-center text-[#B8AFA3]">
+                                  <ImageIcon className="w-5 h-5" />
+                                </div>
+                              )}
+                            </td>
+                            <td className="py-4 px-5 font-bold text-[#2C2C2A]">{house.name}</td>
+                            <td className="py-4 px-5 text-[#5A5550]">{house.owner}</td>
+                            <td className="py-4 px-5 text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <button onClick={() => handleEditLiveinClick(house)} className="p-2 border border-black/[0.08] hover:bg-[#FAF9F5] rounded text-[#7A7065] hover:text-[#2C2C2A] transition" title="Ubah">
+                                  <Pencil className="w-4 h-4" />
+                                </button>
+                                <button onClick={() => setDeleteLiveinId(house.id || null)} className="p-2 border border-black/[0.08] hover:bg-red-50 rounded text-red-500 hover:text-red-700 transition" title="Hapus">
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                        {filteredLivein.length === 0 && (
+                          <tr>
+                            <td colSpan={4} className="text-center py-12 text-[#7A7065]">
+                              Tidak ada data homestay ditemukan.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-white border border-black/[0.06] rounded-b-xl rounded-tl-xl shadow-sm overflow-hidden flex flex-col w-full">
+                  {/* Toolbar */}
+                  <div className="p-5 border-b border-black/[0.06] flex items-center justify-between">
+                    <span className="text-[13px] font-bold text-[#2C2C2A]">Daftar Paket Terdaftar</span>
+                    <button 
+                      onClick={() => { handleResetPackageForm(); setSection("add-livein-package"); }}
+                      className="flex items-center gap-1.5 px-5 py-2.5 bg-[#3A6520] hover:bg-[#2D5016] text-white text-[12.5px] font-semibold rounded-full shadow-sm transition shrink-0 cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Tambah Paket Wisata
+                    </button>
+                  </div>
+
+                  {/* Table */}
+                  <div className="overflow-x-auto w-full">
+                    <table className="w-full text-left border-collapse min-w-[700px]">
+                      <thead>
+                        <tr className="bg-[#FAF9F5] border-b border-black/[0.06] text-[11px] font-bold text-[#7A7065] uppercase tracking-wider">
+                          <th className="py-4 px-5">Nama Paket</th>
+                          <th className="py-4 px-5">Tarif</th>
+                          <th className="py-4 px-5">Deskripsi</th>
+                          <th className="py-4 px-5">Fasilitas</th>
+                          <th className="py-4 px-5">Status</th>
+                          <th className="py-4 px-5 text-right w-32">Aksi</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-black/[0.04]">
+                        {liveinPackages.map((pkg, idx) => (
+                          <tr key={pkg.id || idx} className="hover:bg-black/[0.01] transition-colors text-[13px] text-[#2C2C2A]">
+                            <td className="py-4 px-5 font-bold text-[#2C2C2A]">
+                              <div className="flex items-center gap-2">
+                                <span className="text-[14px]" title={`Ikon: ${pkg.icon || 'clock'}`}>
+                                  {pkg.icon === 'sun' ? '🌅' : pkg.icon === 'home' ? '🏡' : pkg.icon === 'tent' ? '⛺' : pkg.icon === 'sparkles' ? '✨' : '🕒'}
+                                </span>
+                                <span>{pkg.name}</span>
+                              </div>
+                            </td>
+                            <td className="py-4 px-5 text-[#3A6520] font-bold">
+                              Rp {pkg.price.toLocaleString("id-ID")}
+                              <span className="text-[11.5px] text-[#7A7065] font-normal"> / {pkg.pricing_type}</span>
+                            </td>
+                            <td className="py-4 px-5 text-[#5A5550] max-w-xs truncate">{pkg.description}</td>
+                            <td className="py-4 px-5">
+                              <div className="flex flex-wrap gap-1">
+                                {pkg.facilities?.map((f, i) => (
+                                  <span key={i} className="px-2 py-0.5 bg-[#FAF9F5] border border-black/[0.06] rounded text-[10.5px] text-[#7A7065]">
+                                    {f}
+                                  </span>
+                                ))}
+                                {(!pkg.facilities || pkg.facilities.length === 0) && "-"}
+                              </div>
+                            </td>
+                            <td className="py-4 px-5">
+                              <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                                pkg.active ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-gray-100 text-gray-700 border border-gray-200"
+                              }`}>
+                                {pkg.active ? "Aktif" : "Non-aktif"}
+                              </span>
+                            </td>
+                            <td className="py-4 px-5 text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <button onClick={() => handleEditPackageClick(pkg)} className="p-2 border border-black/[0.08] hover:bg-[#FAF9F5] rounded text-[#7A7065] hover:text-[#2C2C2A] transition" title="Ubah">
+                                  <Pencil className="w-4 h-4" />
+                                </button>
+                                <button onClick={() => setDeletePackageId(pkg.id || null)} className="p-2 border border-black/[0.08] hover:bg-red-50 rounded text-red-500 hover:text-red-700 transition" title="Hapus">
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                        {liveinPackages.length === 0 && (
+                          <tr>
+                            <td colSpan={6} className="text-center py-12 text-[#7A7065]">
+                              Belum ada paket wisata terdaftar.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
-          {/* Section: Add/Edit Live In Form */}
+          {/* Section: Add/Edit Live In Form (Homestay Photo & Name only) */}
           {section === "add-livein" && (
-            <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm p-5 sm:p-8 max-w-4xl w-full">
+            <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm p-5 sm:p-8 max-w-2xl w-full">
               
               {/* Back button */}
               <button 
@@ -1164,411 +1411,245 @@ export function AdminPage({
                 Kembali ke Daftar Live In
               </button>
 
-              <form onSubmit={handleSaveLivein} className="space-y-10">
+              <form onSubmit={handleSaveLivein} className="space-y-6">
                 
-                {/* 1. Basic Info Section */}
-                <div className="space-y-6">
-                  <div className="flex items-center gap-3 border-l-4 border-[#3A6520] pl-3">
-                    <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[15px] font-bold text-[#2C2C2A]">
-                      Informasi Dasar
-                    </h3>
-                  </div>
+                <div className="flex items-center gap-3 border-l-4 border-[#3A6520] pl-3 mb-6">
+                  <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[15px] font-bold text-[#2C2C2A]">
+                    Informasi Homestay
+                  </h3>
+                </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Nama Rumah</label>
-                      <input
-                        type="text"
-                        required
-                        value={liveinName}
-                        onChange={e => setLiveinName(e.target.value)}
-                        placeholder="Contoh: Joglo Mbah Siswo"
-                        className="w-full px-4 py-2.5 bg-[#FAF9F5] border border-black/[0.08] rounded-lg text-[13px] text-[#2C2C2A] placeholder:text-[#B8AFA3] outline-none focus:ring-1 focus:ring-[#3A6520]/25 transition"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Nama Pemilik</label>
-                      <input
-                        type="text"
-                        required
-                        value={liveinOwner}
-                        onChange={e => setLiveinOwner(e.target.value)}
-                        placeholder="Contoh: Siswosuharto"
-                        className="w-full px-4 py-2.5 bg-[#FAF9F5] border border-black/[0.08] rounded-lg text-[13px] text-[#2C2C2A] placeholder:text-[#B8AFA3] outline-none focus:ring-1 focus:ring-[#3A6520]/25 transition"
-                      />
-                    </div>
-                  </div>
-
+                <div className="space-y-5">
                   <div>
-                    <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Deskripsi Singkat</label>
-                    <textarea
-                      required
-                      rows={4}
-                      value={liveinDescription}
-                      onChange={e => setLiveinDescription(e.target.value)}
-                      placeholder="Gambarkan suasana rumah, keramahtamahan pemilik, atau keunikan menginap di sini..."
-                      className="w-full px-4 py-2.5 bg-[#FAF9F5] border border-black/[0.08] rounded-lg text-[13px] text-[#2C2C2A] placeholder:text-[#B8AFA3] outline-none focus:ring-1 focus:ring-[#3A6520]/25 transition resize-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Highlight Keunikan (Opsional)</label>
+                    <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Nama Homestay</label>
                     <input
                       type="text"
-                      value={liveinHighlight}
-                      onChange={e => setLiveinHighlight(e.target.value)}
-                      placeholder="Contoh: Dekat sungai alami, pemandangan langsung ke Merapi"
+                      required
+                      value={liveinName}
+                      onChange={e => setLiveinName(e.target.value)}
+                      placeholder="Contoh: Homestay Mbah Siswo"
                       className="w-full px-4 py-2.5 bg-[#FAF9F5] border border-black/[0.08] rounded-lg text-[13px] text-[#2C2C2A] placeholder:text-[#B8AFA3] outline-none focus:ring-1 focus:ring-[#3A6520]/25 transition"
                     />
                   </div>
 
-                  {/* Image uploads side-by-side */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-                    
-                    {/* Cover image uploader */}
-                    <div>
-                      <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Foto Cover Utama</label>
-                      <div 
-                        onClick={() => handleFileUploadClick(liveinCoverFileRef)}
-                        className="border-2 border-dashed border-black/[0.09] bg-[#FAF9F5] hover:border-black/20 rounded-xl p-5 text-center cursor-pointer transition flex flex-col items-center justify-center h-44"
-                      >
-                        {liveinCoverImage ? (
-                          <div className="relative w-full h-full">
-                            <img src={liveinCoverImage} alt="" className="w-full h-full object-cover rounded" />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition flex items-center justify-center text-white text-[11px] font-medium rounded">
-                              Klik untuk mengganti gambar
-                            </div>
-                          </div>
-                        ) : (
-                          <>
-                            <Upload className="w-6 h-6 text-[#B8AFA3] mb-2" />
-                            <span className="text-[12px] font-bold text-[#2C2C2A] block">Unggah Gambar Cover</span>
-                            <span className="text-[11px] text-[#7A7065] mt-1">Satu gambar resolusi tinggi landscape</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Gallery uploader */}
-                    <div>
-                      <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Galeri Foto Rumah</label>
-                      <div 
-                        onClick={() => handleFileUploadClick(liveinGalleryFileRef)}
-                        className="border-2 border-dashed border-black/[0.09] bg-[#FAF9F5] hover:border-black/20 rounded-xl p-5 text-center cursor-pointer transition flex flex-col items-center justify-center h-44"
-                      >
-                        <Upload className="w-6 h-6 text-[#B8AFA3] mb-2" />
-                        <span className="text-[12px] font-bold text-[#2C2C2A] block">Unggah Galeri Foto</span>
-                        <span className="text-[11px] text-[#7A7065] mt-1">Pilih satu atau beberapa gambar suasana dalam rumah</span>
-                      </div>
-                    </div>
-
+                  <div>
+                    <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Nama Pemilik / Tuan Rumah</label>
+                    <input
+                      type="text"
+                      required
+                      value={liveinOwner}
+                      onChange={e => setLiveinOwner(e.target.value)}
+                      placeholder="Contoh: Siswosuharto"
+                      className="w-full px-4 py-2.5 bg-[#FAF9F5] border border-black/[0.08] rounded-lg text-[13px] text-[#2C2C2A] placeholder:text-[#B8AFA3] outline-none focus:ring-1 focus:ring-[#3A6520]/25 transition"
+                    />
                   </div>
 
-                  {/* Gallery thumbnails rendering */}
-                  {liveinGallery.length > 0 && (
-                    <div className="pt-2">
-                      <span className="block text-[12px] font-semibold text-[#7A7065] mb-2">Foto Galeri Terunggah ({liveinGallery.length}):</span>
-                      <div className="flex flex-wrap gap-3">
-                        {liveinGallery.map((url, idx) => (
-                          <div key={idx} className="relative w-20 h-16 group border border-black/[0.08] rounded overflow-hidden shadow-sm">
-                            <img src={url} alt="" className="w-full h-full object-cover" />
-                            <button
-                              type="button"
-                              onClick={() => removeGalleryImage(idx)}
-                              className="absolute top-1 right-1 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
-                              title="Hapus"
-                            >
-                              <X className="w-2.5 h-2.5" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                </div>
-
-                {/* 2. Package Section */}
-                <div className="space-y-6 pt-4 border-t border-black/[0.06]">
-                  <div className="flex items-center gap-3 border-l-4 border-[#3A6520] pl-3">
-                    <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[15px] font-bold text-[#2C2C2A]">
-                      Paket Live In
-                    </h3>
-                  </div>
-
-                  <div className="space-y-6">
-                    {/* Overnight Package */}
-                    <div className="bg-[#FAF9F5] p-5 border border-black/[0.06] rounded-xl space-y-4">
-                      <label className="flex items-center gap-3 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={liveinOvernightActive}
-                          onChange={e => setLiveinOvernightActive(e.target.checked)}
-                          className="w-4 h-4 rounded text-[#3A6520] border-black/[0.12] focus:ring-[#3A6520]/20"
-                        />
-                        <span className="text-[13px] font-bold text-[#2C2C2A]">Paket Menginap (Overnight)</span>
-                      </label>
-
-                      {liveinOvernightActive && (
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-                          <div>
-                            <label className="block text-[11.5px] font-semibold text-[#5A5550] mb-1.5">Harga per malam (Rp)</label>
-                            <input
-                              type="number"
-                              value={liveinOvernightPrice}
-                              onChange={e => setLiveinOvernightPrice(e.target.value)}
-                              placeholder="150000"
-                              className="w-full px-3 py-2 bg-white border border-black/[0.08] rounded-lg text-[13px] outline-none"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-[11.5px] font-semibold text-[#5A5550] mb-1.5">Waktu Check-in</label>
-                            <input
-                              type="text"
-                              value={liveinOvernightCheckin}
-                              onChange={e => setLiveinOvernightCheckin(e.target.value)}
-                              placeholder="14:00 WIB"
-                              className="w-full px-3 py-2 bg-white border border-black/[0.08] rounded-lg text-[13px] outline-none"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-[11.5px] font-semibold text-[#5A5550] mb-1.5">Waktu Check-out</label>
-                            <input
-                              type="text"
-                              value={liveinOvernightCheckout}
-                              onChange={e => setLiveinOvernightCheckout(e.target.value)}
-                              placeholder="12:00 WIB"
-                              className="w-full px-3 py-2 bg-white border border-black/[0.08] rounded-lg text-[13px] outline-none"
-                            />
+                  <div>
+                    <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Foto Homestay (Cover)</label>
+                    <div 
+                      onClick={() => handleFileUploadClick(liveinCoverFileRef)}
+                      className="border-2 border-dashed border-black/[0.09] bg-[#FAF9F5] hover:border-black/20 rounded-xl p-5 text-center cursor-pointer transition flex flex-col items-center justify-center h-48"
+                    >
+                      {liveinCoverImage ? (
+                        <div className="relative w-full h-full">
+                          <img src={liveinCoverImage} alt="" className="w-full h-full object-cover rounded shadow-sm" />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition flex items-center justify-center text-white text-[11px] font-medium rounded">
+                            Klik untuk mengganti gambar
                           </div>
                         </div>
+                      ) : (
+                        <>
+                          <Upload className="w-6 h-6 text-[#B8AFA3] mb-2" />
+                          <span className="text-[12px] font-bold text-[#2C2C2A] block">Unggah Gambar Homestay</span>
+                          <span className="text-[11px] text-[#7A7065] mt-1">Satu gambar beresolusi tinggi landscape</span>
+                        </>
                       )}
                     </div>
-
-                    {/* 24 Hour Package */}
-                    <div className="bg-[#FAF9F5] p-5 border border-black/[0.06] rounded-xl space-y-4">
-                      <label className="flex items-center gap-3 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={liveinHour24Active}
-                          onChange={e => setLiveinHour24Active(e.target.checked)}
-                          className="w-4 h-4 rounded text-[#3A6520] border-black/[0.12] focus:ring-[#3A6520]/20"
-                        />
-                        <span className="text-[13px] font-bold text-[#2C2C2A]">Paket 24 Jam (Menginap + Aktivitas)</span>
-                      </label>
-
-                      {liveinHour24Active && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-                          <div>
-                            <label className="block text-[11.5px] font-semibold text-[#5A5550] mb-1.5">Harga paket (Rp)</label>
-                            <input
-                              type="number"
-                              value={liveinHour24Price}
-                              onChange={e => setLiveinHour24Price(e.target.value)}
-                              placeholder="250000"
-                              className="w-full px-3 py-2 bg-white border border-black/[0.08] rounded-lg text-[13px] outline-none"
-                            />
-                          </div>
-                          <div className="md:col-span-2">
-                            <label className="block text-[11.5px] font-semibold text-[#5A5550] mb-1.5">Deskripsi Paket</label>
-                            <input
-                              type="text"
-                              value={liveinHour24Description}
-                              onChange={e => setLiveinHour24Description(e.target.value)}
-                              placeholder="Contoh: Menginap 1 malam + Makan 3x + Aktivitas Bertani"
-                              className="w-full px-3 py-2 bg-white border border-black/[0.08] rounded-lg text-[13px] outline-none"
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* 3. Pricing & Capacity Section */}
-                <div className="space-y-6 pt-4 border-t border-black/[0.06]">
-                  <div className="flex items-center gap-3 border-l-4 border-[#3A6520] pl-3">
-                    <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[15px] font-bold text-[#2C2C2A]">
-                      Metode Penentuan Harga & Kapasitas
-                    </h3>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Pricing Type */}
-                    <div>
-                      <span className="block text-[12.5px] font-semibold text-[#5A5550] mb-3">Tipe Perhitungan Biaya</span>
-                      <div className="flex items-center gap-6">
-                        <label className="flex items-center gap-2.5 cursor-pointer">
-                          <input
-                            type="radio"
-                            name="pricing_type"
-                            checked={liveinPricingType === "house"}
-                            onChange={() => setLiveinPricingType("house")}
-                            className="w-4 h-4 text-[#3A6520] focus:ring-[#3A6520]/20 border-black/10"
-                          />
-                          <span className="text-[13px] text-[#2C2C2A]">Per Rumah</span>
-                        </label>
-                        <label className="flex items-center gap-2.5 cursor-pointer">
-                          <input
-                            type="radio"
-                            name="pricing_type"
-                            checked={liveinPricingType === "person"}
-                            onChange={() => setLiveinPricingType("person")}
-                            className="w-4 h-4 text-[#3A6520] focus:ring-[#3A6520]/20 border-black/10"
-                          />
-                          <span className="text-[13px] text-[#2C2C2A]">Per Orang / Tamu</span>
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* Guests Capacity */}
-                    <div>
-                      <span className="block text-[12.5px] font-semibold text-[#5A5550] mb-3">Kapasitas Tamu</span>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-[11px] text-[#7A7065] mb-1">Minimal (Orang)</label>
-                          <input
-                            type="number"
-                            value={liveinMinGuests}
-                            onChange={e => setLiveinMinGuests(e.target.value)}
-                            placeholder="1"
-                            className="w-full px-3 py-2 bg-[#FAF9F5] border border-black/[0.08] rounded-lg text-[13px] outline-none"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[11px] text-[#7A7065] mb-1">Maksimal (Orang)</label>
-                          <input
-                            type="number"
-                            value={liveinMaxGuests}
-                            onChange={e => setLiveinMaxGuests(e.target.value)}
-                            placeholder="8"
-                            className="w-full px-3 py-2 bg-[#FAF9F5] border border-black/[0.08] rounded-lg text-[13px] outline-none"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 4. Facilities Checkboxes */}
-                <div className="space-y-6 pt-4 border-t border-black/[0.06]">
-                  <div className="flex items-center gap-3 border-l-4 border-[#3A6520] pl-3">
-                    <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[15px] font-bold text-[#2C2C2A]">
-                      Fasilitas Rumah
-                    </h3>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                    {[
-                      "Kamar Tidur", "Kamar Mandi", "Dapur", "Welcome Drink",
-                      "Sarapan", "WiFi", "Air Panas", "Area Parkir",
-                      "Mushola", "Alat Mandi", "Handuk", "Others"
-                    ].map(facility => (
-                      <label key={facility} className="flex items-center gap-3 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={selectedFacilities.includes(facility)}
-                          onChange={() => toggleFacility(facility)}
-                          className="w-4 h-4 rounded text-[#3A6520] border-black/[0.12] focus:ring-[#3A6520]/20"
-                        />
-                        <span className="text-[12.5px] text-[#2C2C2A]">{facility === "Others" ? "Lainnya" : facility}</span>
-                      </label>
-                    ))}
-                  </div>
-
-                  {selectedFacilities.includes("Others") && (
-                    <div className="pt-2">
-                      <label className="block text-[11.5px] font-semibold text-[#5A5550] mb-1.5">Fasilitas Lainnya (pisahkan dengan koma)</label>
-                      <input
-                        type="text"
-                        value={facilitiesOther}
-                        onChange={e => setFacilitiesOther(e.target.value)}
-                        placeholder="Contoh: Kipas Angin, TV, Mesin Cuci"
-                        className="w-full px-4 py-2.5 bg-[#FAF9F5] border border-black/[0.08] rounded-lg text-[13px] outline-none"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* 5. Experience Checkboxes */}
-                <div className="space-y-6 pt-4 border-t border-black/[0.06]">
-                  <div className="flex items-center gap-3 border-l-4 border-[#3A6520] pl-3">
-                    <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[15px] font-bold text-[#2C2C2A]">
-                      Pengalaman & Aktivitas Dusun
-                    </h3>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                    {[
-                      "Farming", "Gardening", "Cooking Traditional Food", "Livestock Activities",
-                      "Village Activities", "Trekking", "Sunrise Experience", "Harvesting", "Others"
-                    ].map(exp => (
-                      <label key={exp} className="flex items-center gap-3 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={selectedExperiences.includes(exp)}
-                          onChange={() => toggleExperience(exp)}
-                          className="w-4 h-4 rounded text-[#3A6520] border-black/[0.12] focus:ring-[#3A6520]/20"
-                        />
-                        <span className="text-[12.5px] text-[#2C2C2A]">{exp === "Others" ? "Lainnya" : exp}</span>
-                      </label>
-                    ))}
-                  </div>
-
-                  {selectedExperiences.includes("Others") && (
-                    <div className="pt-2">
-                      <label className="block text-[11.5px] font-semibold text-[#5A5550] mb-1.5">Aktivitas Lainnya (pisahkan dengan koma)</label>
-                      <input
-                        type="text"
-                        value={experiencesOther}
-                        onChange={e => setExperiencesOther(e.target.value)}
-                        placeholder="Contoh: Membuat Gerabah, Membatik"
-                        className="w-full px-4 py-2.5 bg-[#FAF9F5] border border-black/[0.08] rounded-lg text-[13px] outline-none"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* 6. Status Section */}
-                <div className="space-y-6 pt-4 border-t border-black/[0.06]">
-                  <div className="flex items-center gap-3 border-l-4 border-[#3A6520] pl-3">
-                    <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[15px] font-bold text-[#2C2C2A]">
-                      Status Publikasi
-                    </h3>
-                  </div>
-
-                  <div className="flex items-center gap-6">
-                    {[
-                      { value: "Available", label: "Tersedia (Available)" },
-                      { value: "Unavailable", label: "Penuh (Unavailable)" },
-                      { value: "Inactive", label: "Tidak Aktif (Inactive)" }
-                    ].map(opt => (
-                      <label key={opt.value} className="flex items-center gap-2.5 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="livein_status"
-                          checked={liveinStatus === opt.value}
-                          onChange={() => setLiveinStatus(opt.value as any)}
-                          className="w-4 h-4 text-[#3A6520] focus:ring-[#3A6520]/20 border-black/10"
-                        />
-                        <span className="text-[13px] text-[#2C2C2A]">{opt.label}</span>
-                      </label>
-                    ))}
                   </div>
                 </div>
 
                 {/* Submit panel */}
-                <div className="pt-8 border-t border-black/[0.06] flex items-center gap-3">
+                <div className="pt-6 border-t border-black/[0.06] flex items-center gap-3">
                   <button 
                     type="submit" 
                     disabled={submittingLivein} 
                     className="px-8 py-3 bg-[#3A6520] hover:bg-[#2D5016] text-white text-[12.5px] font-bold rounded-full shadow transition disabled:opacity-50 cursor-pointer"
                   >
-                    {submittingLivein ? "Menyimpan..." : (editingLiveinId ? "Simpan Perubahan" : "Tambah Rumah Live In")}
+                    {submittingLivein ? "Menyimpan..." : (editingLiveinId ? "Simpan Perubahan" : "Tambah Homestay")}
                   </button>
                   <button 
                     type="button" 
                     onClick={() => { setSection("livein"); handleResetLiveinForm(); }} 
+                    className="px-8 py-3 border border-black/[0.09] text-[#5A5550] text-[12.5px] font-semibold rounded-full hover:bg-[#FAF9F5] transition cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                </div>
+
+              </form>
+
+            </div>
+          )}
+
+          {/* Section: Add/Edit Live In Package Form */}
+          {section === "add-livein-package" && (
+            <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm p-5 sm:p-8 max-w-2xl w-full">
+              
+              {/* Back button */}
+              <button 
+                onClick={() => { setSection("livein"); setLiveinTab("packages"); handleResetPackageForm(); }} 
+                className="flex items-center gap-1 text-[#7A7065] hover:text-[#2C2C2A] text-[12.5px] font-semibold mb-8 transition"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Kembali ke Daftar Paket
+              </button>
+
+              <form onSubmit={handleSavePackage} className="space-y-6">
+                
+                <div className="flex items-center gap-3 border-l-4 border-[#3A6520] pl-3 mb-6">
+                  <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[15px] font-bold text-[#2C2C2A]">
+                    Informasi Paket Wisata
+                  </h3>
+                </div>
+
+                <div className="space-y-5">
+                  <div>
+                    <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Nama Paket</label>
+                    <input
+                      type="text"
+                      required
+                      value={packageName}
+                      onChange={e => setPackageName(e.target.value)}
+                      placeholder="Contoh: Overnight (Menginap Semalam)"
+                      className="w-full px-4 py-2.5 bg-[#FAF9F5] border border-black/[0.08] rounded-lg text-[13px] text-[#2C2C2A] placeholder:text-[#B8AFA3] outline-none focus:ring-1 focus:ring-[#3A6520]/25 transition"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Tarif Paket (Rp)</label>
+                      <input
+                        type="number"
+                        required
+                        value={packagePrice}
+                        onChange={e => setPackagePrice(e.target.value)}
+                        placeholder="Contoh: 150000"
+                        className="w-full px-4 py-2.5 bg-[#FAF9F5] border border-black/[0.08] rounded-lg text-[13px] text-[#2C2C2A] placeholder:text-[#B8AFA3] outline-none focus:ring-1 focus:ring-[#3A6520]/25 transition"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Satuan Perhitungan</label>
+                      <select
+                        value={packagePricingType}
+                        onChange={e => setPackagePricingType(e.target.value)}
+                        className="w-full px-4 py-2.5 bg-[#FAF9F5] border border-black/[0.08] rounded-lg text-[13px] text-[#2C2C2A] outline-none focus:ring-1 focus:ring-[#3A6520]/25 transition"
+                      >
+                        <option value="per orang">per orang</option>
+                        <option value="per paket">per paket</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Ikon Paket</label>
+                      <select
+                        value={packageIcon}
+                        onChange={e => setPackageIcon(e.target.value)}
+                        className="w-full px-4 py-2.5 bg-[#FAF9F5] border border-black/[0.08] rounded-lg text-[13px] text-[#2C2C2A] outline-none focus:ring-1 focus:ring-[#3A6520]/25 transition"
+                      >
+                        <option value="clock">🕒 Jam / Durasi (Clock)</option>
+                        <option value="sun">🌅 Matahari / Sunrise (Sun)</option>
+                        <option value="home">🏡 Rumah / Homestay (Home)</option>
+                        <option value="tent">⛺ Tenda / Outdoor (Tent)</option>
+                        <option value="sparkles">✨ Rekomendasi (Sparkles)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Deskripsi Paket</label>
+                    <textarea
+                      rows={3}
+                      value={packageDescription}
+                      onChange={e => setPackageDescription(e.target.value)}
+                      placeholder="Gambarkan fasilitas utama, durasi, atau detail kegiatan yang didapatkan dalam paket ini..."
+                      className="w-full px-4 py-2.5 bg-[#FAF9F5] border border-black/[0.08] rounded-lg text-[13px] text-[#2C2C2A] placeholder:text-[#B8AFA3] outline-none focus:ring-1 focus:ring-[#3A6520]/25 transition resize-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Fasilitas / Kelengkapan Paket</label>
+                    <div className="flex gap-2 mb-3">
+                      <input
+                        type="text"
+                        value={newFacilityInput}
+                        onChange={e => setNewFacilityInput(e.target.value)}
+                        placeholder="Contoh: Makan 3x, Pemandu Lokal"
+                        className="flex-1 px-4 py-2 bg-[#FAF9F5] border border-black/[0.08] rounded-lg text-[13px] text-[#2C2C2A] outline-none focus:ring-1 focus:ring-[#3A6520]/25 transition"
+                        onKeyDown={e => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleAddFacilityTag();
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddFacilityTag}
+                        className="px-4 py-2 bg-[#3A6520] hover:bg-[#2D5016] text-white text-[12.5px] font-semibold rounded-lg transition shrink-0 cursor-pointer"
+                      >
+                        Tambah
+                      </button>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {packageFacilities.map((facility, idx) => (
+                        <span 
+                          key={idx} 
+                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#FAF9F5] border border-black/[0.08] rounded-full text-[12px] text-[#5A5550] font-medium"
+                        >
+                          {facility}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveFacilityTag(idx)}
+                            className="text-[#7A7065] hover:text-red-500 transition-colors"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </span>
+                      ))}
+                      {packageFacilities.length === 0 && (
+                        <span className="text-[12px] text-[#7A7065] italic">Belum ada fasilitas ditambahkan. Ketik di atas lalu tekan Tambah.</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Status Paket</span>
+                    <label className="flex items-center gap-3 cursor-pointer mt-1">
+                      <input
+                        type="checkbox"
+                        checked={packageActive}
+                        onChange={e => setPackageActive(e.target.checked)}
+                        className="w-4 h-4 rounded text-[#3A6520] border-black/[0.12] focus:ring-[#3A6520]/20"
+                      />
+                      <span className="text-[13px] text-[#2C2C2A]">Paket Aktif & Tampilkan di Halaman Depan</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Submit panel */}
+                <div className="pt-6 border-t border-black/[0.06] flex items-center gap-3">
+                  <button 
+                    type="submit" 
+                    disabled={submittingPackage} 
+                    className="px-8 py-3 bg-[#3A6520] hover:bg-[#2D5016] text-white text-[12.5px] font-bold rounded-full shadow transition disabled:opacity-50 cursor-pointer"
+                  >
+                    {submittingPackage ? "Menyimpan..." : (editingPackageId ? "Simpan Perubahan" : "Tambah Paket")}
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={() => { setSection("livein"); setLiveinTab("packages"); handleResetPackageForm(); }} 
                     className="px-8 py-3 border border-black/[0.09] text-[#5A5550] text-[12.5px] font-semibold rounded-full hover:bg-[#FAF9F5] transition cursor-pointer"
                   >
                     Batal
@@ -1990,8 +2071,8 @@ export function AdminPage({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 backdrop-blur-sm">
           <div className="bg-white rounded-xl border border-black/[0.08] shadow-lg p-7 w-80 flex flex-col gap-5">
             <div>
-              <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[16px] font-bold text-[#2C2C2A] mb-1.5">Hapus Rumah Live In?</h3>
-              <p className="text-[13px] text-[#7A7065] leading-relaxed">Tindakan ini tidak dapat dibatalkan. Data rumah Live In akan dihapus secara permanen.</p>
+              <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[16px] font-bold text-[#2C2C2A] mb-1.5">Hapus Homestay?</h3>
+              <p className="text-[13px] text-[#7A7065] leading-relaxed">Tindakan ini tidak dapat dibatalkan. Data homestay ini akan dihapus secara permanen.</p>
             </div>
             <div className="flex items-center gap-3">
               <button 
@@ -2003,6 +2084,34 @@ export function AdminPage({
               </button>
               <button 
                 onClick={() => setDeleteLiveinId(null)} 
+                disabled={isDeleting}
+                className="flex-1 py-2.5 border border-black/[0.12] text-[#5A5550] text-[13px] font-medium rounded-full hover:bg-[#F0EBE3] transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Batal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Package modal */}
+      {deletePackageId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 backdrop-blur-sm">
+          <div className="bg-white rounded-xl border border-black/[0.08] shadow-lg p-7 w-80 flex flex-col gap-5">
+            <div>
+              <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[16px] font-bold text-[#2C2C2A] mb-1.5">Hapus Paket Live In?</h3>
+              <p className="text-[13px] text-[#7A7065] leading-relaxed">Tindakan ini tidak dapat dibatalkan. Paket wisata ini akan dihapus secara permanen.</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => handleDeletePackage(deletePackageId)} 
+                disabled={isDeleting}
+                className="flex-1 py-2.5 bg-red-500 text-white text-[13px] font-semibold rounded-full hover:bg-red-600 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {isDeleting ? "Menghapus..." : "Ya, Hapus"}
+              </button>
+              <button 
+                onClick={() => setDeletePackageId(null)} 
                 disabled={isDeleting}
                 className="flex-1 py-2.5 border border-black/[0.12] text-[#5A5550] text-[13px] font-medium rounded-full hover:bg-[#F0EBE3] transition-colors cursor-pointer disabled:opacity-50"
               >

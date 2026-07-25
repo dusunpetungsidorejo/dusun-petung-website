@@ -280,3 +280,145 @@ export const deleteLiveInHouse = async (req, res, next) => {
     next(error);
   }
 };
+
+// GET /api/livein/packages
+export const getLiveInPackages = async (req, res, next) => {
+  try {
+    const result = await db.execute('SELECT * FROM livein_packages ORDER BY id ASC');
+    const formatted = result.rows.map(row => {
+      let facilities = [];
+      try {
+        facilities = row.facilities ? JSON.parse(row.facilities) : [];
+      } catch (e) {
+        facilities = [];
+      }
+      return {
+        ...row,
+        facilities,
+        active: !!row.active
+      };
+    });
+    return res.status(200).json(formatted);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// POST /api/livein/packages
+export const createLiveInPackage = async (req, res, next) => {
+  try {
+    const { name, price, pricing_type, description, facilities, icon, active } = req.body;
+    if (!name || price === undefined) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Nama paket dan harga wajib diisi'
+      });
+    }
+    const date = new Date().toISOString().split('T')[0];
+    const result = await db.execute({
+      sql: `INSERT INTO livein_packages (name, price, pricing_type, description, facilities, icon, active, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [
+        name,
+        Number(price),
+        pricing_type || 'person',
+        description || null,
+        facilities ? JSON.stringify(facilities) : '[]',
+        icon || 'clock',
+        active ? 1 : 0,
+        date
+      ]
+    });
+    const packageId = result.lastInsertRowid !== undefined ? Number(result.lastInsertRowid) : null;
+    return res.status(201).json({
+      id: packageId,
+      name,
+      price: Number(price),
+      pricing_type: pricing_type || 'person',
+      description: description || null,
+      facilities: facilities || [],
+      icon: icon || 'clock',
+      active: !!active,
+      updated_at: date
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// PUT /api/livein/packages/:id
+export const updateLiveInPackage = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { name, price, pricing_type, description, facilities, icon, active } = req.body;
+    if (!name || price === undefined) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Nama paket dan harga wajib diisi'
+      });
+    }
+    const check = await db.execute({
+      sql: 'SELECT id FROM livein_packages WHERE id = ?',
+      args: [id]
+    });
+    if (check.rows.length === 0) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Paket tidak ditemukan'
+      });
+    }
+    const date = new Date().toISOString().split('T')[0];
+    await db.execute({
+      sql: `UPDATE livein_packages SET
+              name = ?, price = ?, pricing_type = ?, description = ?, facilities = ?, icon = ?, active = ?, updated_at = ?
+            WHERE id = ?`,
+      args: [
+        name,
+        Number(price),
+        pricing_type || 'person',
+        description || null,
+        facilities ? JSON.stringify(facilities) : '[]',
+        icon || 'clock',
+        active ? 1 : 0,
+        date,
+        id
+      ]
+    });
+    return res.status(200).json({
+      id: Number(id),
+      name,
+      price: Number(price),
+      pricing_type: pricing_type || 'person',
+      description: description || null,
+      facilities: facilities || [],
+      icon: icon || 'clock',
+      active: !!active,
+      updated_at: date
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// DELETE /api/livein/packages/:id
+export const deleteLiveInPackage = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const result = await db.execute({
+      sql: 'DELETE FROM livein_packages WHERE id = ?',
+      args: [id]
+    });
+    if (result.rowsAffected === 0) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Paket tidak ditemukan'
+      });
+    }
+    return res.status(200).json({
+      message: 'Paket berhasil dihapus'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

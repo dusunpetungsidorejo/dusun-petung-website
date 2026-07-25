@@ -45,3 +45,16 @@ export interface LiveInHouse {
   updated_at?: string;
 }
 
+export interface LiveInPackage {
+  id?: number;
+  name: string;
+  price: number;
+  pricing_type: string;
+  description: string;
+  facilities: string[];
+  icon?: string;
+  active: boolean;
+  updated_at?: string;
+}
+
+

@@ -21,9 +21,11 @@ import {
   Utensils,
   Car,
   Droplets,
-  Heart
+  Heart,
+  Sun,
+  Tent
 } from "lucide-react";
-import { Page, LiveInHouse } from "../types";
+import { Page, LiveInHouse, LiveInPackage } from "../types";
 import { SiteFooter } from "../components/SiteFooter";
 
 interface LiveInPageProps {
@@ -31,45 +33,89 @@ interface LiveInPageProps {
   settings: any;
 }
 
+const DEFAULT_PACKAGES: LiveInPackage[] = [
+  {
+    id: 1,
+    name: "Paket Menginap Semalam (Overnight)",
+    price: 150000,
+    pricing_type: "per orang",
+    description: "Paket menginap semalam (check-out pagi/siang berikutnya). Cocok untuk istirahat dan berburu sunrise di Gumuk Petung Camp.",
+    facilities: [
+      "Kamar tidur pribadi bersih",
+      "Kamar mandi & air bersih",
+      "Sprei & selimut hangat",
+      "Teh jahe hangat / kopi",
+      "Welcome snack lokal",
+      "Area parkir kendaraan aman"
+    ],
+    icon: "sun",
+    active: true
+  },
+  {
+    id: 2,
+    name: "Paket 24 Jam (Full Day)",
+    price: 250000,
+    pricing_type: "per orang",
+    description: "Pengalaman 24 jam membaur dengan warga. Ikuti langsung aktivitas keseharian seperti bertani, berkebun, dan beternak.",
+    facilities: [
+      "Kamar tidur pribadi bersih",
+      "Makan 3x sehari bersama warga",
+      "Ikut aktivitas berkebun/ternak",
+      "Air bersih pegunungan",
+      "Welcome drink & jajanan lokal",
+      "Area parkir kendaraan aman"
+    ],
+    icon: "clock",
+    active: true
+  }
+];
+
 export function LiveInPage({ nav, settings }: LiveInPageProps) {
   const [houses, setHouses] = useState<LiveInHouse[]>([]);
+  const [packages, setPackages] = useState<LiveInPackage[]>(DEFAULT_PACKAGES);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedHouse, setSelectedHouse] = useState<LiveInHouse | null>(null);
   
-  // Search & Filter State
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterPackage, setFilterPackage] = useState<"all" | "overnight" | "hour24">("all");
-  const [filterCapacity, setFilterCapacity] = useState<number>(0);
-
-  // Modal Gallery State
-  const [activeGalleryIndex, setActiveGalleryIndex] = useState(0);
-
+  // Lightbox State for Gallery
+  const [activeLightboxImg, setActiveLightboxImg] = useState<{ url: string; caption: string } | null>(null);
+ 
   // FAQ Accordion State
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
-
-  const fetchHouses = async () => {
+ 
+  const fetchHousesAndPackages = async () => {
     setLoading(true);
     setError(null);
     try {
       const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const res = await fetch(`${baseUrl}/livein`);
-      if (!res.ok) throw new Error("Gagal memuat data dari server");
-      const data = await res.json();
+      
+      // Fetch houses
+      const resHouses = await fetch(`${baseUrl}/livein`);
+      if (!resHouses.ok) throw new Error("Gagal memuat data dari server");
+      const dataHouses = await resHouses.json();
       // Filter out Inactive houses for public view
-      const activeHouses = data.filter((h: LiveInHouse) => h.status !== "Inactive");
+      const activeHouses = dataHouses.filter((h: LiveInHouse) => h.status !== "Inactive");
       setHouses(activeHouses);
+ 
+      // Fetch packages
+      const resPackages = await fetch(`${baseUrl}/livein/packages`);
+      if (resPackages.ok) {
+        const dataPackages = await resPackages.json();
+        const activePackages = dataPackages.filter((p: LiveInPackage) => p.active);
+        if (activePackages.length > 0) {
+          setPackages(activePackages);
+        }
+      }
     } catch (err: any) {
-      console.error("Failed to fetch Live In houses:", err);
-      setError("Tidak dapat memuat data homestay saat ini. Silakan periksa koneksi internet Anda atau coba sesaat lagi.");
+      console.error("Failed to fetch Live In data:", err);
+      setError("Tidak dapat memuat data saat ini. Silakan periksa koneksi internet Anda atau coba sesaat lagi.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch Live In Houses from API
+  // Fetch Live In Houses and Packages from API
   useEffect(() => {
-    fetchHouses();
+    fetchHousesAndPackages();
   }, []);
 
   // Format phone number for WhatsApp
@@ -80,53 +126,46 @@ export function LiveInPage({ nav, settings }: LiveInPageProps) {
   }
   const defaultWaUrl = formattedPhone ? `https://wa.me/${formattedPhone}` : "https://wa.me/6285138097972";
 
-  // Create customized WhatsApp booking URL
-  const getWhatsAppBookingUrl = (house: LiveInHouse, packageType: "overnight" | "hour24") => {
-    const text = `Halo, saya tertarik untuk memesan Live In di:
-*${house.name}* (Pemilik: ${house.owner})
-
-Pilihan Paket: ${packageType === "hour24" ? "Paket 24 Jam (Makan + Aktivitas)" : "Paket Menginap Biasa"}
-Kapasitas Tamu: ${house.min_guests || 1} - ${house.max_guests || 10} orang
+  // Create customized WhatsApp booking URL for Packages
+  const getWhatsAppBookingUrl = (packageName: string) => {
+    const text = `Halo, saya tertarik untuk memesan program Live In di Dusun Petung dengan:
+Pilihan Paket: *${packageName}*
 
 Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
     
     return `https://wa.me/${formattedPhone}?text=${encodeURIComponent(text)}`;
   };
 
-  // Facility helper for matching icons
-  const getFacilityIcon = (facility: string) => {
-    const norm = facility.toLowerCase();
-    if (norm.includes("kamar tidur") || norm.includes("bedroom")) return Home;
-    if (norm.includes("kamar mandi") || norm.includes("bathroom")) return Droplets;
-    if (norm.includes("dapur") || norm.includes("kitchen")) return Utensils;
-    if (norm.includes("sarapan") || norm.includes("breakfast") || norm.includes("drink")) return Coffee;
-    if (norm.includes("wifi")) return Wifi;
-    if (norm.includes("parkir") || norm.includes("parking")) return Car;
-    return Check;
-  };
-
-  // Filtered houses logic
-  const filteredHouses = houses.filter(house => {
-    const matchesSearch = 
-      house.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      house.owner.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (house.description || "").toLowerCase().includes(searchQuery.toLowerCase());
-
-    const matchesPackage = 
-      filterPackage === "all" ||
-      (filterPackage === "overnight" && house.overnight_active) ||
-      (filterPackage === "hour24" && house.hour24_active);
-
-    const matchesCapacity = 
-      filterCapacity === 0 || 
-      (house.min_guests && house.min_guests <= filterCapacity && house.max_guests && house.max_guests >= filterCapacity);
-
-    return matchesSearch && matchesPackage && matchesCapacity;
-  }).sort((a, b) => {
-    if (a.status === "Available" && b.status !== "Available") return -1;
-    if (a.status !== "Available" && b.status === "Available") return 1;
-    return 0;
+  // Extract all photos from fetched houses for dynamic gallery
+  const allGalleryPhotos = houses.flatMap((house) => {
+    const list = [];
+    if (house.cover_image) {
+      list.push({
+        url: house.cover_image,
+        caption: `Rumah ${house.name} · Tuan Rumah: ${house.owner}`
+      });
+    }
+    if (house.gallery && Array.isArray(house.gallery)) {
+      house.gallery.forEach(img => {
+        if (img) {
+          list.push({
+            url: img,
+            caption: `Rumah ${house.name} · Tuan Rumah: ${house.owner}`
+          });
+        }
+      });
+    }
+    return list;
   });
+
+  const defaultPhotos = [
+    { url: "https://images.unsplash.com/photo-1566205865731-51803de32a35?w=800&h=600&fit=crop&auto=format", caption: "Suasana pedesaan lereng Gunung Merapi" },
+    { url: "https://images.unsplash.com/photo-1572908721147-0a9eb395762d?w=800&h=600&fit=crop&auto=format", caption: "Aktivitas berkebun warga" },
+    { url: "https://images.unsplash.com/photo-1623042392888-1f87e36a5b64?w=800&h=600&fit=crop&auto=format", caption: "Kuliner pawon tradisional" },
+    { url: "https://images.unsplash.com/photo-1650247452475-b5866374545d?w=800&h=600&fit=crop&auto=format", caption: "Peternakan warga Dusun Petung" }
+  ];
+
+  const displayPhotos = allGalleryPhotos.length > 0 ? allGalleryPhotos : defaultPhotos;
 
   return (
     <>
@@ -154,10 +193,10 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
           </p>
           <div className="flex flex-wrap gap-2 sm:gap-2.5">
             <a
-              href="#rumah-warga"
+              href="#paket-livein"
               className="px-4.5 py-2 bg-[#3A6520] text-white text-[12px] font-semibold rounded-full hover:bg-[#2D5016] transition-colors"
             >
-              Pilih Rumah Warga
+              Lihat Paket Reservasi
             </a>
             <a
               href={`${defaultWaUrl}?text=Halo,%20saya%20tertarik%20bertanya%20mengenai%20kegiatan%20Live%20In%20di%20Dusun%20Petung`}
@@ -235,207 +274,180 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
         </div>
       </section>
 
-      {/* Interactive Explorer / Houses Section */}
-      <section id="rumah-warga" className="py-8 lg:py-16 bg-[#F7F4EF] border-t border-black/[0.04]">
+      {/* Package & Reservation Cards Section */}
+      <section id="paket-livein" className="py-8 lg:py-16 bg-[#F7F4EF] border-t border-black/[0.04]">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           
-          {/* Section title */}
           <div className="text-center max-w-2xl mx-auto mb-16">
             <span className="text-[#C97C2A] text-[11px] font-bold tracking-[0.18em] uppercase block mb-4">
-              Daftar Akomodasi
+              Pilihan Paket
             </span>
             <h2
               style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
               className="text-[28px] sm:text-[38px] font-extrabold text-[#2C2C2A] leading-tight mb-5"
             >
-              Pilih Rumah & Tuan Rumah Anda
+              Paket Kunjungan Live In
             </h2>
             <p className="text-[14.5px] text-[#7A7065] leading-relaxed">
-              Cari dan filter berdasarkan paket menginap yang Anda kehendaki serta jumlah rombongan yang ikut serta.
+              Pilih paket kunjungan yang paling sesuai dengan kebutuhan Anda. Semua homestay warga memiliki tarif, fasilitas, dan kehangatan pelayanan yang seragam.
             </p>
           </div>
 
-          {/* Filter Bar */}
-          <div className="bg-white border border-black/[0.05] rounded-2xl shadow-sm p-4 sm:p-6 mb-12 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-            
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 flex-1">
-              {/* Search */}
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="w-4 h-4 text-[#B8AFA3]" />
-                </span>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="Cari nama rumah / pemilik..."
-                  className="w-full pl-9 pr-4 py-2.5 bg-[#FAF9F5] border border-black/[0.06] rounded-xl text-[12.5px] text-[#2C2C2A] outline-none focus:ring-1 focus:ring-[#3A6520]/25 transition"
-                />
-              </div>
-
-              {/* Package filter */}
-              <div className="relative flex items-center gap-2">
-                <Filter className="w-3.5 h-3.5 text-[#7A7065] shrink-0" />
-                <select
-                  value={filterPackage}
-                  onChange={e => setFilterPackage(e.target.value as any)}
-                  className="w-full px-3 py-2.5 bg-[#FAF9F5] border border-black/[0.06] rounded-xl text-[12.5px] text-[#5A5550] outline-none"
-                >
-                  <option value="all">Semua Jenis Paket</option>
-                  <option value="overnight">Paket Menginap Biasa</option>
-                  <option value="hour24">Paket 24 Jam</option>
-                </select>
-              </div>
-
-              {/* Capacity filter */}
-              <div className="relative flex items-center gap-2">
-                <Users className="w-3.5 h-3.5 text-[#7A7065] shrink-0" />
-                <select
-                  value={filterCapacity}
-                  onChange={e => setFilterCapacity(Number(e.target.value))}
-                  className="w-full px-3 py-2.5 bg-[#FAF9F5] border border-black/[0.06] rounded-xl text-[12.5px] text-[#5A5550] outline-none"
-                >
-                  <option value={0}>Jumlah Tamu (Semua)</option>
-                  <option value={1}>1 Orang</option>
-                  <option value={2}>2 Orang</option>
-                  <option value={4}>4 Orang</option>
-                  <option value={6}>6+ Orang</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Clear filters button */}
-            {(searchQuery !== "" || filterPackage !== "all" || filterCapacity !== 0) && (
-              <button
-                onClick={() => {
-                  setSearchQuery("");
-                  setFilterPackage("all");
-                  setFilterCapacity(0);
-                }}
-                className="px-4 py-2 border border-black/[0.08] text-[12px] text-[#7A7065] hover:text-[#2C2C2A] hover:bg-[#FAF9F5] rounded-full transition self-end lg:self-auto"
-              >
-                Hapus Filter
-              </button>
-            )}
-
-          </div>
-
-          {/* Cards Grid */}
-          {loading ? (
-            <div className="text-center py-20">
-              <div className="inline-block w-8 h-8 border-4 border-[#3A6520] border-t-transparent rounded-full animate-spin mb-4" />
-              <p className="text-[13px] text-[#7A7065]">Memuat data akomodasi warga...</p>
-            </div>
-          ) : error ? (
-            <div className="bg-white border border-black/[0.05] rounded-2xl p-12 text-center shadow-sm max-w-md mx-auto my-8">
-              <span className="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4 border border-red-100/50">
-                <Info className="w-6 h-6" />
-              </span>
-              <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[16px] font-bold text-[#2C2C2A] mb-2">Gagal Memuat Data</h3>
-              <p className="text-[13px] text-[#7A7065] mb-5 leading-relaxed">{error}</p>
-              <button
-                onClick={fetchHouses}
-                className="px-5 py-2.5 bg-[#3A6520] hover:bg-[#2D5016] text-white text-[12px] font-semibold rounded-full shadow-md transition-colors"
-              >
-                Coba Lagi
-              </button>
-            </div>
-          ) : filteredHouses.length === 0 ? (
-            <div className="bg-white border border-black/[0.05] rounded-2xl p-16 text-center shadow-sm">
-              <Home className="w-10 h-10 text-[#B8AFA3] mx-auto mb-4" />
-              <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[16px] font-bold text-[#2C2C2A] mb-1">Tidak Ada Rumah Ditemukan</h3>
-              <p className="text-[13px] text-[#7A7065] max-w-sm mx-auto">Kami tidak menemukan rumah yang sesuai dengan pencarian atau filter Anda. Coba reset filter pencarian.</p>
+          {/* Dynamic Packages Grid */}
+          {packages.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-[13px] text-[#7A7065]">Tidak ada paket reservasi yang tersedia saat ini.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 lg:gap-8">
-              {filteredHouses.map((house) => {
-                // Determine display price
-                let displayPrice = "";
-                if (house.overnight_active && house.overnight_price) {
-                  displayPrice = `Rp ${house.overnight_price.toLocaleString("id-ID")}`;
-                } else if (house.hour24_active && house.hour24_price) {
-                  displayPrice = `Rp ${house.hour24_price.toLocaleString("id-ID")}`;
-                }
+            <div className={`grid gap-8 mx-auto ${
+              packages.length === 1 
+                ? "grid-cols-1 max-w-md" 
+                : packages.length === 2 
+                  ? "grid-cols-1 md:grid-cols-2 max-w-4xl" 
+                  : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 max-w-6xl"
+            }`}>
+              {packages.map((pkg, idx) => {
+                const isEven = idx % 2 === 1;
+                
+                const renderIcon = () => {
+                  const iconClass = "w-5 h-5";
+                  switch (pkg.icon) {
+                    case "sun":
+                      return <Sun className={iconClass} />;
+                    case "home":
+                      return <Home className={iconClass} />;
+                    case "tent":
+                      return <Tent className={iconClass} />;
+                    case "sparkles":
+                      return <Sparkles className={iconClass} />;
+                    case "clock":
+                    default:
+                      return <Clock className={iconClass} />;
+                  }
+                };
 
                 return (
                   <div 
-                    key={house.id}
-                    className="bg-white border border-black/[0.06] rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:scale-[1.01] transition-all flex flex-col h-full group"
+                    key={pkg.id} 
+                    className={`bg-white border rounded-2xl p-5 sm:p-6 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow relative overflow-hidden ${
+                      isEven ? "border-[#C97C2A]/20" : "border-black/[0.06]"
+                    }`}
                   >
-                    {/* Cover image & status badge */}
-                    <div className="relative aspect-[3/2] w-full overflow-hidden bg-[#FAF9F5] shrink-0">
-                      {house.cover_image ? (
-                        <img 
-                          src={house.cover_image} 
-                          alt={house.name} 
-                          className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-700"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-[#B8AFA3]">
-                          <Home className="w-10 h-10" />
+                    {isEven && (
+                      <div className="absolute top-0 right-0 bg-[#C97C2A] text-white text-[9px] font-bold uppercase tracking-wider px-3 py-1 rounded-bl-lg">
+                        Full Experience
+                      </div>
+                    )}
+                    <div>
+                      <div className="flex items-center gap-3 mb-4">
+                        <span className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          isEven ? "bg-[#C97C2A]/8 text-[#C97C2A]" : "bg-[#3A6520]/8 text-[#3A6520]"
+                        }`}>
+                          {renderIcon()}
+                        </span>
+                        <div>
+                          <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[16px] font-bold text-[#2C2C2A]">
+                            {pkg.name}
+                          </h3>
+                        </div>
+                      </div>
+                      
+                      <p className="text-[13px] text-[#5A5550] leading-relaxed mb-4">
+                        {pkg.description}
+                      </p>
+
+                      {pkg.facilities && pkg.facilities.length > 0 && (
+                        <div className="border-t border-black/[0.05] pt-4.5 mb-4.5">
+                          <span className="block text-[10px] font-semibold text-[#7A7065] uppercase tracking-wider mb-2.5">Fasilitas & Aktivitas Termasuk:</span>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {pkg.facilities.map((item, i) => (
+                              <div key={i} className="flex items-center gap-2 text-[12px] text-[#5A5550]">
+                                <span className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${
+                                  isEven ? "bg-amber-50 text-[#C97C2A]" : "bg-emerald-50 text-[#3A6520]"
+                                }`}>
+                                  <Check className="w-2.5 h-2.5" strokeWidth={3} />
+                                </span>
+                                <span className="truncate">{item}</span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       )}
-                      
-                      {/* Status Badges */}
-                      <span className={`absolute top-3 left-3 sm:top-4 sm:left-4 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-bold shadow-sm ${
-                        house.status === "Available" ? "bg-emerald-500 text-white" : "bg-amber-500 text-white"
-                      }`}>
-                        {house.status === "Available" ? "Tersedia" : "Penuh"}
-                      </span>
                     </div>
 
-                    {/* Card Content */}
-                    <div className="p-3 sm:p-5 flex flex-col flex-1">
-                      <div className="flex-1">
-                        {/* Title & Host info */}
-                        <span className="block text-[9px] sm:text-[11px] font-semibold text-[#C97C2A] uppercase tracking-wider mb-0.5 sm:mb-1">
-                          Tuan Rumah: {house.owner}
+                    <div className="border-t border-black/[0.05] pt-4.5 mt-3">
+                      <div className="mb-4">
+                        <span className="block text-[10px] text-[#7A7065] uppercase font-semibold">Tarif Tetap</span>
+                        <span className={`text-[22px] font-extrabold leading-none ${isEven ? "text-[#C97C2A]" : "text-[#3A6520]"}`}>
+                          Rp {pkg.price.toLocaleString("id-ID")}
+                          <span className="text-[13px] font-normal text-[#7A7065]"> / {pkg.pricing_type}</span>
                         </span>
-                        <h3 
-                          style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} 
-                          className="text-[13px] sm:text-[17px] font-bold text-[#2C2C2A] group-hover:text-[#3A6520] transition-colors leading-snug mb-2 sm:mb-3 line-clamp-1 sm:line-clamp-2"
-                        >
-                          {house.name}
-                        </h3>
-
-                        {/* Highlight text if any */}
-                        {house.highlight && (
-                          <div className="inline-flex items-center gap-0.5 bg-[#FAF9F5] border border-[#3A6520]/15 rounded-md px-1.5 py-0.5 mb-2.5 sm:mb-4">
-                            <Sparkles className="w-2.5 h-2.5 text-[#C97C2A]" />
-                            <span className="text-[9px] sm:text-[10px] font-semibold text-[#3A6520]">{house.highlight}</span>
-                          </div>
-                        )}
-
-                        <p className="text-[11px] sm:text-[13px] text-[#5A5550] leading-relaxed line-clamp-2 sm:line-clamp-3 mb-4 sm:mb-6">
-                          {house.description}
-                        </p>
                       </div>
-
-                      {/* Card Footer detail info */}
-                      <div className="pt-3 sm:pt-4 border-t border-black/[0.05] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shrink-0">
-                        <div>
-                          <span className="block text-[8px] sm:text-[10px] text-[#7A7065] uppercase font-semibold">Mulai Dari</span>
-                          <span className="block text-[12px] sm:text-[14px] font-bold text-[#3A6520] leading-none">
-                            {displayPrice}
-                            <span className="text-[9px] sm:text-[11px] font-normal text-[#7A7065]"> / {house.pricing_type === "person" ? "orang" : "malam"}</span>
-                          </span>
-                        </div>
-                        
-                        <button
-                          onClick={() => {
-                            setSelectedHouse(house);
-                            setActiveGalleryIndex(0);
-                          }}
-                          className="flex items-center justify-center gap-1 px-3 py-1.5 sm:px-4 sm:py-2 bg-[#3A6520] hover:bg-[#2D5016] text-white text-[10px] sm:text-[11.5px] font-semibold rounded-full transition-colors w-full sm:w-auto"
-                        >
-                          Detail
-                          <ArrowRight className="w-3 h-3" />
-                        </button>
-                      </div>
+                      <a
+                        href={getWhatsAppBookingUrl(pkg.name)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`w-full text-center py-2.5 text-white text-[12px] font-semibold rounded-full transition-colors block shadow-sm ${
+                          isEven ? "bg-[#C97C2A] hover:bg-[#b0671c]" : "bg-[#3A6520] hover:bg-[#2D5016]"
+                        }`}
+                      >
+                        Reservasi {pkg.name}
+                      </a>
                     </div>
                   </div>
                 );
               })}
+            </div>
+          )}
+
+        </div>
+      </section>
+
+      {/* Homestay Photo Gallery Section */}
+      <section className="py-8 lg:py-16 bg-[#FAF9F5] border-t border-black/[0.04]">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+          
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <span className="text-[#C97C2A] text-[11px] font-bold tracking-[0.18em] uppercase block mb-4">
+              Galeri Akomodasi
+            </span>
+            <h2
+              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              className="text-[28px] sm:text-[38px] font-extrabold text-[#2C2C2A] leading-tight mb-5"
+            >
+              Suasana Homestay Warga
+            </h2>
+            <p className="text-[14.5px] text-[#7A7065] leading-relaxed">
+              Intip kehangatan dan keaslian suasana rumah tinggal warga Dusun Petung yang siap menyambut kehadiran Anda.
+            </p>
+          </div>
+
+          {/* Gallery Grid */}
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="inline-block w-8 h-8 border-4 border-[#3A6520] border-t-transparent rounded-full animate-spin mb-3" />
+              <p className="text-[13px] text-[#7A7065]">Memuat foto-foto akomodasi...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {displayPhotos.map((photo, index) => (
+                <div 
+                  key={index}
+                  onClick={() => setActiveLightboxImg(photo)}
+                  className="relative aspect-square sm:aspect-[4/3] rounded-xl overflow-hidden cursor-pointer group border border-black/[0.04] bg-white shadow-sm hover:shadow transition-shadow"
+                >
+                  <img 
+                    src={photo.url} 
+                    alt={photo.caption} 
+                    className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3">
+                    <p className="text-white text-[11px] font-medium leading-snug line-clamp-2">
+                      {photo.caption}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
@@ -468,7 +480,7 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
               {
                 title: "Bertani & Berkebun",
                 desc: "Ikut berkegiatan di kebun maupun sawah bersama warga, mulai dari menanam, merawat, hingga memanen hasil sesuai musim.",
-                img: "https://images.unsplash.com/photo-1572908721147-0a9eb395762d?w=600&h=420&fit=crop&auto=format"
+                img: "/images/livein/Pertanian.webp"
               },
               {
                 title: "Kuliner Tradisional",
@@ -478,7 +490,7 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
               {
                 title: "Beternak",
                 desc: "Merasakan pengalaman berinteraksi dengan hewan ternak dan mengenal kehidupan peternakan warga.",
-                img: "https://images.unsplash.com/photo-1650247452475-b5866374545d?w=600&h=420&fit=crop&auto=format"
+                img: "/images/livein/Ternak Mas Yono.webp"
               }
             ].map((item, idx) => (
               <div key={idx} className="bg-white border border-black/[0.05] rounded-2xl overflow-hidden shadow-sm flex flex-col h-full">
@@ -518,7 +530,7 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
               >
                 Hal Penting Sebelum <br />Anda Bertamu
               </h2>
-              <p className="text-[14px] text-[#7A7065] leading-relaxed mb-6">
+              <p className="text-[14.5px] text-[#7A7065] leading-relaxed mb-6">
                 Untuk menjaga kenyamanan bersama dan adat istiadat dusun, kami memohon agar setiap pengunjung memperhatikan beberapa panduan berikut.
               </p>
               
@@ -621,336 +633,28 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
         </div>
       </section>
 
-      {/* House Details Modal */}
-      {selectedHouse && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-8 bg-black/40 backdrop-blur-sm">
-          
-          <div className="bg-white border border-black/[0.08] shadow-2xl rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            
-            {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-black/[0.06] flex items-center justify-between shrink-0 bg-[#FAF9F5]">
-              <div>
-                <span className="block text-[10px] font-semibold text-[#C97C2A] uppercase tracking-wider">
-                  Tuan Rumah: {selectedHouse.owner}
-                </span>
-                <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[17px] font-bold text-[#2C2C2A]">
-                  {selectedHouse.name}
-                </h3>
-              </div>
-              <button 
-                onClick={() => setSelectedHouse(null)}
-                className="p-1.5 rounded-full hover:bg-black/5 text-[#7A7065] hover:text-[#2C2C2A] transition"
-                title="Tutup Detail"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <div className="flex-1 overflow-y-auto p-6 md:p-8">
-              
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-                
-                {/* Left Column (Photos, Capacity, Facilities, Experiences) */}
-                <div className="md:col-span-7 space-y-6">
-                  
-                  {/* Photo Viewer (Cover + Gallery) */}
-                  <div className="space-y-3">
-                    <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-[#FAF9F5] border border-black/[0.06]">
-                      {/* Big Image Viewer */}
-                      {(() => {
-                        const allPhotos = [selectedHouse.cover_image, ...(selectedHouse.gallery || [])].filter(Boolean);
-                        const activeUrl = allPhotos[activeGalleryIndex] || selectedHouse.cover_image;
-
-                        const handlePrev = (e: React.MouseEvent) => {
-                          e.stopPropagation();
-                          if (activeGalleryIndex > 0) {
-                            setActiveGalleryIndex((prev) => prev - 1);
-                          }
-                        };
-
-                        const handleNext = (e: React.MouseEvent) => {
-                          e.stopPropagation();
-                          if (activeGalleryIndex < allPhotos.length - 1) {
-                            setActiveGalleryIndex((prev) => prev + 1);
-                          }
-                        };
-
-                        return (
-                          <div className="relative w-full h-full group/viewer">
-                            {activeUrl ? (
-                              <img src={activeUrl} alt="" className="w-full h-full object-cover transition-all duration-300" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-[#B8AFA3]">
-                                <Home className="w-12 h-12" />
-                              </div>
-                            )}
-
-                            {/* Mobile Scroll Down Prompt Overlay */}
-                            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/60 text-white text-[10px] font-medium px-3 py-1 rounded-full backdrop-blur-sm flex items-center gap-1 animate-pulse md:hidden pointer-events-none">
-                              <span>Lihat detail di bawah</span>
-                              <span className="text-[11px] font-bold">↓</span>
-                            </div>
-
-                            {/* Navigation Arrows */}
-                            {allPhotos.length > 1 && (
-                              <>
-                                {activeGalleryIndex > 0 && (
-                                  <button
-                                    onClick={handlePrev}
-                                    className="absolute left-4 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-sm opacity-100 md:opacity-0 md:group-hover/viewer:opacity-100 transition-all duration-200"
-                                    aria-label="Foto Sebelumnya"
-                                  >
-                                    <ChevronLeft className="w-5 h-5" />
-                                  </button>
-                                )}
-                                {activeGalleryIndex < allPhotos.length - 1 && (
-                                  <button
-                                    onClick={handleNext}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-sm opacity-100 md:opacity-0 md:group-hover/viewer:opacity-100 transition-all duration-200"
-                                    aria-label="Foto Selanjutnya"
-                                  >
-                                    <ChevronRight className="w-5 h-5" />
-                                  </button>
-                                )}
-                              </>
-                            )}
-                          </div>
-                        );
-                      })()}
-                    </div>
-
-                    {/* Thumbnails row */}
-                    {(() => {
-                      const allPhotos = [selectedHouse.cover_image, ...(selectedHouse.gallery || [])].filter(Boolean);
-                      if (allPhotos.length <= 1) return null;
-
-                      return (
-                        <div className="flex flex-wrap gap-2 pt-1">
-                          {allPhotos.map((url, idx) => (
-                            <button
-                              key={idx}
-                              onClick={() => setActiveGalleryIndex(idx)}
-                              className={`w-16 h-12 rounded overflow-hidden border-2 transition-all ${
-                                activeGalleryIndex === idx ? "border-[#3A6520] scale-95" : "border-transparent opacity-70 hover:opacity-100"
-                              }`}
-                            >
-                              <img src={url} alt="" className="w-full h-full object-cover" />
-                            </button>
-                          ))}
-                        </div>
-                      );
-                    })()}
-                  </div>
-
-                  {/* Details & Specifications */}
-                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-black/[0.05]">
-                    {/* Capacity */}
-                    <div>
-                      <span className="block text-[10px] font-semibold text-[#7A7065] uppercase tracking-wider mb-1.5">Kapasitas Tamu</span>
-                      <div className="flex items-center gap-1.5 text-[#2C2C2A] text-[12.5px]">
-                        <Users className="w-4 h-4 text-[#3A6520]" />
-                        <span>{selectedHouse.min_guests || 1} - {selectedHouse.max_guests || 10} Orang</span>
-                      </div>
-                    </div>
-
-                    {/* Billing calculation */}
-                    <div>
-                      <span className="block text-[10px] font-semibold text-[#7A7065] uppercase tracking-wider mb-1.5">Sistem Biaya</span>
-                      <div className="flex items-center gap-1.5 text-[#2C2C2A] text-[12.5px]">
-                        <DollarSign className="w-4 h-4 text-[#3A6520]" />
-                        <span>Per {selectedHouse.pricing_type === "person" ? "Orang" : "Sewa Rumah"}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Facilities Checklist Grid */}
-                  <div className="space-y-3 pt-4 border-t border-black/[0.05]">
-                    <span className="block text-[10px] font-semibold text-[#7A7065] uppercase tracking-wider">Fasilitas Rumah</span>
-                    <div className="grid grid-cols-2 gap-2.5">
-                      {selectedHouse.facilities?.map((f) => {
-                        const IconComp = getFacilityIcon(f);
-                        return (
-                          <div key={f} className="flex items-center gap-2 text-[12px] text-[#5A5550]">
-                            <span className="w-4.5 h-4.5 rounded-full bg-emerald-50 text-[#3A6520] flex items-center justify-center shrink-0">
-                              <IconComp className="w-2.5 h-2.5" />
-                            </span>
-                            <span className="truncate">{f === "Others" ? (selectedHouse.facilities_other || "Fasilitas Lainnya") : f}</span>
-                          </div>
-                        );
-                      })}
-                      {(!selectedHouse.facilities || selectedHouse.facilities.length === 0) && (
-                        <span className="text-[12px] text-[#7A7065] italic">Tidak ada rincian fasilitas terdaftar.</span>
-                      )}
-                    </div>
-                  </div>
-
-                </div>
-
-                {/* Right Column (Description, Experiences, Pricing Packages) */}
-                <div className="md:col-span-5 space-y-6 md:border-l md:border-black/[0.05] md:pl-8">
-                  
-                  {/* Description */}
-                  <div className="space-y-2.5">
-                    <h4 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[11px] font-bold text-[#7A7065] uppercase tracking-wider">
-                      Mengenai Akomodasi
-                    </h4>
-                    <p className="text-[13.5px] text-[#5A5550] leading-relaxed whitespace-pre-line">
-                      {selectedHouse.description}
-                    </p>
-                  </div>
-
-                  {/* Pricing Packages */}
-                  <div className="space-y-4 pt-4 border-t border-black/[0.05]">
-                    <h4 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[11px] font-bold text-[#7A7065] uppercase tracking-wider">
-                      Pilihan Paket & Reservasi
-                    </h4>
-                    
-                    <div className="grid grid-cols-1 gap-4">
-                      {/* Overnight plan */}
-                      <div className={`p-4 rounded-xl border flex flex-col justify-between ${
-                        selectedHouse.overnight_active 
-                          ? "border-[#3A6520]/20 bg-[#3A6520]/5" 
-                          : "border-black/[0.05] bg-gray-50 opacity-60"
-                      }`}>
-                        <div>
-                          <h5 className="text-[13px] font-bold text-[#2C2C2A] mb-1">Paket Menginap (Overnight)</h5>
-                          <span className="block text-[10px] text-[#7A7065] mb-3">Hanya akomodasi menginap standar</span>
-                          
-                          {selectedHouse.overnight_active ? (
-                            <div className="space-y-3">
-                              <span className="block text-[16px] font-extrabold text-[#3A6520]">
-                                Rp {selectedHouse.overnight_price?.toLocaleString("id-ID") || 0}
-                                <span className="text-[11px] font-normal text-[#7A7065]"> / malam</span>
-                              </span>
-                              <div className="flex flex-col gap-1 text-[11px] text-[#7A7065]">
-                                <span className="flex items-center gap-1.5">
-                                  <Clock className="w-3.5 h-3.5" /> Check-in: {selectedHouse.overnight_checkin || "14:00 WIB"}
-                                </span>
-                                <span className="flex items-center gap-1.5">
-                                  <Clock className="w-3.5 h-3.5" /> Check-out: {selectedHouse.overnight_checkout || "12:00 WIB"}
-                                </span>
-                              </div>
-                            </div>
-                          ) : (
-                            <span className="text-[12px] text-[#7A7065] italic">Paket ini tidak tersedia</span>
-                          )}
-                        </div>
-                        {selectedHouse.overnight_active && (
-                          selectedHouse.status === "Unavailable" ? (
-                            <button
-                              disabled
-                              className="mt-4 w-full text-center py-2 bg-black/[0.04] text-[#B8AFA3] text-[12px] font-semibold rounded-full cursor-not-allowed block border border-black/[0.08]"
-                            >
-                              Penuh (Tidak Tersedia)
-                            </button>
-                          ) : (
-                            <a
-                              href={getWhatsAppBookingUrl(selectedHouse, "overnight")}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="mt-4 w-full text-center py-2 bg-[#3A6520] hover:bg-[#2D5016] text-white text-[12px] font-semibold rounded-full transition-colors block"
-                            >
-                              Pilih Paket Menginap
-                            </a>
-                          )
-                        )}
-                      </div>
-
-                      {/* 24 Hour plan */}
-                      <div className={`p-4 rounded-xl border flex flex-col justify-between ${
-                        selectedHouse.hour24_active 
-                          ? "border-[#C97C2A]/20 bg-[#C97C2A]/5" 
-                          : "border-black/[0.05] bg-gray-50 opacity-60"
-                      }`}>
-                        <div>
-                          <h5 className="text-[13px] font-bold text-[#2C2C2A] mb-1">Paket 24 Jam (All-Inclusive)</h5>
-                          <span className="block text-[10px] text-[#7A7065] mb-3">Termasuk makan tradisional & aktivitas dusun</span>
-                          
-                          {selectedHouse.hour24_active ? (
-                            <div className="space-y-3">
-                              <span className="block text-[16px] font-extrabold text-[#C97C2A]">
-                                Rp {selectedHouse.hour24_price?.toLocaleString("id-ID") || 0}
-                                <span className="text-[11px] font-normal text-[#7A7065]"> / orang</span>
-                              </span>
-                              <p className="text-[11px] text-[#7A7065] leading-relaxed">
-                                <strong>Kegiatan:</strong> {selectedHouse.hour24_description || "Termasuk makan 3x sehari dan aktivitas harian bersama pemilik rumah."}
-                              </p>
-                            </div>
-                          ) : (
-                            <span className="text-[12px] text-[#7A7065] italic">Paket ini tidak tersedia</span>
-                          )}
-                        </div>
-
-                        {selectedHouse.hour24_active && (
-                          selectedHouse.status === "Unavailable" ? (
-                            <button
-                              disabled
-                              className="mt-4 w-full text-center py-2 bg-black/[0.04] text-[#B8AFA3] text-[12px] font-semibold rounded-full cursor-not-allowed block border border-black/[0.08]"
-                            >
-                              Penuh (Tidak Tersedia)
-                            </button>
-                          ) : (
-                            <a
-                              href={getWhatsAppBookingUrl(selectedHouse, "hour24")}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="mt-4 w-full text-center py-2 bg-[#C97C2A] hover:bg-[#b0671c] text-white text-[12px] font-semibold rounded-full transition-colors block"
-                            >
-                              Pilih Paket 24 Jam
-                            </a>
-                          )
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Experience Checklist Grid */}
-                  <div className="space-y-3 pt-4 border-t border-black/[0.05]">
-                    <span className="block text-[10px] font-semibold text-[#7A7065] uppercase tracking-wider">Aktivitas / Pengalaman Tuan Rumah</span>
-                    <div className="grid grid-cols-2 gap-2">
-                      {selectedHouse.experiences?.map((e) => (
-                        <div key={e} className="flex items-center gap-2 text-[12px] text-[#5A5550]">
-                          <span className="w-4.5 h-4.5 rounded-full bg-[#C97C2A]/10 text-[#C97C2A] flex items-center justify-center shrink-0">
-                            <Check className="w-2.5 h-2.5" />
-                          </span>
-                          <span className="truncate">{e === "Others" ? (selectedHouse.experiences_other || "Aktivitas Lainnya") : e}</span>
-                        </div>
-                      ))}
-                      {(!selectedHouse.experiences || selectedHouse.experiences.length === 0) && (
-                        <span className="text-[12px] text-[#7A7065] italic col-span-2">Tidak ada rincian aktivitas terdaftar.</span>
-                      )}
-                    </div>
-                  </div>
-
-                </div>
-
-              </div>
-
-            </div>
-
-            {/* Modal Footer */}
-            <div className="px-6 py-4 bg-[#FAF9F5] border-t border-black/[0.06] flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-2">
-                <span className="text-[12px] font-medium text-[#7A7065]">Status Rumah:</span>
-                <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                  selectedHouse.status === "Available" 
-                    ? "bg-emerald-500 text-white" 
-                    : "bg-amber-500 text-white"
-                }`}>
-                  {selectedHouse.status === "Available" ? "Tersedia" : "Penuh"}
-                </span>
-              </div>
-              <button
-                onClick={() => setSelectedHouse(null)}
-                className="px-5 py-2 border border-black/[0.1] text-[#5A5550] hover:bg-black/5 text-[12px] font-semibold rounded-full transition"
-              >
-                Tutup
-              </button>
-            </div>
-
+      {/* Lightbox Modal for Gallery Images */}
+      {activeLightboxImg && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm cursor-zoom-out"
+          onClick={() => setActiveLightboxImg(null)}
+        >
+          <div className="relative max-w-4xl w-full max-h-[85vh] flex flex-col items-center" onClick={(e) => e.stopPropagation()}>
+            <button 
+              onClick={() => setActiveLightboxImg(null)}
+              className="absolute -top-12 right-0 p-2 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <img 
+              src={activeLightboxImg.url} 
+              alt={activeLightboxImg.caption} 
+              className="max-w-full max-h-[75vh] object-contain rounded-lg shadow-2xl border border-white/10" 
+            />
+            <p className="text-white/90 text-[13.5px] mt-4 font-semibold text-center px-5 py-2 bg-black/40 rounded-full backdrop-blur-sm">
+              {activeLightboxImg.caption}
+            </p>
           </div>
-
         </div>
       )}
 
@@ -959,3 +663,4 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
     </>
   );
 }
+

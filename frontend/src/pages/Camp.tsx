@@ -533,7 +533,7 @@ export function CampPage({ nav, settings }: CampPageProps) {
                       {
                         category: "Tenda & Perlengkapan Tidur",
                         items: [
-                          { name: "Tenda Kapasitas 8–10 Orang", price: "Rp 140.000" },
+                          { name: "Tenda Kapasitas 8–10 Orang", price: "Rp 150.000" },
                           { name: "Tenda Kapasitas 4 Orang", price: "Rp 65.000" },
                           { name: "Sleeping Bag", price: "Rp 15.000" },
                           { name: "Matras (2m x 2m)", price: "Rp 10.000" },

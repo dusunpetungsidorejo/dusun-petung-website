@@ -72,6 +72,73 @@ async function initDb() {
     `);
     console.log('✓ Live In table created or verified.');
 
+    // Create Live In Packages Table
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS livein_packages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        price REAL NOT NULL,
+        pricing_type TEXT DEFAULT 'person',
+        description TEXT,
+        facilities TEXT,
+        icon TEXT DEFAULT 'clock',
+        active INTEGER DEFAULT 1,
+        updated_at TEXT NOT NULL
+      );
+    `);
+    console.log('✓ Live In Packages table created or verified.');
+
+    // Seed Default Packages if empty
+    const packageCheck = await db.execute('SELECT COUNT(*) as count FROM livein_packages');
+    const packageCount = packageCheck.rows[0].count;
+    if (packageCount === 0) {
+      const date = new Date().toISOString().split('T')[0];
+      await db.execute({
+        sql: `INSERT INTO livein_packages (name, price, pricing_type, description, facilities, icon, active, updated_at)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        args: [
+          'Paket Menginap Semalam (Overnight)',
+          150000,
+          'per orang',
+          'Paket menginap semalam (check-out pagi/siang berikutnya). Cocok untuk istirahat dan berburu sunrise di Gumuk Petung Camp.',
+          JSON.stringify([
+            'Kamar tidur pribadi bersih',
+            'Kamar mandi & air bersih',
+            'Sprei & selimut hangat',
+            'Teh jahe hangat / kopi',
+            'Welcome snack lokal',
+            'Area parkir kendaraan aman'
+          ]),
+          'sun',
+          1,
+          date
+        ]
+      });
+
+      await db.execute({
+        sql: `INSERT INTO livein_packages (name, price, pricing_type, description, facilities, icon, active, updated_at)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        args: [
+          'Paket 24 Jam (Full Day)',
+          250000,
+          'per orang',
+          'Pengalaman 24 jam membaur dengan warga. Ikuti langsung aktivitas keseharian seperti bertani, berkebun, dan beternak.',
+          JSON.stringify([
+            'Kamar tidur pribadi bersih',
+            'Makan 3x sehari bersama warga',
+            'Ikut aktivitas berkebun/ternak',
+            'Air bersih pegunungan',
+            'Welcome drink & jajanan lokal',
+            'Area parkir kendaraan aman'
+          ]),
+          'clock',
+          1,
+          date
+        ]
+      });
+      console.log('✓ Seeded default livein packages.');
+    }
+
 
     // 4. Seed Default Admin User if empty
     const userCheck = await db.execute('SELECT COUNT(*) as count FROM users');
