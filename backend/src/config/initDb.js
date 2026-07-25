@@ -145,16 +145,16 @@ async function initDb() {
     const userCount = userCheck.rows[0].count;
 
     if (userCount === 0) {
-      const defaultPassword = 'admin123';
+      const defaultPassword = 'PetungSidorejo!';
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(defaultPassword, saltRounds);
 
       await db.execute({
         sql: `INSERT INTO users (username, password, display_name, role) 
               VALUES (?, ?, ?, ?)`,
-        args: ['admin', hashedPassword, 'Admin', 'Administrator']
+        args: ['admin_petung', hashedPassword, 'Admin Petung', 'Administrator']
       });
-      console.log('✓ Seeded default admin user: admin / admin123');
+      console.log('✓ Seeded default admin user: admin_petung / PetungSidorejo!');
     } else {
       console.log('• Users table is already seeded.');
     }

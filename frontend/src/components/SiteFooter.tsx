@@ -122,7 +122,7 @@ export function SiteFooter({ nav, settings }: SiteFooterProps) {
         </div>
 
         <div className="border-t border-white/8 pt-8 text-center sm:text-left">
-          <p className="text-white/25 text-[12px]">© 2026 {villageName} · KKN UPNYK AD.84.242. Hak cipta dilindungi.</p>
+          <p className="text-white/25 text-[12px]">© {new Date().getFullYear()} {villageName} · KKN UPNYK AD.84.242. Hak cipta dilindungi.</p>
         </div>
       </div>
     </footer>

@@ -268,7 +268,7 @@ export function ProfilePage({ nav, settings }: ProfilePageProps) {
                 img: IMGS.pot3,
                 alt: "Kegiatan komunitas dan gotong royong warga dusun",
                 title: "Live In Bersama Warga",
-                desc: "Rasakan pengalaman tinggal bersama warga dan mengenal secara langsung kehidupan, budaya, serta aktivitas sehari-hari masyarakat Dusun Petung.",
+                desc: "Rasakan pengalaman tinggal bersama warga dan mengenal secara langsung kehidupan, budaya, serta aktivitas sehari-hari masyarakat Dusun Petung yang penuh kehangatan.",
                 cta: "Ikuti Pengalaman",
                 page: "livein" as Page,
               },
