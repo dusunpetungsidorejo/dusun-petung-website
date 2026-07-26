@@ -111,7 +111,7 @@ export function HomePage({ nav, settings, activities = [] }: HomePageProps) {
                 Damai di Kaki <br className="hidden sm:inline" />Gunung Merapi
               </h2>
               <p className="text-[#5A5550] leading-[1.75] text-[15px] mb-4">
-                Dusun Petung berada di Desa Sidorejo, Kecamatan Kemalang, Kabupaten Klaten, di kaki barat daya Gunung Merapi. Tanah vulkanik yang subur, udara sejuk, dan pemandangan alam yang indah menjadikan dusun ini tumbuh subur dalam pertanian, peternakan, dan pariwisata.
+                Dusun Petung berada di Desa Sidorejo, Kecamatan Kemalang, Kabupaten Klaten, di kaki tenggara Gunung Merapi. Tanah vulkanik yang subur, udara sejuk, dan pemandangan alam yang indah menjadikan dusun ini tumbuh subur dalam pertanian, peternakan, dan pariwisata.
 
               </p>
               <p className="text-[#5A5550] leading-[1.75] text-[15px] mb-9">

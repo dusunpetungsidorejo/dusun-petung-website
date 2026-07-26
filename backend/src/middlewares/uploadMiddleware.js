@@ -29,9 +29,16 @@ const fileFilter = (req, file, cb) => {
     'image/svg+xml',
     'image/avif',
     'image/heic',
-    'image/heif'
+    'image/heif',
+    'image/x-heic',
+    'image/x-heif',
+    'image/heic-sequence',
+    'image/heif-sequence'
   ];
-  if (allowedTypes.includes(file.mimetype)) {
+  const ext = path.extname(file.originalname).toLowerCase();
+  const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.avif', '.heic', '.heif'];
+
+  if (allowedTypes.includes(file.mimetype) || allowedExtensions.includes(ext)) {
     cb(null, true);
   } else {
     cb(new Error('Format file tidak didukung. Gunakan JPEG, PNG, GIF, WEBP, SVG, AVIF, atau HEIC.'), false);
