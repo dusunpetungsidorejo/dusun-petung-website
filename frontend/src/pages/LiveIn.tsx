@@ -81,6 +81,19 @@ export function LiveInPage({ nav, settings }: LiveInPageProps) {
  
   // FAQ Accordion State
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+
+  const galleryScrollRef = React.useRef<HTMLDivElement>(null);
+
+  const scrollGallery = (direction: "left" | "right") => {
+    if (galleryScrollRef.current) {
+      const { scrollLeft, clientWidth } = galleryScrollRef.current;
+      const scrollAmount = clientWidth * 0.75;
+      galleryScrollRef.current.scrollTo({
+        left: direction === "left" ? scrollLeft - scrollAmount : scrollLeft + scrollAmount,
+        behavior: "smooth"
+      });
+    }
+  };
  
   const fetchHousesAndPackages = async () => {
     setLoading(true);
@@ -165,14 +178,21 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
     { url: "https://images.unsplash.com/photo-1650247452475-b5866374545d?w=800&h=600&fit=crop&auto=format", caption: "Peternakan warga Dusun Petung" }
   ];
 
-  const displayPhotos = allGalleryPhotos.length > 0 ? allGalleryPhotos : defaultPhotos;
+  const rawDisplayPhotos = allGalleryPhotos.length > 0 ? allGalleryPhotos : defaultPhotos;
+  const displayPhotos = [...rawDisplayPhotos].sort((a, b) => {
+    const aIsWardi = a.caption.toLowerCase().includes("wardi") || a.url.toLowerCase().includes("wardi");
+    const bIsWardi = b.caption.toLowerCase().includes("wardi") || b.url.toLowerCase().includes("wardi");
+    if (aIsWardi && !bIsWardi) return 1;
+    if (!aIsWardi && bIsWardi) return -1;
+    return 0;
+  });
 
   return (
     <>
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-16 pb-10 h-auto sm:py-0 sm:h-[40vh] sm:min-h-[330px]">
         <img
-          src="https://images.unsplash.com/photo-1566205865731-51803de32a35?w=1600&h=900&fit=crop&auto=format"
+          src="/images/livein/Hero.webp"
           alt="Suasana pedesaan lereng Gunung Merapi dengan pepohonan hijau rindang"
           className="absolute inset-0 w-full h-full object-cover"
         />
@@ -230,7 +250,7 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
               
               <div className="space-y-6 text-[#5A5550] text-[15px] leading-[1.75]">
                 <p>
-                  Di Dusun Petung, kami percaya bahwa pariwisata terbaik adalah pariwisata yang mendekatkan hati ke hati. Wisata <strong>Live In</strong> kami rancang agar para wisatawan dapat melepaskan penat dan kembali terhubung dengan alam serta kebiasaan hidup bersahaja.
+                  Di Dusun Petung, kami percaya bahwa pariwisata terbaik adalah pariwisata yang mendekatkan hati ke hati. Wisat Live In kami rancang agar para wisatawan dapat melepaskan penat dan kembali terhubung dengan alam serta kebiasaan hidup bersahaja.
                 </p>
                 <p>
                   Setiap rumah warga yang terdaftar telah dikurasi agar menjamin kenyamanan mendasar Anda, namun tetap mempertahankan keaslian bentuk hunian lereng Merapi. Anda tidak akan menemukan kemewahan hotel berbintang, melainkan kemewahan obrolan hangat malam hari di bale-bale bambu sembari menikmati teh jahe hangat buatan simbah.
@@ -258,8 +278,8 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
             <div className="relative">
               <div className="bg-[#D4C9B5] rounded-lg overflow-hidden shadow-sm aspect-[4/5] sm:aspect-square md:aspect-[4/3] lg:aspect-[4/5]">
                 <img
-                  src="https://images.unsplash.com/photo-1542897643-cfccd88c7127?w=800&h=1000&fit=crop&auto=format"
-                  alt="Warga dusun tersenyum memegang cangkir tradisional"
+                  src="/images/livein/Description.png"
+                  alt="Warga dusun berkegiatan bersama"
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -407,47 +427,81 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
       <section className="py-8 lg:py-16 bg-[#FAF9F5] border-t border-black/[0.04]">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           
-          <div className="text-center max-w-2xl mx-auto mb-12">
-            <span className="text-[#C97C2A] text-[11px] font-bold tracking-[0.18em] uppercase block mb-4">
-              Galeri Akomodasi
-            </span>
-            <h2
-              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-              className="text-[28px] sm:text-[38px] font-extrabold text-[#2C2C2A] leading-tight mb-5"
-            >
-              Suasana Homestay Warga
-            </h2>
-            <p className="text-[14.5px] text-[#7A7065] leading-relaxed text-center">
-              Intip kehangatan dan keaslian suasana rumah tinggal warga Dusun Petung yang siap menyambut kehadiran Anda.
-            </p>
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+            <div>
+              <span className="text-[#C97C2A] text-[11px] font-bold tracking-[0.18em] uppercase block mb-4">
+                Galeri Akomodasi
+              </span>
+              <h2
+                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                className="text-[28px] sm:text-[38px] font-extrabold text-[#2C2C2A] leading-tight mb-2"
+              >
+                Suasana Homestay Warga
+              </h2>
+              <p className="text-[14.5px] text-[#7A7065] max-w-xl leading-relaxed">
+                Intip kehangatan dan keaslian suasana rumah tinggal warga Dusun Petung yang siap menyambut kehadiran Anda.
+              </p>
+            </div>
+            
+            {/* Scroll Navigation Buttons */}
+            <div className="flex items-center gap-3 self-start md:self-end">
+              <button 
+                onClick={() => scrollGallery("left")}
+                className="w-11 h-11 rounded-full border border-black/10 flex items-center justify-center hover:bg-[#3A6520] hover:text-white transition-colors"
+                aria-label="Previous images"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button 
+                onClick={() => scrollGallery("right")}
+                className="w-11 h-11 rounded-full border border-black/10 flex items-center justify-center hover:bg-[#3A6520] hover:text-white transition-colors"
+                aria-label="Next images"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
-          {/* Gallery Grid */}
+          {/* Gallery Carousel */}
           {loading ? (
             <div className="text-center py-12">
               <div className="inline-block w-8 h-8 border-4 border-[#3A6520] border-t-transparent rounded-full animate-spin mb-3" />
               <p className="text-[13px] text-[#7A7065]">Memuat foto-foto akomodasi...</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {displayPhotos.map((photo, index) => (
-                <div 
-                  key={index}
-                  onClick={() => setActiveLightboxImg(photo)}
-                  className="relative aspect-square sm:aspect-[4/3] rounded-xl overflow-hidden cursor-pointer group border border-black/[0.04] bg-white shadow-sm hover:shadow transition-shadow"
-                >
-                  <img 
-                    src={photo.url} 
-                    alt={photo.caption} 
-                    className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3">
-                    <p className="text-white text-[11px] font-medium leading-snug line-clamp-2">
-                      {photo.caption}
-                    </p>
+            <div 
+              ref={galleryScrollRef}
+              className="flex overflow-x-auto gap-4 pb-6 scrollbar-none snap-x snap-mandatory"
+              style={{ WebkitOverflowScrolling: "touch" }}
+            >
+              {(() => {
+                const photoColumns = [];
+                for (let i = 0; i < displayPhotos.length; i += 2) {
+                  photoColumns.push(displayPhotos.slice(i, i + 2));
+                }
+                return photoColumns.map((col, idx) => (
+                  <div key={idx} className="flex flex-col gap-4 w-[240px] xs:w-[280px] sm:w-[320px] shrink-0 snap-start">
+                    {col.map((photo, subIdx) => (
+                      <div 
+                        key={subIdx}
+                        onClick={() => setActiveLightboxImg(photo)}
+                        className="relative aspect-square sm:aspect-[4/3] rounded-xl overflow-hidden cursor-pointer group border border-black/[0.04] bg-white shadow-sm hover:shadow transition-shadow"
+                      >
+                        <img 
+                          src={photo.url} 
+                          alt={photo.caption} 
+                          className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3">
+                          <p className="text-white text-[11px] font-medium leading-snug line-clamp-2">
+                            {photo.caption}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
-              ))}
+                ));
+              })()}
             </div>
           )}
 
@@ -484,12 +538,12 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
             </div>
             
             {/* Visual element on the right side - a beautiful grid of stacked preview photos */}
-            <div className="w-full lg:w-[45%] grid grid-cols-2 gap-3 shrink-0">
+            <div className="w-full lg:w-[45%] grid grid-cols-2 gap-6 shrink-0">
               <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-[#D4C9B5]">
                 <img src="/images/livein/Pertanian.webp" alt="Pertanian" className="w-full h-full object-cover" />
               </div>
               <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-[#D4C9B5] translate-y-4">
-                <img src="https://images.unsplash.com/photo-1623042392888-1f87e36a5b64?w=400&h=300&fit=crop" alt="Kuliner" className="w-full h-full object-cover" />
+                <img src="/images/home/Hero.webp" alt="Merapi" className="w-full h-full object-cover" />
               </div>
               <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-[#D4C9B5] -translate-y-4">
                 <img src="/images/livein/Ternak Mas Yono.webp" alt="Beternak" className="w-full h-full object-cover" />

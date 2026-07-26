@@ -12,6 +12,7 @@ interface ProfilePageProps {
 
 export function ProfilePage({ nav, settings }: ProfilePageProps) {
   const [demographics, setDemographics] = React.useState<any[]>([]);
+  const [isMapModalOpen, setIsMapModalOpen] = React.useState(false);
 
   React.useEffect(() => {
     const fetchDemographics = async () => {
@@ -51,7 +52,7 @@ export function ProfilePage({ nav, settings }: ProfilePageProps) {
         <img
           src={IMGS.profileHero}
           alt="Panorama Gunung Merapi dari kejauhan"
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover object-[50%_75%] scale-[1.15]"
         />
         <div className="absolute inset-0 bg-black/52" />
         <div className="relative max-w-7xl mx-auto px-6 lg:px-12 flex flex-col justify-end h-auto sm:h-full pb-0 sm:pb-20">
@@ -147,6 +148,48 @@ export function ProfilePage({ nav, settings }: ProfilePageProps) {
               );
             })}
           </div>
+
+          {/* Demographic Map */}
+          <div className="mt-12 bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-black/5">
+            <div className="grid lg:grid-cols-[1fr_1.2fr] gap-8 lg:gap-12 items-center">
+              <div>
+                <span className="text-[#C97C2A] text-[11px] font-bold tracking-[0.18em] uppercase block mb-3">
+                  Peta Administrasi
+                </span>
+                <h3 
+                  style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                  className="text-2xl font-extrabold text-[#2C2C2A] mb-4 leading-snug"
+                >
+                  Pemetaan Wilayah & Demografi Dusun
+                </h3>
+                <p className="text-[14px] text-[#7A7065] leading-relaxed mb-6">
+                  Peta administratif resmi Dusun Petung, Desa Sidorejo. Peta ini menyajikan pembagian batas RT, sebaran hunian warga (homestay), serta tata guna lahan produktif mulai dari kawasan perkebunan hingga zona kehutanan di lereng Gunung Merapi.
+                </p>
+                <button
+                  onClick={() => setIsMapModalOpen(true)}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#3A6520] hover:bg-[#2D5016] text-white text-[12.5px] font-bold rounded-lg transition-colors shadow-sm"
+                >
+                  Buka Peta Detail
+                </button>
+              </div>
+              <div 
+                onClick={() => setIsMapModalOpen(true)}
+                className="relative rounded-xl overflow-hidden border border-black/[0.08] bg-[#FAF9F5] p-3 cursor-pointer group shadow-inner"
+              >
+                <img 
+                  src="/images/profile/map.webp" 
+                  alt="Peta Dusun Petung" 
+                  className="w-full h-auto rounded-lg object-contain max-h-[340px] mx-auto group-hover:scale-[1.01] transition-transform duration-500" 
+                />
+                <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <span className="bg-white/90 text-[#2C2C2A] px-4 py-2 rounded-full text-xs font-semibold shadow-md backdrop-blur-sm">
+                    Klik untuk memperbesar
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </section>
 
@@ -265,7 +308,7 @@ export function ProfilePage({ nav, settings }: ProfilePageProps) {
                 page: "camp" as Page,
               },
               {
-                img: IMGS.pot3,
+                img: "/images/livein/Description.png",
                 alt: "Kegiatan komunitas dan gotong royong warga dusun",
                 title: "Live In Bersama Warga",
                 desc: "Rasakan pengalaman tinggal bersama warga dan mengenal secara langsung kehidupan, budaya, serta aktivitas sehari-hari masyarakat Dusun Petung yang penuh kehangatan.",
@@ -304,6 +347,33 @@ export function ProfilePage({ nav, settings }: ProfilePageProps) {
       </section>
 
       <SiteFooter nav={nav} settings={settings} />
+
+      {/* Map Lightbox Modal */}
+      {isMapModalOpen && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 cursor-zoom-out"
+          onClick={() => setIsMapModalOpen(false)}
+        >
+          <div className="absolute top-4 right-4 z-50">
+            <button 
+              onClick={() => setIsMapModalOpen(false)}
+              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+          <div 
+            className="relative max-w-5xl w-full max-h-[90vh] flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img 
+              src="/images/profile/map.webp" 
+              alt="Peta Dusun Petung Detail" 
+              className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl bg-white p-2"
+            />
+          </div>
+        </div>
+      )}
     </>
   );
 }

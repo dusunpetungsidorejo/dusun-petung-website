@@ -1,6 +1,6 @@
 export const IMGS = {
   hero: "/images/home/Hero.webp",
-  profileHero: "https://images.unsplash.com/photo-1704288037999-3dc5b65a055c?w=1600&h=700&fit=crop&auto=format",
+  profileHero: "/images/profile/Hero.webp",
   aboutVillage: "https://images.unsplash.com/photo-1730697897511-bafe1f939e6b?w=900&h=700&fit=crop&auto=format",
   previewProfile: "/images/home/citylight.webp",
   campMain: "/images/camp/View_9.webp",

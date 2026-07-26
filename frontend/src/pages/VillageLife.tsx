@@ -21,9 +21,7 @@ export function VillageLifePage({ nav, settings, activities = [] }: VillageLifeP
     return `${baseUrl}${urlPath}`;
   };
 
-  const activityKerjaBakti = activities.find(a => a.title && (a.title.toLowerCase().includes("kerja bakti") || a.title.toLowerCase().includes("gotong royong") || a.title.toLowerCase().includes("bakti")));
-  const defaultHeroImg = "https://images.unsplash.com/photo-1542897643-8158da5b4607?w=1600&h=700&fit=crop&auto=format";
-  const heroImg = activityKerjaBakti?.image_url ? getImageUrl(activityKerjaBakti.image_url) : defaultHeroImg;
+  const heroImg = "/images/village-life/Hero.webp";
 
   const handleCardClick = (item: any) => {
     if (window.innerWidth < 768) {

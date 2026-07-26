@@ -512,14 +512,18 @@ export function CampPage({ nav, settings }: CampPageProps) {
 
                     <div>
                       <div className="text-[10px] font-bold text-[#7A7065] tracking-[0.15em] uppercase mb-1.5">Harga Tiket Masuk</div>
-                      <div className="flex flex-col gap-1">
-                        <div className="flex justify-between text-[13px]">
+                      <div className="flex flex-col">
+                        <div className="flex justify-between items-start gap-3 text-[13px] border-b border-black/[0.04] py-2 first:pt-0 last:border-0 last:pb-0">
                           <span className="text-[#5A5550]">Tiket Masuk (Inc. Parkir)</span>
-                          <span className="font-semibold text-[#2C2C2A]">Rp 15.000 / orang</span>
+                          <span className="font-semibold text-[#2C2C2A] shrink-0 text-right">Rp 15.000 / orang</span>
                         </div>
-                        <div className="flex justify-between text-[13px]">
+                        <div className="flex justify-between items-start gap-3 text-[13px] border-b border-black/[0.04] py-2 last:border-0 last:pb-0">
                           <span className="text-[#5A5550]">Tambahan Campervan Pribadi</span>
-                          <span className="font-semibold text-[#2C2C2A]">+ Rp 50.000 / unit</span>
+                          <span className="font-semibold text-[#2C2C2A] shrink-0 text-right">+ Rp 50.000 / unit</span>
+                        </div>
+                        <div className="flex justify-between items-start gap-3 text-[13px] py-2 last:pb-0">
+                          <span className="text-[#5A5550]">Tambahan Asuransi</span>
+                          <span className="font-semibold text-[#2C2C2A] shrink-0 text-right">+ Rp 2.000 / orang</span>
                         </div>
                       </div>
                     </div>

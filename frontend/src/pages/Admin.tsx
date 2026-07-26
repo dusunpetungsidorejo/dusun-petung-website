@@ -216,6 +216,7 @@ export function AdminPage({
 
   const liveinCoverFileRef = useRef<HTMLInputElement>(null);
   const liveinGalleryFileRef = useRef<HTMLInputElement>(null);
+  const [isDraggingLiveinCover, setIsDraggingLiveinCover] = useState(false);
 
   // Fetch settings effect
   useEffect(() => {
@@ -402,6 +403,42 @@ export function AdminPage({
 
   const handleFileUploadClick = (ref: React.RefObject<HTMLInputElement | null>) => {
     ref.current?.click();
+  };
+
+  const handleLiveinDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleLiveinDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingLiveinCover(true);
+  };
+
+  const handleLiveinDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingLiveinCover(false);
+  };
+
+  const handleLiveinDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingLiveinCover(false);
+    
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      if (!file.type.startsWith("image/")) {
+        showToast("Hanya berkas gambar yang didukung", "error");
+        return;
+      }
+      showToast("Sedang mengunggah gambar...");
+      try {
+        const fileUrl = await uploadMedia(file);
+        setLiveinCoverImage(fileUrl);
+        showToast("Gambar cover Live In berhasil diunggah!");
+      } catch (err: any) {
+        showToast(err.message || "Gagal mengunggah gambar", "error");
+      }
+    }
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, target: "logo" | "hero" | "doc" | "livein-cover" | "livein-gallery") => {
@@ -2401,20 +2438,28 @@ export function AdminPage({
                     <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Foto Homestay (Cover)</label>
                     <div 
                       onClick={() => handleFileUploadClick(liveinCoverFileRef)}
-                      className="border-2 border-dashed border-black/[0.09] bg-[#FAF9F5] hover:border-black/20 rounded-xl p-5 text-center cursor-pointer transition flex flex-col items-center justify-center h-48"
+                      onDragOver={handleLiveinDragOver}
+                      onDragEnter={handleLiveinDragEnter}
+                      onDragLeave={handleLiveinDragLeave}
+                      onDrop={handleLiveinDrop}
+                      className={`border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition flex flex-col items-center justify-center h-48 ${
+                        isDraggingLiveinCover 
+                          ? "border-[#3A6520] bg-[#3A6520]/5 scale-[0.99]" 
+                          : "border-black/[0.09] bg-[#FAF9F5] hover:border-black/20"
+                      }`}
                     >
                       {liveinCoverImage ? (
                         <div className="relative w-full h-full">
                           <img src={liveinCoverImage} alt="" className="w-full h-full object-cover rounded shadow-sm" />
                           <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition flex items-center justify-center text-white text-[11px] font-medium rounded">
-                            Klik untuk mengganti gambar
+                            Klik atau seret file ke sini untuk mengganti gambar
                           </div>
                         </div>
                       ) : (
                         <>
                           <Upload className="w-6 h-6 text-[#B8AFA3] mb-2" />
                           <span className="text-[12px] font-bold text-[#2C2C2A] block">Unggah Gambar Homestay</span>
-                          <span className="text-[11px] text-[#7A7065] mt-1">Satu gambar beresolusi tinggi landscape</span>
+                          <span className="text-[11px] text-[#7A7065] mt-1">Klik untuk memilih atau seret file gambar ke sini</span>
                         </>
                       )}
                     </div>

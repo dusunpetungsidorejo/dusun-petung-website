@@ -12,7 +12,7 @@ interface HomePageProps {
 
 export function HomePage({ nav, settings, activities = [] }: HomePageProps) {
   const villageName = settings?.village_name || "Dusun Petung";
-  const heroImg = (settings?.hero_image_url && settings.hero_image_url.trim()) ? settings.hero_image_url : IMGS.hero;
+  const heroImg = "/images/home/Hero.webp";
   const phoneVal = settings?.phone_number || "085138097972";
   let formattedPhone = phoneVal.replace(/[^0-9]/g, "");
   if (formattedPhone.startsWith("0")) {
@@ -216,38 +216,20 @@ export function HomePage({ nav, settings, activities = [] }: HomePageProps) {
             </div>
 
             {/* Visual Graphic Grid */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-4">
-                <div className="rounded-2xl overflow-hidden aspect-[4/5] bg-gray-100 border border-black/[0.04]">
-                  <img 
-                    src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=600&h=800&fit=crop&auto=format" 
-                    alt="Pemandangan bukit hijau asri lereng gunung" 
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-                <div className="rounded-2xl overflow-hidden aspect-square bg-gray-100 border border-black/[0.04]">
-                  <img 
-                    src="https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=600&h=600&fit=crop&auto=format" 
-                    alt="Jalan setapak pepohonan hijau rindang" 
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
+            <div className="grid grid-cols-2 gap-4 pb-8 lg:pb-0">
+              <div className="rounded-2xl overflow-hidden aspect-[4/5] bg-gray-100 border border-black/[0.04]">
+                <img 
+                  src="/images/livein/Description.png" 
+                  alt="Warga berkegiatan bersama" 
+                  className="w-full h-full object-cover hover:scale-[1.03] transition-transform duration-500"
+                />
               </div>
-              <div className="space-y-4 pt-8">
-                <div className="rounded-2xl overflow-hidden aspect-square bg-gray-100 border border-black/[0.04]">
-                  <img 
-                    src="https://images.unsplash.com/photo-1500485035595-cbe6f645feb1?w=600&h=600&fit=crop&auto=format" 
-                    alt="Danau alam tenang dikelilingi hutan hijau" 
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-                <div className="rounded-2xl overflow-hidden aspect-[4/5] bg-gray-100 border border-black/[0.04]">
-                  <img 
-                    src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600&h=800&fit=crop&auto=format" 
-                    alt="Lembah pegunungan asri pagi hari" 
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
+              <div className="rounded-2xl overflow-hidden aspect-[4/5] bg-gray-100 border border-black/[0.04] translate-y-8">
+                <img 
+                  src="/images/home/livein.png" 
+                  alt="Suasana homestay warga" 
+                  className="w-full h-full object-cover hover:scale-[1.03] transition-transform duration-500"
+                />
               </div>
             </div>
 
