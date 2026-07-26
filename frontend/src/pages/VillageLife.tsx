@@ -9,8 +9,21 @@ interface VillageLifePageProps {
   activities: Activity[];
 }
 
-export function VillageLifePage({ nav, settings, activities }: VillageLifePageProps) {
+export function VillageLifePage({ nav, settings, activities = [] }: VillageLifePageProps) {
   const [activeLightboxItem, setActiveLightboxItem] = useState<any | null>(null);
+
+  const getImageUrl = (urlPath: string) => {
+    if (!urlPath) return "";
+    if (urlPath.startsWith("http://") || urlPath.startsWith("https://") || urlPath.startsWith("data:")) {
+      return urlPath;
+    }
+    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    return `${baseUrl}${urlPath}`;
+  };
+
+  const activityKerjaBakti = activities.find(a => a.title && (a.title.toLowerCase().includes("kerja bakti") || a.title.toLowerCase().includes("gotong royong") || a.title.toLowerCase().includes("bakti")));
+  const defaultHeroImg = "https://images.unsplash.com/photo-1542897643-8158da5b4607?w=1600&h=700&fit=crop&auto=format";
+  const heroImg = activityKerjaBakti?.image_url ? getImageUrl(activityKerjaBakti.image_url) : defaultHeroImg;
 
   const handleCardClick = (item: any) => {
     if (window.innerWidth < 768) {
@@ -32,7 +45,7 @@ export function VillageLifePage({ nav, settings, activities }: VillageLifePagePr
   };
 
   const displayItems = activities.map(act => ({
-    img: act.image_url,
+    img: getImageUrl(act.image_url),
     alt: act.title,
     title: act.title,
     caption: act.description,
@@ -59,7 +72,8 @@ export function VillageLifePage({ nav, settings, activities }: VillageLifePagePr
   ];
 
   const getSortIndex = (title: string) => {
-    const t = title.toLowerCase();
+    if (!title) return 999;
+    const t = String(title).toLowerCase();
     for (let index = 0; index < sortOrder.length; index++) {
       const keyword = sortOrder[index];
       if (t === keyword || t.includes(keyword)) {
@@ -97,9 +111,9 @@ export function VillageLifePage({ nav, settings, activities }: VillageLifePagePr
       {/* Hero */}
       <section className="relative overflow-hidden pt-16 pb-12 h-auto sm:py-0 sm:h-[40vh] sm:min-h-[300px]">
         <img
-          src="https://images.unsplash.com/photo-1542897643-8158da5b4607?w=1600&h=700&fit=crop&auto=format"
-          alt="Pawai komunitas warga Dusun Petung"
-          className="absolute inset-0 w-full h-full object-cover object-center"
+          src={heroImg}
+          alt="Kerja bakti komunitas warga Dusun Petung"
+          className="absolute inset-0 w-full h-full object-cover object-[50%_60%]"
         />
         <div className="absolute inset-0 bg-black/55" />
         <div className="relative max-w-7xl mx-auto px-6 lg:px-12 flex flex-col justify-end h-auto sm:h-full pb-0 sm:pb-14">

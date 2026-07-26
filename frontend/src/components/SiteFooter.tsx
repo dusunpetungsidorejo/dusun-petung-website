@@ -42,7 +42,7 @@ export function SiteFooter({ nav, settings }: SiteFooterProps) {
               </span>
             </div>
             <p className="text-white/40 text-[13px] leading-[1.75]" style={{ maxWidth: 240 }}>
-              Dusun di kaki Gunung Merapi dengan keindahan alam, kehangatan warga, dan potensi wisata yang luar biasa.
+              Dusun di kaki Gunung Merapi dengan keindahan alam, keramahan warga, dan beragam potensi wisata.
             </p>
           </div>
 

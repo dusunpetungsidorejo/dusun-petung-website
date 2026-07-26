@@ -268,7 +268,7 @@ export default function App() {
         )}
       </header>
 
-      {page === "home" && <HomePage nav={nav} settings={settings} />}
+      {page === "home" && <HomePage nav={nav} settings={settings} activities={activities} />}
       {page === "profile" && <ProfilePage nav={nav} settings={settings} />}
       {page === "village-life" && <VillageLifePage nav={nav} settings={settings} activities={activities} />}
       {page === "camp" && <CampPage nav={nav} settings={settings} />}

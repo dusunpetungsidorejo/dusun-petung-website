@@ -458,57 +458,46 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
       <section className="py-8 lg:py-16 bg-[#FAF9F5] border-t border-black/[0.04]">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           
-          <div className="flex flex-col lg:flex-row items-stretch lg:items-end justify-between mb-16 gap-4">
-            <div>
+          <div className="bg-[#FAF8F4] border border-black/[0.06] rounded-3xl p-8 sm:p-12 lg:p-16 flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
+            <div className="flex-1">
               <span className="text-[#C97C2A] text-[11px] font-bold tracking-[0.18em] uppercase block mb-4">
                 Aktivitas & Tradisi
               </span>
               <h2
-                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "clamp(2rem, 3.5vw, 2.75rem)", lineHeight: 1.15 }}
-                className="font-extrabold text-[#2C2C2A]"
+                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "clamp(1.75rem, 3vw, 2.5rem)", lineHeight: 1.15 }}
+                className="font-extrabold text-[#2C2C2A] mb-5"
               >
-                Kegiatan Keseharian <br />yang Dapat Diikuti
+                Kegiatan Keseharian <br />Masyarakat Dusun
               </h2>
+              <p className="text-[14.5px] text-[#7A7065] leading-relaxed mb-6">
+                Selama menginap di homestay, Anda diundang secara sukarela untuk membaur dan mengikuti denyut nadi kehidupan warga lokal, mulai dari turun ke sawah, memanen sayuran, merawat hewan ternak, hingga melihat pembuatan arang tradisional.
+              </p>
+              <p className="text-[14.5px] text-[#7A7065] leading-relaxed mb-8">
+                Ingin melihat bagaimana warga Dusun Petung menjalani kesehariannya? Kunjungi galeri dokumentasi kami untuk melihat dokumentasi foto-foto nyata kegiatan tersebut.
+              </p>
+              <button
+                onClick={() => nav("village-life")}
+                className="inline-flex items-center gap-2 px-7 py-3.5 bg-[#3A6520] hover:bg-[#2D5016] text-white text-[13px] font-bold rounded-full transition-colors shadow-sm"
+              >
+                Lihat Galeri Kehidupan Dusun <ArrowRight className="w-4 h-4" />
+              </button>
             </div>
-            <p className="text-[14.5px] text-[#7A7065] max-w-md leading-relaxed">
-              Selama menginap, Anda diundang secara sukarela untuk turut serta dalam denyut kehidupan harian warga lokal.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                title: "Bertani & Berkebun",
-                desc: "Ikut berkegiatan di kebun maupun sawah bersama warga, mulai dari menanam, merawat, hingga memanen hasil sesuai musim.",
-                img: "/images/livein/Pertanian.webp"
-              },
-              {
-                title: "Kuliner Tradisional",
-                desc: "Menikmati cita rasa masakan khas keluarga lokal yang disajikan langsung oleh tuan rumah.",
-                img: "https://images.unsplash.com/photo-1623042392888-1f87e36a5b64?w=600&h=420&fit=crop&auto=format"
-              },
-              {
-                title: "Beternak",
-                desc: "Merasakan pengalaman berinteraksi dengan hewan ternak dan mengenal kehidupan peternakan warga.",
-                img: "/images/livein/Ternak Mas Yono.webp"
-              }
-            ].map((item, idx) => (
-              <div key={idx} className="bg-white border border-black/[0.05] rounded-2xl overflow-hidden shadow-sm flex flex-col h-full">
-                <div className="aspect-[4/3] w-full bg-[#FAF9F5] overflow-hidden">
-                  <img src={item.img} alt={item.title} className="w-full h-full object-cover" />
-                </div>
-                <div className="p-6 flex-1 flex flex-col justify-between">
-                  <div>
-                    <h4 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[16px] font-bold text-[#2C2C2A] mb-2.5">
-                      {item.title}
-                    </h4>
-                    <p className="text-[13px] text-[#7A7065] leading-relaxed">
-                      {item.desc}
-                    </p>
-                  </div>
-                </div>
+            
+            {/* Visual element on the right side - a beautiful grid of stacked preview photos */}
+            <div className="w-full lg:w-[45%] grid grid-cols-2 gap-3 shrink-0">
+              <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-[#D4C9B5]">
+                <img src="/images/livein/Pertanian.webp" alt="Pertanian" className="w-full h-full object-cover" />
               </div>
-            ))}
+              <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-[#D4C9B5] translate-y-4">
+                <img src="https://images.unsplash.com/photo-1623042392888-1f87e36a5b64?w=400&h=300&fit=crop" alt="Kuliner" className="w-full h-full object-cover" />
+              </div>
+              <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-[#D4C9B5] -translate-y-4">
+                <img src="/images/livein/Ternak Mas Yono.webp" alt="Beternak" className="w-full h-full object-cover" />
+              </div>
+              <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-[#D4C9B5]">
+                <img src="/images/camp/View_5.webp" alt="Suasana Dusun" className="w-full h-full object-cover" />
+              </div>
+            </div>
           </div>
 
         </div>
