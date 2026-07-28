@@ -38,7 +38,7 @@ const DEFAULT_PACKAGES: LiveInPackage[] = [
     id: 1,
     name: "Paket Menginap Semalam (Overnight)",
     price: 150000,
-    pricing_type: "per orang",
+    pricing_type: "orang",
     description: "Paket menginap semalam (check-out pagi/siang berikutnya). Cocok untuk istirahat dan berburu sunrise di Gumuk Petung Camp.",
     facilities: [
       "Kamar tidur pribadi bersih",
@@ -55,7 +55,7 @@ const DEFAULT_PACKAGES: LiveInPackage[] = [
     id: 2,
     name: "Paket 24 Jam (Full Day)",
     price: 250000,
-    pricing_type: "per orang",
+    pricing_type: "orang",
     description: "Pengalaman 24 jam membaur dengan warga. Ikuti langsung aktivitas keseharian seperti bertani, berkebun, dan beternak.",
     facilities: [
       "Kamar tidur pribadi bersih",
@@ -400,7 +400,7 @@ Apakah terdapat ketersediaan jadwal untuk waktu dekat?`;
                         <span className="block text-[10px] text-[#7A7065] uppercase font-semibold">Tarif Tetap</span>
                         <span className={`text-[22px] font-extrabold leading-none ${isEven ? "text-[#C97C2A]" : "text-[#3A6520]"}`}>
                           Rp {pkg.price.toLocaleString("id-ID")}
-                          <span className="text-[13px] font-normal text-[#7A7065]"> / {pkg.pricing_type}</span>
+                          <span className="text-[13px] font-normal text-[#7A7065]"> / {pkg.pricing_type === "per orang" || pkg.pricing_type === "orang" ? "orang" : pkg.pricing_type === "per paket" || pkg.pricing_type === "malam" ? "malam" : pkg.pricing_type}</span>
                         </span>
                       </div>
                       <a

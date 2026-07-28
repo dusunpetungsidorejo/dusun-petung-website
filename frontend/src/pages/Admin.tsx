@@ -40,7 +40,7 @@ const DEFAULT_PACKAGES: LiveInPackage[] = [
     id: 1,
     name: "Paket Menginap Semalam (Overnight)",
     price: 150000,
-    pricing_type: "per orang",
+    pricing_type: "orang",
     description: "Paket menginap semalam (check-out pagi/siang berikutnya). Cocok untuk istirahat dan berburu sunrise di Gumuk Petung Camp.",
     facilities: [
       "Kamar tidur pribadi bersih",
@@ -57,7 +57,7 @@ const DEFAULT_PACKAGES: LiveInPackage[] = [
     id: 2,
     name: "Paket 24 Jam (Full Day)",
     price: 250000,
-    pricing_type: "per orang",
+    pricing_type: "orang",
     description: "Pengalaman 24 jam membaur dengan warga. Ikuti langsung aktivitas keseharian seperti bertani, berkebun, dan beternak.",
     facilities: [
       "Kamar tidur pribadi bersih",
@@ -94,6 +94,19 @@ export function AdminPage({
   showToast
 }: AdminPageProps) {
   const [section, setSection] = useState<AdminSection>("dashboard");
+
+  // Intercept 401 Unauthorized globally for all fetch requests within the Admin Panel
+  const fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    const response = await window.fetch(input, init);
+    if (response.status === 401) {
+      showToast("Sesi Anda telah berakhir. Silakan login kembali.", "error");
+      onLogout();
+      // Suspend execution to prevent subsequent code/toasts from running in the caller
+      await new Promise(() => {});
+    }
+    return response;
+  };
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -143,7 +156,7 @@ export function AdminPage({
   // Package Form States
   const [packageName, setPackageName] = useState("");
   const [packagePrice, setPackagePrice] = useState("");
-  const [packagePricingType, setPackagePricingType] = useState("per orang");
+  const [packagePricingType, setPackagePricingType] = useState("orang");
   const [packageDescription, setPackageDescription] = useState("");
   const [packageFacilities, setPackageFacilities] = useState<string[]>([]);
   const [newFacilityInput, setNewFacilityInput] = useState("");
@@ -160,7 +173,7 @@ export function AdminPage({
   // Camp Package Form States
   const [editingCampPackageId, setEditingCampPackageId] = useState<number | null>(null);
   const [campPackageName, setCampPackageName] = useState("");
-  const [campPackageCapacity, setCampPackageCapacity] = useState("Kapasitas 4 Orang");
+  const [campPackageCapacity, setCampPackageCapacity] = useState("4");
   const [campPackagePrice, setCampPackagePrice] = useState("");
   const [campPackageDescription, setCampPackageDescription] = useState("");
   const [campPackageActive, setCampPackageActive] = useState(true);
@@ -299,12 +312,32 @@ export function AdminPage({
   };
 
   useEffect(() => {
+    // Check if token is already expired on mount
+    if (token) {
+      try {
+        const parts = token.split(".");
+        if (parts.length === 3) {
+          const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
+          if (payload.exp) {
+            const currentTime = Math.floor(Date.now() / 1000);
+            if (payload.exp < currentTime) {
+              showToast("Sesi Anda telah berakhir. Silakan login kembali.", "error");
+              onLogout();
+              return;
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Error checking token expiration", e);
+      }
+    }
+
     fetchLiveinHouses();
     fetchLiveinPackages();
     fetchCampPackages();
     fetchCampRentals();
     fetchDemographics();
-  }, []);
+  }, [token, onLogout, showToast]);
 
 
   const sideNav = [
@@ -917,7 +950,12 @@ export function AdminPage({
     setEditingPackageId(pkg.id || null);
     setPackageName(pkg.name);
     setPackagePrice(String(pkg.price));
-    setPackagePricingType(pkg.pricing_type);
+    
+    let pricingType = pkg.pricing_type;
+    if (pricingType === "per orang") pricingType = "orang";
+    else if (pricingType === "per paket") pricingType = "malam";
+    setPackagePricingType(pricingType);
+    
     setPackageDescription(pkg.description || "");
     setPackageFacilities(pkg.facilities || []);
     setPackageIcon(pkg.icon || "clock");
@@ -956,7 +994,7 @@ export function AdminPage({
     setEditingPackageId(null);
     setPackageName("");
     setPackagePrice("");
-    setPackagePricingType("per orang");
+    setPackagePricingType("orang");
     setPackageDescription("");
     setPackageFacilities([]);
     setNewFacilityInput("");
@@ -982,7 +1020,7 @@ export function AdminPage({
   const handleResetCampPackageForm = () => {
     setEditingCampPackageId(null);
     setCampPackageName("");
-    setCampPackageCapacity("Kapasitas 4 Orang");
+    setCampPackageCapacity("4");
     setCampPackagePrice("");
     setCampPackageDescription("");
     setCampPackageActive(true);
@@ -991,7 +1029,8 @@ export function AdminPage({
   const handleEditCampPackageClick = (pkg: CampPackage) => {
     setEditingCampPackageId(pkg.id || null);
     setCampPackageName(pkg.name);
-    setCampPackageCapacity(pkg.capacity);
+    const match = pkg.capacity.match(/\d+/);
+    setCampPackageCapacity(match ? match[0] : pkg.capacity);
     setCampPackagePrice(String(pkg.price));
     setCampPackageDescription(pkg.description || "");
     setCampPackageActive(!!pkg.active);
@@ -1015,7 +1054,7 @@ export function AdminPage({
       const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
       const payload = {
         name: campPackageName,
-        capacity: campPackageCapacity,
+        capacity: /^\d+$/.test(campPackageCapacity) ? `Kapasitas ${campPackageCapacity} Orang` : campPackageCapacity,
         price: priceVal,
         description: campPackageDescription,
         active: campPackageActive
@@ -1358,8 +1397,9 @@ export function AdminPage({
 
   const jiwaDemo = demographics.find(d => d.label.toLowerCase().includes("jiwa") || d.label.toLowerCase().includes("penduduk"));
   const kkDemo = demographics.find(d => d.label.toLowerCase().includes("kepala") || d.label.toLowerCase().includes("kk"));
-  const jiwaValue = jiwaDemo ? jiwaDemo.value : "3.247";
-  const kkValue = kkDemo ? kkDemo.value : "892";
+  const jiwaValue = jiwaDemo ? jiwaDemo.value : "-";
+  const kkValue = kkDemo ? kkDemo.value : "-";
+  const isDashboardLoading = loadingDemographics || loadingLivein || loadingCampPackages || loadingCampRentals;
 
   return (
     <div style={{ fontFamily: "'Inter', sans-serif" }} className="min-h-screen bg-[#FAF9F5] flex w-full">
@@ -1501,59 +1541,69 @@ export function AdminPage({
               {/* Unified Statistics Cards */}
               <div>
                 <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[13px] font-bold text-[#7A7065] uppercase tracking-wider mb-4">Statistik Dashboard</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                  {[
-                    { 
-                      label: "Jumlah Penduduk", 
-                      value: `${jiwaValue}`, 
-                      icon: Users, 
-                      color: "text-[#3A6520] bg-[#3A6520]/8",
-                      action: () => setSection("demographics")
-                    },
-                    { 
-                      label: "Kepala Keluarga", 
-                      value: `${kkValue}`, 
-                      icon: Home,
-                      color: "text-[#3A6520] bg-[#3A6520]/8",
-                      action: () => setSection("demographics")
-                    },
-                    { 
-                      label: "Jumlah Kegiatan", 
-                      value: activities.length, 
-                      icon: FileText, 
-                      color: "text-[#3A6520] bg-[#3A6520]/8",
-                      action: () => setSection("docs")
-                    },
-                    { 
-                      label: "Jumlah Live In", 
-                      value: totalLiveinCount, 
-                      icon: Home,
-                      color: "text-[#3A6520] bg-[#3A6520]/8",
-                      action: () => setSection("livein")
-                    }
-                  ].map(({ label, value, icon: Icon, color, action }) => (
-                    <div 
-                      key={label} 
-                      onClick={action}
-                      className="bg-white border border-black/[0.06] rounded-xl p-5 shadow-sm flex items-start justify-between hover:border-[#3A6520]/30 hover:shadow-md transition cursor-pointer group"
-                    >
-                      <div>
-                        <span className="text-[11px] font-bold text-[#7A7065] uppercase tracking-wider group-hover:text-[#3A6520] transition-colors">{label}</span>
-                        <div 
-                          style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} 
-                          className={`font-extrabold text-[#2C2C2A] mt-1.5 mb-0.5 ${
-                            String(value).length > 8 ? "text-xl sm:text-2xl" : "text-3xl"
-                          }`}
-                        >
-                          {value}
-                        </div>
-                      </div>
-                      <span className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform ${color}`}>
-                        <Icon className="w-5 h-5" strokeWidth={2} />
-                      </span>
+                {isDashboardLoading ? (
+                  <div className="bg-white border border-black/[0.06] rounded-xl p-8 shadow-sm flex flex-col items-center justify-center min-h-[160px] w-full gap-3">
+                    <div className="relative w-9 h-9 flex items-center justify-center">
+                      <div className="absolute inset-0 rounded-full border-2 border-[#3A6520]/10" />
+                      <div className="absolute inset-0 rounded-full border-2 border-t-[#3A6520] animate-spin" />
                     </div>
-                  ))}
-                </div>
+                    <span className="text-[12.5px] font-medium text-[#7A7065] animate-pulse">Memuat data statistik dashboard...</span>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                    {[
+                      { 
+                        label: "Jumlah Penduduk", 
+                        value: `${jiwaValue}`, 
+                        icon: Users, 
+                        color: "text-[#3A6520] bg-[#3A6520]/8",
+                        action: () => setSection("demographics")
+                      },
+                      { 
+                        label: "Kepala Keluarga", 
+                        value: `${kkValue}`, 
+                        icon: Home,
+                        color: "text-[#3A6520] bg-[#3A6520]/8",
+                        action: () => setSection("demographics")
+                      },
+                      { 
+                        label: "Jumlah Kegiatan", 
+                        value: activities.length, 
+                        icon: FileText, 
+                        color: "text-[#3A6520] bg-[#3A6520]/8",
+                        action: () => setSection("docs")
+                      },
+                      { 
+                        label: "Jumlah Live In", 
+                        value: totalLiveinCount, 
+                        icon: Home,
+                        color: "text-[#3A6520] bg-[#3A6520]/8",
+                        action: () => setSection("livein")
+                      }
+                    ].map(({ label, value, icon: Icon, color, action }) => (
+                      <div 
+                        key={label} 
+                        onClick={action}
+                        className="bg-white border border-black/[0.06] rounded-xl p-5 shadow-sm flex items-start justify-between hover:border-[#3A6520]/30 hover:shadow-md transition cursor-pointer group"
+                      >
+                        <div>
+                          <span className="text-[11px] font-bold text-[#7A7065] uppercase tracking-wider group-hover:text-[#3A6520] transition-colors">{label}</span>
+                          <div 
+                            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} 
+                            className={`font-extrabold text-[#2C2C2A] mt-1.5 mb-0.5 ${
+                              String(value).length > 8 ? "text-xl sm:text-2xl" : "text-3xl"
+                            }`}
+                          >
+                            {value}
+                          </div>
+                        </div>
+                        <span className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform ${color}`}>
+                          <Icon className="w-5 h-5" strokeWidth={2} />
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Quick Actions */}
@@ -1806,7 +1856,7 @@ export function AdminPage({
                             </td>
                             <td className="py-4 px-5 text-[#3A6520] font-bold">
                               Rp {pkg.price.toLocaleString("id-ID")}
-                              <span className="text-[11.5px] text-[#7A7065] font-normal"> / {pkg.pricing_type}</span>
+                              <span className="text-[11.5px] text-[#7A7065] font-normal"> / {pkg.pricing_type === "per orang" || pkg.pricing_type === "orang" ? "orang" : pkg.pricing_type === "per paket" || pkg.pricing_type === "malam" ? "malam" : pkg.pricing_type}</span>
                             </td>
                             <td className="py-4 px-5 text-[#5A5550] max-w-xs truncate">{pkg.description}</td>
                             <td className="py-4 px-5">
@@ -2086,15 +2136,19 @@ export function AdminPage({
                 </div>
 
                 <div>
-                  <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Kapasitas</label>
-                  <select
-                    value={campPackageCapacity}
-                    onChange={(e) => setCampPackageCapacity(e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-[13.5px] border border-black/[0.12] rounded-lg focus:outline-none focus:border-[#3A6520] focus:ring-1 focus:ring-[#3A6520] bg-white transition"
-                  >
-                    <option value="Kapasitas 4 Orang">Kapasitas 4 Orang</option>
-                    <option value="Kapasitas 10 Orang">Kapasitas 10 Orang</option>
-                  </select>
+                  <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Kapasitas (Jumlah Orang)</label>
+                  <div className="relative flex items-center">
+                    <input
+                      type="number"
+                      required
+                      min="1"
+                      value={campPackageCapacity}
+                      onChange={(e) => setCampPackageCapacity(e.target.value)}
+                      placeholder="Contoh: 4, 10"
+                      className="w-full px-3.5 py-2.5 pr-16 text-[13.5px] border border-black/[0.12] rounded-lg focus:outline-none focus:border-[#3A6520] focus:ring-1 focus:ring-[#3A6520] transition bg-[#FAF9F5]/30 font-medium"
+                    />
+                    <span className="absolute right-4 text-[13px] text-[#7A7065] font-semibold select-none">Orang</span>
+                  </div>
                 </div>
 
                 <div>
@@ -2543,8 +2597,8 @@ export function AdminPage({
                         onChange={e => setPackagePricingType(e.target.value)}
                         className="w-full px-4 py-2.5 bg-[#FAF9F5] border border-black/[0.08] rounded-lg text-[13px] text-[#2C2C2A] outline-none focus:ring-1 focus:ring-[#3A6520]/25 transition"
                       >
-                        <option value="per orang">per orang</option>
-                        <option value="per paket">per paket</option>
+                        <option value="orang">orang</option>
+                        <option value="malam">malam</option>
                       </select>
                     </div>
 

@@ -88,7 +88,7 @@ export function ProfilePage({ nav, settings }: ProfilePageProps) {
                 Identitas <br className="hidden sm:inline" />Dusun Petung
               </h2>
               <p className="text-[#5A5550] leading-[1.75] text-[15px] mb-4">
-                Dusun Petung berada di Desa Sidorejo, Kecamatan Kemalang, Kabupaten Klaten, berada di kaki barat daya Gunung Merapi. Wilayah ini memiliki pemandangan alam yang indah, udara sejuk, serta tanah vulkanik yang subur sehingga sangat mendukung kegiatan pertanian, peternakan, dan pariwisata.
+                Dusun Petung berada di Desa Sidorejo, Kecamatan Kemalang, Kabupaten Klaten, berada di kaki tenggara Gunung Merapi. Wilayah ini memiliki pemandangan alam yang indah, udara sejuk, serta tanah vulkanik yang subur sehingga sangat mendukung kegiatan pertanian, peternakan, dan pariwisata.
               </p>
               <p className="text-[#5A5550] leading-[1.75] text-[15px] mb-4">
                 Mayoritas warga bekerja sebagai petani dan peternak. Kehidupan masyarakat dipengaruhi aktivitas Merapi yang menghadirkan risiko erupsi, namun juga membawa material vulkanik yang menyuburkan lahan.

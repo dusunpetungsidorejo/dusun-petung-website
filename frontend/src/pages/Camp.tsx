@@ -138,12 +138,20 @@ export function CampPage({ nav, settings }: CampPageProps) {
 
   const groupedPackages = campPackages.reduce((acc, pkg) => {
     const cap = pkg.capacity || "Kapasitas Lain";
-    if (!acc[cap]) {
-      acc[cap] = [];
+    const numMatch = cap.match(/\d+/);
+    const normalizedCap = numMatch ? `Kapasitas ${numMatch[0]} Orang` : cap;
+    if (!acc[normalizedCap]) {
+      acc[normalizedCap] = [];
     }
-    acc[cap].push(pkg);
+    acc[normalizedCap].push(pkg);
     return acc;
   }, {} as Record<string, CampPackage[]>);
+
+  const sortedGroupedPackages = Object.entries(groupedPackages).sort(([capA], [capB]) => {
+    const numA = parseInt(capA.match(/\d+/)?.[0] || "0", 10);
+    const numB = parseInt(capB.match(/\d+/)?.[0] || "0", 10);
+    return numA - numB;
+  });
 
   const groupedRentals = campRentals.reduce((acc, rent) => {
     const cat = rent.category || "Lain-lain";
@@ -560,7 +568,7 @@ export function CampPage({ nav, settings }: CampPageProps) {
 
                 {activeInfoTab === "paket" && (
                   <div className="flex flex-col gap-4 py-1">
-                    {Object.entries(groupedPackages).map(([capacity, pkgs], groupIdx) => (
+                    {sortedGroupedPackages.map(([capacity, pkgs], groupIdx) => (
                       <div key={capacity}>
                         {groupIdx > 0 && <div className="w-full h-px bg-black/5 my-3" />}
                         <div className="text-[10px] font-bold text-[#7A7065] tracking-[0.15em] uppercase mb-2">{capacity}</div>
