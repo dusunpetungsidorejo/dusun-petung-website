@@ -82,15 +82,15 @@ export function LoginPage({ onLogin, nav, settings }: LoginPageProps) {
         {/* Decorative Circular shapes containing Petung Hero Image */}
         <div 
           className="absolute -bottom-24 -left-12 w-72 h-72 rounded-full border-8 border-white/10 opacity-70 bg-center pointer-events-none shadow-inner"
-          style={{ backgroundImage: `url(${heroUrl})`, backgroundSize: "180%", backgroundPosition: "center" }}
+          style={{ backgroundImage: `url(${heroUrl})`, backgroundSize: "260%", backgroundPosition: "center" }}
         />
         <div 
           className="absolute -top-16 -right-16 w-56 h-56 rounded-full border-8 border-white/10 opacity-80 bg-center pointer-events-none shadow-2xl"
-          style={{ backgroundImage: `url(${heroUrl})`, backgroundSize: "180%", backgroundPosition: "center" }}
+          style={{ backgroundImage: `url(${heroUrl})`, backgroundSize: "260%", backgroundPosition: "center" }}
         />
         <div 
           className="absolute bottom-1/4 -right-12 w-36 h-36 rounded-full border-4 border-white/15 opacity-60 bg-center pointer-events-none shadow-xl"
-          style={{ backgroundImage: `url(${heroUrl})`, backgroundSize: "180%", backgroundPosition: "center" }}
+          style={{ backgroundImage: `url(${heroUrl})`, backgroundSize: "260%", backgroundPosition: "center" }}
         />
       </div>
 

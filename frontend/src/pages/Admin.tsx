@@ -1413,13 +1413,13 @@ export function AdminPage({
       {/* Backdrop overlay for mobile sidebar */}
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/40 z-35 md:hidden transition-opacity" 
+          className="fixed inset-0 bg-black/40 z-40 md:hidden transition-opacity" 
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar Navigation */}
-      <aside className={`fixed inset-y-0 left-0 z-40 w-64 border-r border-black/[0.06] bg-white flex flex-col justify-between shrink-0 h-screen transition-transform duration-300 transform md:sticky md:top-0 md:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 border-r border-black/[0.06] bg-white flex flex-col justify-between shrink-0 h-screen transition-transform duration-300 transform md:sticky md:top-0 md:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div>
           {/* Logo brand */}
           <div className="h-[73px] border-b border-black/[0.06] px-6 flex items-center justify-between">
@@ -1550,7 +1550,7 @@ export function AdminPage({
                     <span className="text-[12.5px] font-medium text-[#7A7065] animate-pulse">Memuat data statistik dashboard...</span>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
                     {[
                       { 
                         label: "Jumlah Penduduk", 
@@ -1584,21 +1584,21 @@ export function AdminPage({
                       <div 
                         key={label} 
                         onClick={action}
-                        className="bg-white border border-black/[0.06] rounded-xl p-5 shadow-sm flex items-start justify-between hover:border-[#3A6520]/30 hover:shadow-md transition cursor-pointer group"
+                        className="bg-white border border-black/[0.06] rounded-xl p-3.5 sm:p-5 shadow-sm flex items-start justify-between hover:border-[#3A6520]/30 hover:shadow-md transition cursor-pointer group"
                       >
-                        <div>
-                          <span className="text-[11px] font-bold text-[#7A7065] uppercase tracking-wider group-hover:text-[#3A6520] transition-colors">{label}</span>
+                        <div className="min-w-0">
+                          <span className="text-[9.5px] sm:text-[11px] font-bold text-[#7A7065] uppercase tracking-wider group-hover:text-[#3A6520] transition-colors block truncate">{label}</span>
                           <div 
                             style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} 
                             className={`font-extrabold text-[#2C2C2A] mt-1.5 mb-0.5 ${
-                              String(value).length > 8 ? "text-xl sm:text-2xl" : "text-3xl"
+                              String(value).length > 8 ? "text-lg sm:text-2xl" : "text-2xl sm:text-3xl"
                             }`}
                           >
                             {value}
                           </div>
                         </div>
-                        <span className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform ${color}`}>
-                          <Icon className="w-5 h-5" strokeWidth={2} />
+                        <span className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform ${color}`}>
+                          <Icon className="w-4 h-4 sm:w-5 h-5" strokeWidth={2} />
                         </span>
                       </div>
                     ))}
@@ -1609,27 +1609,27 @@ export function AdminPage({
               {/* Quick Actions */}
               <div>
                 <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[13px] font-bold text-[#7A7065] uppercase tracking-wider mb-4">Tindakan Cepat</h3>
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
                   <button
                     onClick={() => { handleResetLiveinForm(); setSection("add-livein"); }}
-                    className="flex items-center gap-2 px-5 py-3 bg-[#3A6520] hover:bg-[#2D5016] text-white text-[12.5px] font-semibold rounded-xl shadow-sm transition cursor-pointer"
+                    className="flex items-center justify-center gap-2.5 px-5 py-3.5 bg-[#3A6520] hover:bg-[#2D5016] text-white text-[13px] font-bold rounded-xl shadow-sm hover:shadow-md transition duration-200 cursor-pointer w-full text-center"
                   >
-                    <Plus className="w-4 h-4" />
-                    Tambah Rumah Live In Baru
+                    <Plus className="w-4 h-4 shrink-0" />
+                    <span>Tambah Homestay Baru</span>
                   </button>
                   <button
                     onClick={() => { setEditingDocId(null); setTitleInput(""); setDescInput(""); setUploadedFile(null); setSection("add-doc"); }}
-                    className="flex items-center gap-2 px-5 py-3 bg-white border border-black/[0.09] hover:bg-[#FAF9F5] text-[#2C2C2A] text-[12.5px] font-semibold rounded-xl shadow-sm transition cursor-pointer"
+                    className="flex items-center justify-center gap-2.5 px-5 py-3.5 bg-white border border-black/[0.08] hover:border-[#3A6520]/30 hover:bg-[#FAF9F5] text-[#2C2C2A] text-[13px] font-bold rounded-xl shadow-sm hover:shadow-md transition duration-200 cursor-pointer w-full text-center"
                   >
-                    <Plus className="w-4 h-4" />
-                    Buat Kegiatan Baru
+                    <Plus className="w-4 h-4 shrink-0 text-[#3A6520]" />
+                    <span>Buat Kegiatan Baru</span>
                   </button>
                   <button
                     onClick={() => setSection("settings")}
-                    className="flex items-center gap-2 px-5 py-3 bg-white border border-black/[0.09] hover:bg-[#FAF9F5] text-[#2C2C2A] text-[12.5px] font-semibold rounded-xl shadow-sm transition cursor-pointer"
+                    className="flex items-center justify-center gap-2.5 px-5 py-3.5 bg-white border border-black/[0.08] hover:border-[#3A6520]/30 hover:bg-[#FAF9F5] text-[#2C2C2A] text-[13px] font-bold rounded-xl shadow-sm hover:shadow-md transition duration-200 cursor-pointer w-full text-center"
                   >
-                    <Settings className="w-4 h-4" />
-                    Pengaturan Website
+                    <Settings className="w-4 h-4 shrink-0 text-[#3A6520]" />
+                    <span>Pengaturan Website</span>
                   </button>
                 </div>
               </div>
@@ -1768,8 +1768,48 @@ export function AdminPage({
                     </button>
                   </div>
 
-                  {/* Table */}
-                  <div className="overflow-x-auto w-full">
+                  {/* Card List for Mobile (No scroll) */}
+                  <div className="block sm:hidden divide-y divide-black/[0.05]">
+                    {filteredLivein.map((house, idx) => (
+                      <div key={house.id || idx} className="p-4 flex items-start gap-3.5">
+                        {house.cover_image ? (
+                          <img src={house.cover_image} alt="" className="w-16 h-12 object-cover rounded border border-black/[0.05] bg-[#FAF9F5] shrink-0" />
+                        ) : (
+                          <div className="w-16 h-12 rounded border border-black/[0.05] bg-[#FAF9F5] flex items-center justify-center text-[#B8AFA3] shrink-0">
+                            <ImageIcon className="w-5 h-5" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <span className="font-bold text-[#2C2C2A] text-[13.5px] block truncate">{house.name}</span>
+                          <span className="text-[12px] text-[#7A7065] block mt-0.5">Pemilik: {house.owner}</span>
+                          <div className="flex items-center gap-2 mt-2.5">
+                            <button 
+                              onClick={() => handleEditLiveinClick(house)} 
+                              className="flex items-center gap-1 px-3 py-1.5 border border-black/[0.08] hover:bg-[#FAF9F5] rounded-lg text-[11px] text-[#5A5550] font-semibold transition"
+                            >
+                              <Pencil className="w-3 h-3" />
+                              Ubah
+                            </button>
+                            <button 
+                              onClick={() => setDeleteLiveinId(house.id || null)} 
+                              className="flex items-center gap-1 px-3 py-1.5 border border-black/[0.08] hover:bg-red-50 rounded-lg text-[11px] text-red-600 font-semibold transition"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              Hapus
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {filteredLivein.length === 0 && (
+                      <div className="text-center py-12 text-[12.5px] text-[#7A7065]">
+                        Tidak ada data homestay ditemukan.
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Table List for Desktop */}
+                  <div className="hidden sm:block overflow-x-auto w-full">
                     <table className="w-full text-left border-collapse min-w-[600px]">
                       <thead>
                         <tr className="bg-[#FAF9F5] border-b border-black/[0.06] text-[11px] font-bold text-[#7A7065] uppercase tracking-wider">
@@ -1819,19 +1859,83 @@ export function AdminPage({
               ) : (
                 <div className="bg-white border border-black/[0.06] rounded-b-xl rounded-tl-xl shadow-sm overflow-hidden flex flex-col w-full">
                   {/* Toolbar */}
-                  <div className="p-5 border-b border-black/[0.06] flex items-center justify-between">
+                  <div className="p-5 border-b border-black/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <span className="text-[13px] font-bold text-[#2C2C2A]">Daftar Paket Terdaftar</span>
                     <button 
                       onClick={() => { handleResetPackageForm(); setSection("add-livein-package"); }}
-                      className="flex items-center gap-1.5 px-5 py-2.5 bg-[#3A6520] hover:bg-[#2D5016] text-white text-[12.5px] font-semibold rounded-full shadow-sm transition shrink-0 cursor-pointer"
+                      className="flex items-center justify-center gap-1.5 px-5 py-2.5 bg-[#3A6520] hover:bg-[#2D5016] text-white text-[12.5px] font-semibold rounded-full shadow-sm transition shrink-0 cursor-pointer w-full sm:w-auto"
                     >
                       <Plus className="w-4 h-4" />
                       Tambah Paket Wisata
                     </button>
                   </div>
 
-                  {/* Table */}
-                  <div className="overflow-x-auto w-full">
+                  {/* Card List for Mobile (No scroll) */}
+                  <div className="block sm:hidden divide-y divide-black/[0.05]">
+                    {liveinPackages.map((pkg, idx) => (
+                      <div key={pkg.id || idx} className="p-4 flex flex-col gap-2.5">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[14px]">
+                              {pkg.icon === 'sun' ? '🌅' : pkg.icon === 'home' ? '🏡' : pkg.icon === 'tent' ? '⛺' : pkg.icon === 'sparkles' ? '✨' : '🕒'}
+                            </span>
+                            <span className="font-bold text-[#2C2C2A] text-[13.5px]">{pkg.name}</span>
+                          </div>
+                          <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            pkg.active ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-gray-100 text-gray-700 border border-gray-200"
+                          }`}>
+                            {pkg.active ? "Aktif" : "Non-aktif"}
+                          </span>
+                        </div>
+
+                        <div className="text-[13px] font-extrabold text-[#3A6520]">
+                          Rp {pkg.price.toLocaleString("id-ID")}
+                          <span className="text-[11.5px] text-[#7A7065] font-normal"> / {pkg.pricing_type === "per orang" || pkg.pricing_type === "orang" ? "orang" : pkg.pricing_type === "per paket" || pkg.pricing_type === "malam" ? "malam" : pkg.pricing_type}</span>
+                        </div>
+
+                        {pkg.description && (
+                          <div className="text-[12px] text-[#7A7065] line-clamp-2">
+                            {pkg.description}
+                          </div>
+                        )}
+
+                        {pkg.facilities && pkg.facilities.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-0.5">
+                            {pkg.facilities.map((f, i) => (
+                              <span key={i} className="px-2 py-0.5 bg-[#FAF9F5] border border-black/[0.06] rounded text-[10px] text-[#7A7065]">
+                                {f}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="flex items-center gap-2 mt-1">
+                          <button 
+                            onClick={() => handleEditPackageClick(pkg)} 
+                            className="flex items-center gap-1 px-3 py-1.5 border border-black/[0.08] hover:bg-[#FAF9F5] rounded-lg text-[11px] text-[#5A5550] font-semibold transition"
+                          >
+                            <Pencil className="w-3 h-3" />
+                            Ubah
+                          </button>
+                          <button 
+                            onClick={() => setDeletePackageId(pkg.id || null)} 
+                            className="flex items-center gap-1 px-3 py-1.5 border border-black/[0.08] hover:bg-red-50 rounded-lg text-[11px] text-red-600 font-semibold transition"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            Hapus
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    {liveinPackages.length === 0 && (
+                      <div className="text-center py-12 text-[12.5px] text-[#7A7065]">
+                        Belum ada paket wisata terdaftar.
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Table List for Desktop */}
+                  <div className="hidden sm:block overflow-x-auto w-full">
                     <table className="w-full text-left border-collapse min-w-[700px]">
                       <thead>
                         <tr className="bg-[#FAF9F5] border-b border-black/[0.06] text-[11px] font-bold text-[#7A7065] uppercase tracking-wider">
@@ -1934,7 +2038,7 @@ export function AdminPage({
               {/* Sub-Section: Paket Camping */}
               {activeCampTab === "paket" && (
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                     <div>
                       <h2 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[16px] font-extrabold text-[#2C2C2A]">
                         Daftar Paket Camping
@@ -1945,16 +2049,70 @@ export function AdminPage({
                     </div>
                     <button
                       onClick={() => { handleResetCampPackageForm(); setSection("add-camp-package"); }}
-                      className="flex items-center gap-2 bg-[#3A6520] text-white px-4 py-2 rounded-lg text-[12.5px] font-bold hover:bg-[#2D5016] shadow-sm transition"
+                      className="flex items-center justify-center gap-2 bg-[#3A6520] text-white px-4 py-2.5 rounded-lg text-[12.5px] font-bold hover:bg-[#2D5016] shadow-sm transition w-full sm:w-auto self-stretch sm:self-auto"
                     >
                       <Plus className="w-4 h-4" />
                       Tambah Paket
                     </button>
                   </div>
 
-                  <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm overflow-hidden">
+                  {/* Card List for Mobile (No scroll) */}
+                  <div className="block sm:hidden divide-y divide-black/[0.05] bg-white border border-black/[0.06] rounded-xl shadow-sm overflow-hidden">
+                    {campPackages.map((pkg) => (
+                      <div key={pkg.id} className="p-4 flex flex-col gap-2.5">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <span className="font-bold text-[#2C2C2A] text-[13.5px] block">{pkg.name}</span>
+                            <span className="text-[11.5px] text-[#7A7065] block mt-0.5">Kapasitas: {pkg.capacity} Orang</span>
+                          </div>
+                          <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            pkg.active 
+                              ? "bg-green-50 text-green-700 border border-green-200" 
+                              : "bg-red-50 text-red-700 border border-red-200"
+                          }`}>
+                            {pkg.active ? "Aktif" : "Nonaktif"}
+                          </span>
+                        </div>
+
+                        <div className="text-[13px] font-extrabold text-[#3A6520]">
+                          Rp {pkg.price.toLocaleString("id-ID")}
+                        </div>
+
+                        {pkg.description && (
+                          <div className="text-[11.5px] text-[#7A7065] bg-[#FAF9F5] p-2.5 rounded border border-black/[0.03] truncate">
+                            {pkg.description}
+                          </div>
+                        )}
+
+                        <div className="flex items-center gap-2 mt-1">
+                          <button 
+                            onClick={() => handleEditCampPackageClick(pkg)} 
+                            className="flex items-center gap-1 px-3 py-1.5 border border-black/[0.08] hover:bg-[#FAF9F5] rounded-lg text-[11px] text-[#5A5550] font-semibold transition"
+                          >
+                            <Pencil className="w-3 h-3" />
+                            Ubah
+                          </button>
+                          <button 
+                            onClick={() => setDeleteCampPackageId(pkg.id || null)} 
+                            className="flex items-center gap-1 px-3 py-1.5 border border-black/[0.08] hover:bg-red-50 rounded-lg text-[11px] text-red-600 font-semibold transition"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            Hapus
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    {campPackages.length === 0 && (
+                      <div className="text-center py-12 text-[12.5px] text-[#7A7065]">
+                        Belum ada paket camping terdaftar.
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Table List for Desktop */}
+                  <div className="hidden sm:block bg-white border border-black/[0.06] rounded-xl shadow-sm overflow-hidden">
                     <div className="overflow-x-auto">
-                      <table className="w-full text-left border-collapse">
+                      <table className="w-full text-left border-collapse min-w-[650px]">
                         <thead>
                           <tr className="bg-[#FAF9F5] border-b border-black/[0.06] text-[#7A7065] text-[11px] font-bold uppercase tracking-wider">
                             <th className="py-3 px-4 font-bold">Nama Paket</th>
@@ -2022,7 +2180,7 @@ export function AdminPage({
               {/* Sub-Section: Sewa Alat */}
               {activeCampTab === "sewa" && (
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                     <div>
                       <h2 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[16px] font-extrabold text-[#2C2C2A]">
                         Daftar Alat Sewa
@@ -2033,16 +2191,64 @@ export function AdminPage({
                     </div>
                     <button
                       onClick={() => { handleResetCampRentalForm(); setSection("add-camp-rental"); }}
-                      className="flex items-center gap-2 bg-[#3A6520] text-white px-4 py-2 rounded-lg text-[12.5px] font-bold hover:bg-[#2D5016] shadow-sm transition"
+                      className="flex items-center justify-center gap-2 bg-[#3A6520] text-white px-4 py-2.5 rounded-lg text-[12.5px] font-bold hover:bg-[#2D5016] shadow-sm transition w-full sm:w-auto self-stretch sm:self-auto"
                     >
                       <Plus className="w-4 h-4" />
                       Tambah Alat
                     </button>
                   </div>
 
-                  <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm overflow-hidden">
+                  {/* Card List for Mobile (No scroll) */}
+                  <div className="block sm:hidden divide-y divide-black/[0.05] bg-white border border-black/[0.06] rounded-xl shadow-sm overflow-hidden">
+                    {campRentals.map((rent) => (
+                      <div key={rent.id} className="p-4 flex flex-col gap-2.5">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <span className="font-bold text-[#2C2C2A] text-[13.5px] block">{rent.name}</span>
+                            <span className="text-[11.5px] text-[#7A7065] block mt-0.5">Kategori: {rent.category}</span>
+                          </div>
+                          <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            rent.active 
+                              ? "bg-green-50 text-green-700 border border-green-200" 
+                              : "bg-red-50 text-red-700 border border-red-200"
+                          }`}>
+                            {rent.active ? "Aktif" : "Nonaktif"}
+                          </span>
+                        </div>
+
+                        <div className="text-[13px] font-extrabold text-[#3A6520]">
+                          Rp {rent.price.toLocaleString("id-ID")}
+                        </div>
+
+                        <div className="flex items-center gap-2 mt-1">
+                          <button 
+                            onClick={() => handleEditCampRentalClick(rent)} 
+                            className="flex items-center gap-1 px-3 py-1.5 border border-black/[0.08] hover:bg-[#FAF9F5] rounded-lg text-[11px] text-[#5A5550] font-semibold transition"
+                          >
+                            <Pencil className="w-3 h-3" />
+                            Ubah
+                          </button>
+                          <button 
+                            onClick={() => setDeleteCampRentalId(rent.id || null)} 
+                            className="flex items-center gap-1 px-3 py-1.5 border border-black/[0.08] hover:bg-red-50 rounded-lg text-[11px] text-red-600 font-semibold transition"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            Hapus
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    {campRentals.length === 0 && (
+                      <div className="text-center py-12 text-[12.5px] text-[#7A7065]">
+                        Belum ada alat sewa terdaftar.
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Table List for Desktop */}
+                  <div className="hidden sm:block bg-white border border-black/[0.06] rounded-xl shadow-sm overflow-hidden">
                     <div className="overflow-x-auto">
-                      <table className="w-full text-left border-collapse">
+                      <table className="w-full text-left border-collapse min-w-[600px]">
                         <thead>
                           <tr className="bg-[#FAF9F5] border-b border-black/[0.06] text-[#7A7065] text-[11px] font-bold uppercase tracking-wider">
                             <th className="py-3 px-4 font-bold">Nama Alat</th>
@@ -2298,9 +2504,25 @@ export function AdminPage({
             </div>
           )}
 
-          {/* Section: Demographics List */}
           {section === "demographics" && (
             <div className="flex flex-col gap-6 w-full max-w-5xl">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                <div>
+                  <h2 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[16px] font-extrabold text-[#2C2C2A]">
+                    Data Statistik Demografi Dusun
+                  </h2>
+                  <p className="text-[12px] text-[#7A7065] mt-0.5">
+                    Kelola data populasi, jumlah KK, peta wilayah, dan statistik dusun lainnya.
+                  </p>
+                </div>
+                <button
+                  onClick={() => { handleResetDemographicForm(); setSection("add-demographic"); }}
+                  className="flex items-center justify-center gap-2 bg-[#3A6520] text-white px-4 py-2.5 rounded-lg text-[12.5px] font-bold hover:bg-[#2D5016] shadow-sm transition w-full sm:w-auto self-stretch sm:self-auto"
+                >
+                  <Plus className="w-4 h-4" />
+                  Tambah Data
+                </button>
+              </div>
 
               {loadingDemographics ? (
                 <div className="bg-white border border-black/[0.06] rounded-xl p-12 text-center shadow-sm">
@@ -2309,7 +2531,7 @@ export function AdminPage({
               ) : (
                 <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm overflow-hidden">
                   <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+                    <table className="w-full text-left border-collapse min-w-[500px]">
                       <thead>
                         <tr className="bg-[#FAF9F5] border-b border-black/[0.06] text-[11px] font-bold text-[#7A7065] uppercase tracking-wider">
                           <th className="py-3 px-5 w-16">Ikon</th>
@@ -2732,15 +2954,49 @@ export function AdminPage({
                   />
                 </div>
 
-                <button onClick={() => setSection("add-doc")} className="flex items-center gap-1.5 px-4 py-2 bg-[#3A6520] hover:bg-[#2D5016] text-white text-[12.5px] font-semibold rounded-full shadow-sm transition">
+                <button onClick={() => setSection("add-doc")} className="flex items-center justify-center gap-1.5 px-4 py-2.5 bg-[#3A6520] hover:bg-[#2D5016] text-white text-[12.5px] font-semibold rounded-full shadow-sm transition w-full sm:w-auto shrink-0">
                   <Plus className="w-4 h-4" />
                   Tambah Dokumentasi
                 </button>
               </div>
 
-              {/* Table list */}
-              <div className="overflow-x-auto w-full">
-                <table className="w-full text-left border-collapse">
+              {/* Card list for Mobile (No scroll) */}
+              <div className="block sm:hidden divide-y divide-black/[0.05]">
+                {filteredDocs.map((doc, idx) => (
+                  <div key={doc.id || idx} className="p-4 flex items-start gap-3.5">
+                    <img src={doc.image_url} alt="" className="w-16 h-12 object-cover bg-[#D4C9B5] rounded shrink-0 border border-black/[0.05]" />
+                    <div className="flex-1 min-w-0">
+                      <span className="font-bold text-[#2C2C2A] text-[13.5px] block truncate">{doc.title}</span>
+                      <span className="text-[12px] text-[#7A7065] block mt-0.5 truncate">{doc.description}</span>
+                      <div className="flex items-center gap-2 mt-2.5">
+                        <button 
+                          onClick={() => handleEditDocClick(doc)} 
+                          className="flex items-center gap-1 px-3 py-1.5 border border-black/[0.08] hover:bg-[#FAF9F5] rounded-lg text-[11px] text-[#5A5550] font-semibold transition"
+                        >
+                          <Pencil className="w-3 h-3" />
+                          Ubah
+                        </button>
+                        <button 
+                          onClick={() => setDeleteId(doc.id)} 
+                          className="flex items-center gap-1 px-3 py-1.5 border border-black/[0.08] hover:bg-red-50 rounded-lg text-[11px] text-red-600 font-semibold transition"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          Hapus
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {filteredDocs.length === 0 && (
+                  <div className="text-center py-12 text-[12.5px] text-[#7A7065]">
+                    Tidak ada dokumentasi kegiatan ditemukan.
+                  </div>
+                )}
+              </div>
+
+              {/* Table list for Desktop */}
+              <div className="hidden sm:block overflow-x-auto w-full">
+                <table className="w-full text-left border-collapse min-w-[600px]">
                   <thead>
                     <tr className="bg-[#FAF9F5] border-b border-black/[0.06] text-[11.5px] font-bold text-[#7A7065] uppercase tracking-wider">
                       <th className="py-4 px-4 sm:px-6">Gambar</th>
@@ -2756,7 +3012,7 @@ export function AdminPage({
                         </td>
                         <td className="py-4 px-4 sm:px-6">
                           <span className="font-bold text-[#2C2C2A] block mb-0.5">{doc.title}</span>
-                          <span className="text-[12px] text-[#7A7065] block max-w-[120px] xs:max-w-xs sm:max-w-md md:max-w-xl truncate">{doc.description}</span>
+                          <span className="text-[12px] text-[#7A7065] block max-w-[150px] sm:max-w-xs md:max-w-md truncate">{doc.description}</span>
                         </td>
                         <td className="py-4 px-4 sm:px-6 text-right">
                           <div className="flex items-center justify-end gap-2">
