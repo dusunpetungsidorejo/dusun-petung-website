@@ -125,15 +125,18 @@ export function AdminPage({
   const [villageNameInput, setVillageNameInput] = useState(settings?.village_name || "");
   const [logoUrlInput, setLogoUrlInput] = useState(settings?.logo_url || "");
   const [heroImageUrlInput, setHeroImageUrlInput] = useState(settings?.hero_image_url || "");
+  const [mapImageUrlInput, setMapImageUrlInput] = useState(settings?.map_image_url || "");
   const [phoneNumberInput, setPhoneNumberInput] = useState(settings?.phone_number || "");
   const [instagramUrlInput, setInstagramUrlInput] = useState(settings?.instagram_url || "");
   const [tiktokUrlInput, setTiktokUrlInput] = useState(settings?.tiktok_url || "");
   const [savingSettings, setSavingSettings] = useState(false);
   const [logoDragOver, setLogoDragOver] = useState(false);
   const [heroDragOver, setHeroDragOver] = useState(false);
+  const [mapDragOver, setMapDragOver] = useState(false);
 
   const logoFileRef = useRef<HTMLInputElement>(null);
   const heroFileRef = useRef<HTMLInputElement>(null);
+  const mapFileRef = useRef<HTMLInputElement>(null);
 
   // Live In States
   const [liveinHouses, setLiveinHouses] = useState<LiveInHouse[]>([]);
@@ -237,6 +240,7 @@ export function AdminPage({
       setVillageNameInput(settings.village_name || "");
       setLogoUrlInput(settings.logo_url || "");
       setHeroImageUrlInput(settings.hero_image_url || "");
+      setMapImageUrlInput(settings.map_image_url || "");
       setPhoneNumberInput(settings.phone_number || "");
       setInstagramUrlInput(settings.instagram_url || "");
       setTiktokUrlInput(settings.tiktok_url || "");
@@ -501,6 +505,9 @@ export function AdminPage({
       } else if (target === "hero") {
         setHeroImageUrlInput(fileUrl);
         showToast("Hero image berhasil diunggah!");
+      } else if (target === "map") {
+        setMapImageUrlInput(fileUrl);
+        showToast("Peta Demografi berhasil diunggah!");
       } else if (target === "doc") {
         setUploadedFile(fileUrl);
         setRawFile(file);
@@ -532,6 +539,7 @@ export function AdminPage({
         village_name: villageNameInput,
         logo_url: logoUrlInput,
         hero_image_url: heroImageUrlInput,
+        map_image_url: mapImageUrlInput,
         phone_number: phoneNumberInput,
         instagram_url: instagramUrlInput,
         tiktok_url: tiktokUrlInput
@@ -619,6 +627,25 @@ export function AdminPage({
         showToast("Foto banner berhasil diunggah!");
       } catch (err: any) {
         showToast(err.message || "Gagal mengunggah foto banner", "error");
+      }
+    }
+  };
+
+  // Drag and drop for Demographic Map
+  const onMapDragOver = (e: React.DragEvent) => { e.preventDefault(); setMapDragOver(true); };
+  const onMapDragLeave = () => { setMapDragOver(false); };
+  const onMapDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setMapDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith("image/")) {
+      try {
+        showToast("Sedang mengunggah peta...");
+        const fileUrl = await uploadMedia(file);
+        setMapImageUrlInput(fileUrl);
+        showToast("Peta Demografi berhasil diunggah!");
+      } catch (err: any) {
+        showToast(err.message || "Gagal mengunggah peta", "error");
       }
     }
   };
@@ -1409,6 +1436,7 @@ export function AdminPage({
       <input type="file" ref={heroFileRef} accept="image/*" className="hidden" onChange={e => handleFileChange(e, "hero")} />
       <input type="file" ref={liveinCoverFileRef} accept="image/*" className="hidden" onChange={e => handleFileChange(e, "livein-cover")} />
       <input type="file" ref={liveinGalleryFileRef} accept="image/*" multiple className="hidden" onChange={e => handleFileChange(e, "livein-gallery")} />
+      <input type="file" ref={mapFileRef} accept="image/*" className="hidden" onChange={e => handleFileChange(e, "map")} />
 
       {/* Backdrop overlay for mobile sidebar */}
       {isSidebarOpen && (
@@ -3248,6 +3276,48 @@ export function AdminPage({
                         </div>
                       </div>
 
+                      {/* Demographic Map */}
+                      <div className="sm:col-span-2 mt-2">
+                        <label className="block text-[13px] font-semibold text-[#5A5550] mb-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                          Peta Demografi / Administrasi Dusun
+                        </label>
+                        <div 
+                          onDragOver={onMapDragOver}
+                          onDragLeave={onMapDragLeave}
+                          onDrop={onMapDrop}
+                          onClick={() => handleFileUploadClick(mapFileRef)}
+                          className={`h-40 rounded-xl border-2 transition-all flex items-center justify-center overflow-hidden cursor-pointer relative ${
+                            mapDragOver 
+                              ? "border-[#3A6520] bg-[#3A6520]/5 border-dashed" 
+                              : "border-black/[0.08] bg-[#FAF9F5] hover:border-black/20 border-dashed"
+                          }`}
+                        >
+                          <div className="relative w-full h-full group">
+                            <img 
+                              src={mapImageUrlInput || "/images/profile/map.webp"} 
+                              alt="Peta Demografi" 
+                              className="w-full h-full object-contain bg-white" 
+                            />
+                            <div className="absolute inset-0 bg-black/35 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[11px] font-medium">
+                              Klik untuk mengganti
+                            </div>
+                            {mapImageUrlInput && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setMapImageUrlInput("");
+                                }}
+                                className="w-6 h-6 rounded-full bg-white border border-black/[0.1] text-[#5A5550] hover:text-red-600 flex items-center justify-center absolute top-2.5 right-2.5 transition z-10 cursor-pointer shadow-sm"
+                                title="Kembalikan ke Peta Default"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
                     </div>
 
                   </div>
@@ -3329,6 +3399,7 @@ export function AdminPage({
                       setVillageNameInput(settings.village_name || "");
                       setLogoUrlInput(settings.logo_url || "");
                       setHeroImageUrlInput(settings.hero_image_url || "");
+                      setMapImageUrlInput(settings.map_image_url || "");
                       setPhoneNumberInput(settings.phone_number || "");
                       setInstagramUrlInput(settings.instagram_url || "");
                       setTiktokUrlInput(settings.tiktok_url || "");

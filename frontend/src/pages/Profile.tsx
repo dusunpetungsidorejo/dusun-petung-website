@@ -177,7 +177,7 @@ export function ProfilePage({ nav, settings }: ProfilePageProps) {
                 className="relative rounded-xl overflow-hidden border border-black/[0.08] bg-[#FAF9F5] p-3 cursor-pointer group shadow-inner"
               >
                 <img 
-                  src="/images/profile/map.webp" 
+                  src={settings?.map_image_url || "/images/profile/map.webp"} 
                   alt="Peta Dusun Petung" 
                   className="w-full h-auto rounded-lg object-contain max-h-[340px] mx-auto group-hover:scale-[1.01] transition-transform duration-500" 
                 />
@@ -367,7 +367,7 @@ export function ProfilePage({ nav, settings }: ProfilePageProps) {
             onClick={(e) => e.stopPropagation()}
           >
             <img 
-              src="/images/profile/map.webp" 
+              src={settings?.map_image_url || "/images/profile/map.webp"} 
               alt="Peta Dusun Petung Detail" 
               className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl bg-white p-2"
             />

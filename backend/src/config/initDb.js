@@ -23,12 +23,21 @@ async function initDb() {
         village_name TEXT NOT NULL,
         logo_url TEXT,
         hero_image_url TEXT,
+        map_image_url TEXT,
         phone_number TEXT,
         instagram_url TEXT,
         tiktok_url TEXT
       );
     `);
     console.log('✓ Settings table created or verified.');
+
+    // Run migration check for map_image_url column
+    try {
+      await db.execute('ALTER TABLE settings ADD COLUMN map_image_url TEXT;');
+      console.log('✓ Migration: Added map_image_url column to settings table.');
+    } catch (err) {
+      // Column already exists or table doesn't support it yet
+    }
 
     // 3. Create Activities Table
     await db.execute(`

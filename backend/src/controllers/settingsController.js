@@ -25,6 +25,7 @@ export const updateSettings = async (req, res, next) => {
       village_name,
       logo_url,
       hero_image_url,
+      map_image_url,
       phone_number,
       instagram_url,
       tiktok_url
@@ -40,12 +41,13 @@ export const updateSettings = async (req, res, next) => {
     // Execute update statement for ID = 1
     await db.execute({
       sql: `UPDATE settings 
-            SET village_name = ?, logo_url = ?, hero_image_url = ?, phone_number = ?, instagram_url = ?, tiktok_url = ?
+            SET village_name = ?, logo_url = ?, hero_image_url = ?, map_image_url = ?, phone_number = ?, instagram_url = ?, tiktok_url = ?
             WHERE id = 1`,
       args: [
         village_name,
         logo_url || null,
         hero_image_url || null,
+        map_image_url || null,
         phone_number || null,
         instagram_url || null,
         tiktok_url || null
