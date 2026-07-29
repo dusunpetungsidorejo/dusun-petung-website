@@ -204,6 +204,38 @@ Menyimpan data homestay warga yang terintegrasi di halaman pencarian Live In.
 * `status` (TEXT, Default 'Available') - Status ketersediaan homestay ('Available', 'Unavailable', 'Inactive').
 * `updated_at` (TEXT, Not Null) - Tanggal perubahan data terakhir.
 
+#### **E. Tabel `demographics`**
+Menyimpan data statistik umum dan demografi Dusun Petung.
+* `id` (INTEGER, Primary Key, Auto Increment)
+* `icon` (TEXT, Not Null) - Nama ikon Lucide React (misal: 'Users', 'Home', 'Map', 'Building2').
+* `value` (TEXT, Not Null) - Nilai/jumlah statistik (misal: "278", "92", "457,767 Ha").
+* `label` (TEXT, Not Null) - Label parameter demografi.
+* `updated_at` (TEXT, Not Null) - Tanggal perubahan data terakhir.
+
+#### **F. Tabel `krb_statistics`**
+Menyimpan data statistik mitigasi kesiapsiagaan bencana (KRB).
+* `id` (INTEGER, Primary Key, Auto Increment)
+* `category` (TEXT, Not Null) - Kategori mitigasi (misal: 'Kelompok Rentan', 'Hewan Ternak', 'Transportasi').
+* `name` (TEXT, Not Null) - Nama parameter (misal: 'Bumil', 'Balita', 'Sapi', 'Motor').
+* `value` (INTEGER, Not Null) - Jumlah data numerik.
+* `unit` (TEXT, Not Null) - Satuan data (misal: 'Jiwa', 'Ekor', 'Unit').
+* `updated_at` (TEXT, Not Null) - Tanggal perubahan data terakhir.
+
+#### **G. Tabel `camp_packages`**
+Menyimpan data paket berkemah (Gumuk Petung Camp).
+* `id` (INTEGER, Primary Key, Auto Increment)
+* `name` (TEXT, Not Null) - Nama paket kemah.
+* `capacity` (TEXT, Not Null) - Keterangan kapasitas (misal: "Kapasitas 4 Orang").
+* `price` (REAL, Not Null) - Harga paket sewa tenda.
+* `description` (TEXT) - Deskripsi rincian fasilitas tenda/peralatan.
+
+#### **H. Tabel `camp_rentals`**
+Menyimpan data alat-alat sewa satuan berkemah.
+* `id` (INTEGER, Primary Key, Auto Increment)
+* `name` (TEXT, Not Null) - Nama alat (misal: "Kompor", "Sleeping Bag").
+* `price` (REAL, Not Null) - Harga sewa per item.
+* `unit` (TEXT, Not Null) - Satuan sewa (misal: "Unit", "Buah").
+
 ---
 
 ### **8. DEPLOYMENT (CI/CD)**
