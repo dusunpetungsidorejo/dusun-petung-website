@@ -83,3 +83,12 @@ export interface Demographic {
   label: string;
   updated_at?: string;
 }
+
+export interface KrbStat {
+  id?: number;
+  category: string;
+  name: string;
+  value: number;
+  unit: string;
+  updated_at?: string;
+}

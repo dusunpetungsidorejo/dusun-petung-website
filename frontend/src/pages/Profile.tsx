@@ -1,5 +1,5 @@
 import React from "react";
-import { Users, Home, Map, Building2, ChevronRight } from "lucide-react";
+import { Users, Home, Map, Building2, ChevronRight, ShieldAlert, Heart, Truck, Activity } from "lucide-react";
 import { Page } from "../types";
 import { IMGS } from "../config/images";
 import { RollingCounter } from "../components/RollingCounter";
@@ -12,6 +12,7 @@ interface ProfilePageProps {
 
 export function ProfilePage({ nav, settings }: ProfilePageProps) {
   const [demographics, setDemographics] = React.useState<any[]>([]);
+  const [krbStats, setKrbStats] = React.useState<any[]>([]);
   const [isMapModalOpen, setIsMapModalOpen] = React.useState(false);
 
   React.useEffect(() => {
@@ -27,7 +28,21 @@ export function ProfilePage({ nav, settings }: ProfilePageProps) {
         console.error("Failed to fetch demographics:", err);
       }
     };
+    const fetchKrbStats = async () => {
+      try {
+        const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        const res = await fetch(`${baseUrl}/krb`);
+        if (res.ok) {
+          const data = await res.json();
+          setKrbStats(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch KRB stats:", err);
+      }
+    };
+
     fetchDemographics();
+    fetchKrbStats();
   }, []);
 
   const defaultDemos = [
@@ -37,7 +52,32 @@ export function ProfilePage({ nav, settings }: ProfilePageProps) {
     { icon: "Building2", value: "1 RW / 2 RT", label: "Pembagian Administrasi" },
   ];
 
+  const defaultKrbStats = [
+    { category: "Kelompok Rentan", name: "Bumil", value: 0, unit: "Jiwa" },
+    { category: "Kelompok Rentan", name: "Balita", value: 9, unit: "Jiwa" },
+    { category: "Kelompok Rentan", name: "Lansia", value: 28, unit: "Jiwa" },
+    { category: "Kelompok Rentan", name: "Kebutuhan Khusus", value: 3, unit: "Jiwa" },
+    { category: "Hewan Ternak", name: "Sapi", value: 86, unit: "Ekor" },
+    { category: "Hewan Ternak", name: "Kambing", value: 21, unit: "Ekor" },
+    { category: "Transportasi", name: "Motor", value: 129, unit: "Unit" },
+    { category: "Transportasi", name: "Mobil", value: 11, unit: "Unit" },
+    { category: "Transportasi", name: "Pick Up", value: 2, unit: "Unit" },
+    { category: "Transportasi", name: "Truk", value: 5, unit: "Unit" }
+  ];
+
   const displayDemos = demographics.length > 0 ? demographics : defaultDemos;
+  const displayKrbStats = krbStats.length > 0 ? krbStats : defaultKrbStats;
+
+  // Group KRB stats by category
+  const groupedKrb = displayKrbStats.reduce((acc: Record<string, any[]>, item) => {
+    const cat = item.category || "Lainnya";
+    if (!acc[cat]) {
+      acc[cat] = [];
+    }
+    acc[cat].push(item);
+    return acc;
+  }, {});
+
   const ICON_MAP: Record<string, any> = {
     Users,
     Home,
@@ -147,6 +187,67 @@ export function ProfilePage({ nav, settings }: ProfilePageProps) {
                 </div>
               );
             })}
+          </div>
+
+          {/* Mitigasi & Kesiapsiagaan Bencana (KRB) */}
+          <div className="mt-12 bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-black/5">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-black/5 pb-6 mb-8">
+              <div>
+                <span className="text-[#C97C2A] text-[11px] font-bold tracking-[0.18em] uppercase block mb-2">
+                  Mitigasi & Kesiapsiagaan Bencana (KRB)
+                </span>
+                <h3 
+                  style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                  className="text-2xl font-extrabold text-[#2C2C2A]"
+                >
+                  Data Kerentanan & Aset Evakuasi
+                </h3>
+              </div>
+              <div className="flex items-center gap-2 bg-[#FDF2F2] border border-red-100 px-4 py-2 rounded-xl text-xs font-semibold text-[#9B1C1C]">
+                <ShieldAlert className="w-4 h-4 text-red-600 animate-pulse" />
+                Kawasan Rawan Bencana (KRB)
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
+              {Object.entries(groupedKrb).map(([category, items]) => {
+                let categoryIcon = <ShieldAlert className="w-5 h-5 text-[#C97C2A]" />;
+                let categoryColorClass = "border-[#F0EBE3]";
+                
+                if (category === "Kelompok Rentan") {
+                  categoryIcon = <Heart className="w-5 h-5 text-red-500 fill-red-500" />;
+                  categoryColorClass = "border-red-100 bg-red-50/10";
+                } else if (category === "Hewan Ternak") {
+                  categoryIcon = <Activity className="w-5 h-5 text-green-600" />;
+                  categoryColorClass = "border-green-100 bg-green-50/10";
+                } else if (category === "Transportasi") {
+                  categoryIcon = <Truck className="w-5 h-5 text-blue-500" />;
+                  categoryColorClass = "border-blue-100 bg-blue-50/10";
+                }
+
+                return (
+                  <div key={category} className={`border p-5 rounded-xl ${categoryColorClass} flex flex-col justify-between shadow-sm`}>
+                    <div>
+                      <div className="flex items-center gap-2.5 mb-5 border-b border-black/5 pb-3">
+                        {categoryIcon}
+                        <h4 className="font-bold text-[#2C2C2A] text-sm tracking-wide uppercase">{category}</h4>
+                      </div>
+                      <div className="space-y-4">
+                        {items.map((item: any) => (
+                          <div key={item.name} className="flex items-center justify-between">
+                            <span className="text-[13.5px] text-[#5A5550] font-medium">{item.name}</span>
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-[16px] font-extrabold text-[#2C2C2A]">{item.value}</span>
+                              <span className="text-[11px] text-[#7A7065] font-medium">{item.unit}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {/* Demographic Map */}

@@ -30,10 +30,10 @@ import {
   AlertCircle,
   Tent
 } from "lucide-react";
-import { Page, Activity, LiveInHouse, LiveInPackage, CampPackage, CampRental, Demographic } from "../types";
+import { Page, Activity, LiveInHouse, LiveInPackage, CampPackage, CampRental, Demographic, KrbStat } from "../types";
 import { ToastContainer } from "../components/ToastContainer";
 
-type AdminSection = "dashboard" | "docs" | "add-doc" | "settings" | "livein" | "add-livein" | "add-livein-package" | "camp" | "add-camp-package" | "add-camp-rental" | "demographics" | "add-demographic";
+type AdminSection = "dashboard" | "docs" | "add-doc" | "settings" | "livein" | "add-livein" | "add-livein-package" | "camp" | "add-camp-package" | "add-camp-rental" | "demographics" | "add-demographic" | "add-krb";
 
 const DEFAULT_PACKAGES: LiveInPackage[] = [
   {
@@ -206,6 +206,21 @@ export function AdminPage({
   const [deleteDemographicId, setDeleteDemographicId] = useState<number | null>(null);
   const [isDeletingDemographic, setIsDeletingDemographic] = useState(false);
 
+  // Sub-tabs for demographics/statistics
+  const [activeDemoTab, setActiveDemoTab] = useState<"umum" | "krb">("umum");
+
+  // KRB Statistics State Management
+  const [krbStats, setKrbStats] = useState<KrbStat[]>([]);
+  const [loadingKrb, setLoadingKrb] = useState(false);
+  const [editingKrbId, setEditingKrbId] = useState<number | null>(null);
+  const [krbCategory, setKrbCategory] = useState("Kelompok Rentan");
+  const [krbName, setKrbName] = useState("");
+  const [krbValue, setKrbValue] = useState("");
+  const [krbUnit, setKrbUnit] = useState("Jiwa");
+  const [submittingKrb, setSubmittingKrb] = useState(false);
+  const [deleteKrbId, setDeleteKrbId] = useState<number | null>(null);
+  const [isDeletingKrb, setIsDeletingKrb] = useState(false);
+
   // Live In Form States
   const [liveinName, setLiveinName] = useState("");
   const [liveinOwner, setLiveinOwner] = useState("");
@@ -341,6 +356,7 @@ export function AdminPage({
     fetchCampPackages();
     fetchCampRentals();
     fetchDemographics();
+    fetchKrbStats();
   }, [token, onLogout, showToast]);
 
 
@@ -478,7 +494,7 @@ export function AdminPage({
     }
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, target: "logo" | "hero" | "doc" | "livein-cover" | "livein-gallery") => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, target: "logo" | "hero" | "doc" | "livein-cover" | "livein-gallery" | "map") => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
@@ -1361,6 +1377,125 @@ export function AdminPage({
       showToast(err.message || "Gagal menghapus Data Dusun", "error");
     } finally {
       setIsDeletingDemographic(false);
+    }
+  };
+
+
+  // --- KRB STATISTICS CRUD HANDLERS ---
+  const fetchKrbStats = async () => {
+    setLoadingKrb(true);
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${baseUrl}/krb`);
+      if (res.ok) {
+        const data = await res.json();
+        setKrbStats(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch KRB Stats:", err);
+    } finally {
+      setLoadingKrb(false);
+    }
+  };
+
+  const handleResetKrbForm = () => {
+    setEditingKrbId(null);
+    setKrbCategory("Kelompok Rentan");
+    setKrbName("");
+    setKrbValue("");
+    setKrbUnit("Jiwa");
+  };
+
+  const handleEditKrb = (k: KrbStat) => {
+    setEditingKrbId(k.id || null);
+    setKrbCategory(k.category);
+    setKrbName(k.name);
+    setKrbValue(String(k.value));
+    setKrbUnit(k.unit);
+    setSection("add-krb");
+  };
+
+  const handleSubmitKrb = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!krbCategory.trim() || !krbName.trim() || !krbValue.trim() || !krbUnit.trim()) {
+      showToast("Semua field wajib diisi", "error");
+      return;
+    }
+    const valNum = Number(krbValue);
+    if (isNaN(valNum)) {
+      showToast("Nilai data harus berupa angka", "error");
+      return;
+    }
+
+    setSubmittingKrb(true);
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const payload = {
+        category: krbCategory,
+        name: krbName,
+        value: valNum,
+        unit: krbUnit
+      };
+
+      let res;
+      if (editingKrbId) {
+        res = await fetch(`${baseUrl}/krb/${editingKrbId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+      } else {
+        res = await fetch(`${baseUrl}/krb`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+      }
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Gagal menyimpan Data KRB");
+      }
+
+      showToast(editingKrbId ? "Data KRB berhasil diubah" : "Data KRB berhasil ditambahkan", "success");
+      handleResetKrbForm();
+      fetchKrbStats();
+      setSection("demographics");
+      setActiveDemoTab("krb");
+    } catch (err: any) {
+      showToast(err.message || "Gagal menyimpan Data KRB", "error");
+    } finally {
+      setSubmittingKrb(false);
+    }
+  };
+
+  const handleDeleteKrb = async (id: number) => {
+    setIsDeletingKrb(true);
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${baseUrl}/krb/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Gagal menghapus Data KRB");
+      }
+      showToast("Data KRB berhasil dihapus", "success");
+      setDeleteKrbId(null);
+      fetchKrbStats();
+    } catch (err: any) {
+      showToast(err.message || "Gagal menghapus Data KRB", "error");
+    } finally {
+      setIsDeletingKrb(false);
     }
   };
 
@@ -2537,81 +2672,172 @@ export function AdminPage({
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                 <div>
                   <h2 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[16px] font-extrabold text-[#2C2C2A]">
-                    Data Statistik Demografi Dusun
+                    Data Statistik & Demografi Dusun
                   </h2>
                   <p className="text-[12px] text-[#7A7065] mt-0.5">
-                    Kelola data populasi, jumlah KK, peta wilayah, dan statistik dusun lainnya.
+                    Kelola data populasi, pembagian administrasi, serta data mitigasi bencana (KRB).
                   </p>
                 </div>
                 <button
-                  onClick={() => { handleResetDemographicForm(); setSection("add-demographic"); }}
+                  onClick={() => {
+                    if (activeDemoTab === "umum") {
+                      handleResetDemographicForm();
+                      setSection("add-demographic");
+                    } else {
+                      handleResetKrbForm();
+                      setSection("add-krb");
+                    }
+                  }}
                   className="flex items-center justify-center gap-2 bg-[#3A6520] text-white px-4 py-2.5 rounded-lg text-[12.5px] font-bold hover:bg-[#2D5016] shadow-sm transition w-full sm:w-auto self-stretch sm:self-auto"
                 >
                   <Plus className="w-4 h-4" />
-                  Tambah Data
+                  Tambah Data {activeDemoTab === "umum" ? "Demografi" : "KRB"}
                 </button>
               </div>
 
-              {loadingDemographics ? (
-                <div className="bg-white border border-black/[0.06] rounded-xl p-12 text-center shadow-sm">
-                  <div className="text-[13.5px] text-[#7A7065]">Memuat data...</div>
-                </div>
-              ) : (
-                <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse min-w-[500px]">
-                      <thead>
-                        <tr className="bg-[#FAF9F5] border-b border-black/[0.06] text-[11px] font-bold text-[#7A7065] uppercase tracking-wider">
-                          <th className="py-3 px-5 w-16">Ikon</th>
-                          <th className="py-3 px-5">Label / Data</th>
-                          <th className="py-3 px-5">Nilai</th>
-                          <th className="py-3 px-5 w-28 text-right">Aksi</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-black/[0.05] text-[13px]">
-                        {demographics.map((demo) => (
-                          <tr key={demo.id} className="hover:bg-[#FAF9F5]/40 transition">
-                            <td className="py-4 px-5">
-                              <div className="w-9 h-9 rounded-lg bg-[#3A6520]/8 flex items-center justify-center text-[#3A6520]">
-                                {demo.icon === "Users" && <Users className="w-4 h-4" />}
-                                {demo.icon === "Home" && <Home className="w-4 h-4" />}
-                                {demo.icon === "Map" && <MapPin className="w-4 h-4" />}
-                                {demo.icon === "Building2" && <Building2 className="w-4 h-4" />}
-                              </div>
-                            </td>
-                            <td className="py-4 px-5 font-semibold text-[#2C2C2A]">{demo.label}</td>
-                            <td className="py-4 px-5 font-bold text-[#3A6520] text-[14px]">{demo.value}</td>
-                            <td className="py-4 px-5 text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                <button
-                                  onClick={() => handleEditDemographic(demo)}
-                                  className="p-1.5 text-[#5A5550] hover:text-[#2C2C2A] hover:bg-black/5 rounded transition"
-                                  title="Ubah"
-                                >
-                                  <Pencil className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() => setDeleteDemographicId(demo.id || null)}
-                                  className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition"
-                                  title="Hapus"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                        {demographics.length === 0 && (
-                          <tr>
-                            <td colSpan={4} className="py-8 text-center text-[13px] text-[#7A7065]">
-                              Belum ada data demografi terdaftar.
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
+              {/* Tab Selector */}
+              <div className="flex border-b border-black/[0.06] w-full shrink-0 bg-white px-2 rounded-t-xl">
+                <button
+                  onClick={() => setActiveDemoTab("umum")}
+                  className={`px-6 py-3 text-[13.5px] font-bold transition-all border-b-2 -mb-[1px] cursor-pointer ${
+                    activeDemoTab === "umum"
+                      ? "border-[#3A6520] text-[#3A6520]"
+                      : "border-transparent text-[#7A7065] hover:text-[#2C2C2A]"
+                  }`}
+                >
+                  Statistik Umum
+                </button>
+                <button
+                  onClick={() => setActiveDemoTab("krb")}
+                  className={`px-6 py-3 text-[13.5px] font-bold transition-all border-b-2 -mb-[1px] cursor-pointer ${
+                    activeDemoTab === "krb"
+                      ? "border-[#3A6520] text-[#3A6520]"
+                      : "border-transparent text-[#7A7065] hover:text-[#2C2C2A]"
+                  }`}
+                >
+                  Mitigasi & Kesiapsiagaan Bencana (KRB)
+                </button>
+              </div>
+
+              {activeDemoTab === "umum" ? (
+                loadingDemographics ? (
+                  <div className="bg-white border border-black/[0.06] rounded-xl p-12 text-center shadow-sm">
+                    <div className="text-[13.5px] text-[#7A7065]">Memuat data demografi...</div>
                   </div>
-                </div>
+                ) : (
+                  <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse min-w-[500px]">
+                        <thead>
+                          <tr className="bg-[#FAF9F5] border-b border-black/[0.06] text-[11px] font-bold text-[#7A7065] uppercase tracking-wider">
+                            <th className="py-3 px-5 w-16">Ikon</th>
+                            <th className="py-3 px-5">Label / Data</th>
+                            <th className="py-3 px-5">Nilai</th>
+                            <th className="py-3 px-5 w-28 text-right">Aksi</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-black/[0.05] text-[13px]">
+                          {demographics.map((demo) => (
+                            <tr key={demo.id} className="hover:bg-[#FAF9F5]/40 transition">
+                              <td className="py-4 px-5">
+                                <div className="w-9 h-9 rounded-lg bg-[#3A6520]/8 flex items-center justify-center text-[#3A6520]">
+                                  {demo.icon === "Users" && <Users className="w-4 h-4" />}
+                                  {demo.icon === "Home" && <Home className="w-4 h-4" />}
+                                  {demo.icon === "Map" && <MapPin className="w-4 h-4" />}
+                                  {demo.icon === "Building2" && <Building2 className="w-4 h-4" />}
+                                </div>
+                              </td>
+                              <td className="py-4 px-5 font-semibold text-[#2C2C2A]">{demo.label}</td>
+                              <td className="py-4 px-5 font-bold text-[#3A6520] text-[14px]">{demo.value}</td>
+                              <td className="py-4 px-5 text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  <button
+                                    onClick={() => handleEditDemographic(demo)}
+                                    className="p-1.5 text-[#5A5550] hover:text-[#2C2C2A] hover:bg-black/5 rounded transition"
+                                    title="Ubah"
+                                  >
+                                    <Pencil className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => setDeleteDemographicId(demo.id || null)}
+                                    className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition"
+                                    title="Hapus"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                          {demographics.length === 0 && (
+                            <tr>
+                              <td colSpan={4} className="py-8 text-center text-[13px] text-[#7A7065]">
+                                Belum ada data demografi terdaftar.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )
+              ) : (
+                loadingKrb ? (
+                  <div className="bg-white border border-black/[0.06] rounded-xl p-12 text-center shadow-sm">
+                    <div className="text-[13.5px] text-[#7A7065]">Memuat data KRB...</div>
+                  </div>
+                ) : (
+                  <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse min-w-[500px]">
+                        <thead>
+                          <tr className="bg-[#FAF9F5] border-b border-black/[0.06] text-[11px] font-bold text-[#7A7065] uppercase tracking-wider">
+                            <th className="py-3 px-5">Kategori</th>
+                            <th className="py-3 px-5">Nama Parameter</th>
+                            <th className="py-3 px-5">Nilai</th>
+                            <th className="py-3 px-5">Satuan</th>
+                            <th className="py-3 px-5 w-28 text-right">Aksi</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-black/[0.05] text-[13px]">
+                          {krbStats.map((k) => (
+                            <tr key={k.id} className="hover:bg-[#FAF9F5]/40 transition">
+                              <td className="py-4 px-5 font-semibold text-[#C97C2A]">{k.category}</td>
+                              <td className="py-4 px-5 font-medium text-[#2C2C2A]">{k.name}</td>
+                              <td className="py-4 px-5 font-bold text-[#3A6520] text-[14px]">{k.value}</td>
+                              <td className="py-4 px-5 text-[#7A7065]">{k.unit}</td>
+                              <td className="py-4 px-5 text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  <button
+                                    onClick={() => handleEditKrb(k)}
+                                    className="p-1.5 text-[#5A5550] hover:text-[#2C2C2A] hover:bg-black/5 rounded transition"
+                                    title="Ubah"
+                                  >
+                                    <Pencil className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => setDeleteKrbId(k.id || null)}
+                                    className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition"
+                                    title="Hapus"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                          {krbStats.length === 0 && (
+                            <tr>
+                              <td colSpan={5} className="py-8 text-center text-[13px] text-[#7A7065]">
+                                Belum ada data statistik KRB terdaftar.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )
               )}
             </div>
           )}
@@ -2686,6 +2912,94 @@ export function AdminPage({
                     className="px-6 py-2.5 bg-[#3A6520] text-white text-[13px] font-bold rounded-lg hover:bg-[#2D5016] shadow-sm transition disabled:opacity-50"
                   >
                     {submittingDemographic ? "Menyimpan..." : "Simpan Data"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* Section: Add/Edit KRB Form */}
+          {section === "add-krb" && (
+            <div className="bg-white border border-black/[0.06] rounded-xl shadow-sm p-5 sm:p-8 max-w-xl w-full">
+              <button 
+                onClick={() => { setSection("demographics"); handleResetKrbForm(); }} 
+                className="flex items-center gap-1 text-[#7A7065] hover:text-[#2C2C2A] text-[12.5px] font-semibold mb-8 transition"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Kembali ke Manajemen Data
+              </button>
+
+              <form onSubmit={handleSubmitKrb} className="space-y-5">
+                <div className="flex items-center gap-3 border-l-4 border-[#3A6520] pl-3 mb-6">
+                  <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[15px] font-bold text-[#2C2C2A]">
+                    {editingKrbId ? "Ubah Data KRB" : "Tambah Data KRB Baru"}
+                  </h3>
+                </div>
+
+                <div>
+                  <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Kategori</label>
+                  <select
+                    value={krbCategory}
+                    onChange={(e) => setKrbCategory(e.target.value)}
+                    className="w-full px-3.5 py-2.5 text-[13.5px] border border-black/[0.12] rounded-lg focus:outline-none focus:border-[#3A6520] focus:ring-1 focus:ring-[#3A6520] bg-white transition"
+                  >
+                    <option value="Kelompok Rentan">Kelompok Rentan (Evacuation Priority)</option>
+                    <option value="Hewan Ternak">Hewan Ternak (Livestock Assets)</option>
+                    <option value="Transportasi">Transportasi (Evacuation Vehicles)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Nama Parameter (Label)</label>
+                  <input
+                    type="text"
+                    required
+                    value={krbName}
+                    onChange={(e) => setKrbName(e.target.value)}
+                    placeholder="Contoh: Bumil, Balita, Sapi, Motor, Truk"
+                    className="w-full px-3.5 py-2.5 text-[13.5px] border border-black/[0.12] rounded-lg focus:outline-none focus:border-[#3A6520] focus:ring-1 focus:ring-[#3A6520] transition bg-[#FAF9F5]/30"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Nilai Data (Value)</label>
+                  <input
+                    type="number"
+                    required
+                    value={krbValue}
+                    onChange={(e) => setKrbValue(e.target.value)}
+                    placeholder="Contoh: 10, 25, 120"
+                    className="w-full px-3.5 py-2.5 text-[13.5px] border border-black/[0.12] rounded-lg focus:outline-none focus:border-[#3A6520] focus:ring-1 focus:ring-[#3A6520] transition bg-[#FAF9F5]/30"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[12.5px] font-semibold text-[#5A5550] mb-2">Satuan (Unit)</label>
+                  <select
+                    value={krbUnit}
+                    onChange={(e) => setKrbUnit(e.target.value)}
+                    className="w-full px-3.5 py-2.5 text-[13.5px] border border-black/[0.12] rounded-lg focus:outline-none focus:border-[#3A6520] focus:ring-1 focus:ring-[#3A6520] bg-white transition"
+                  >
+                    <option value="Jiwa">Jiwa (untuk Kelompok Rentan/Manusia)</option>
+                    <option value="Ekor">Ekor (untuk Hewan Ternak)</option>
+                    <option value="Unit">Unit (untuk Kendaraan/Transportasi)</option>
+                  </select>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4 border-t border-black/[0.06]">
+                  <button
+                    type="button"
+                    onClick={() => { setSection("demographics"); handleResetKrbForm(); }}
+                    className="px-5 py-2.5 border border-black/[0.1] text-[#7A7065] text-[13px] font-bold rounded-lg hover:bg-[#FAF9F5] transition"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submittingKrb}
+                    className="px-6 py-2.5 bg-[#3A6520] text-white text-[13px] font-bold rounded-lg hover:bg-[#2D5016] shadow-sm transition disabled:opacity-50"
+                  >
+                    {submittingKrb ? "Menyimpan..." : "Simpan Data"}
                   </button>
                 </div>
               </form>
@@ -3576,6 +3890,34 @@ export function AdminPage({
               <button 
                 onClick={() => setDeleteDemographicId(null)} 
                 disabled={isDeletingDemographic}
+                className="flex-1 py-2.5 border border-black/[0.12] text-[#5A5550] text-[13px] font-medium rounded-full hover:bg-[#F0EBE3] transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Batal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete KRB modal */}
+      {deleteKrbId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 backdrop-blur-sm">
+          <div className="bg-white rounded-xl border border-black/[0.08] shadow-lg p-7 w-80 flex flex-col gap-5">
+            <div>
+              <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-[16px] font-bold text-[#2C2C2A] mb-1.5">Hapus Data KRB?</h3>
+              <p className="text-[13px] text-[#7A7065] leading-relaxed">Tindakan ini tidak dapat dibatalkan. Data statistik mitigasi bencana ini akan dihapus secara permanen.</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => handleDeleteKrb(deleteKrbId)} 
+                disabled={isDeletingKrb}
+                className="flex-1 py-2.5 bg-red-500 text-white text-[13px] font-semibold rounded-full hover:bg-red-600 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {isDeletingKrb ? "Menghapus..." : "Ya, Hapus"}
+              </button>
+              <button 
+                onClick={() => setDeleteKrbId(null)} 
+                disabled={isDeletingKrb}
                 className="flex-1 py-2.5 border border-black/[0.12] text-[#5A5550] text-[13px] font-medium rounded-full hover:bg-[#F0EBE3] transition-colors cursor-pointer disabled:opacity-50"
               >
                 Batal

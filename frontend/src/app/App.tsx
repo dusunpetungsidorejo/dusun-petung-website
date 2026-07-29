@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { MapPin, Phone, Menu, X, ArrowRight, ChevronRight, Users, Home, Map, Building2, Mountain, Car, Droplets, Star, Eye, EyeOff, Umbrella, Info, Flame, Camera, Wind, Sunrise, LayoutDashboard, FileText, Settings, Search, Bell, Plus, Pencil, Trash2, Upload, ChevronLeft, LogOut, Filter, Check, Clock, ImageIcon, Instagram, Facebook, Lock, User } from "lucide-react";
 
 import { Page } from "../types";
@@ -40,9 +40,21 @@ export default function App() {
     }
   }, [appToast]);
 
-  const showToast = (message: string, type: "success" | "error" = "success") => {
+  const showToast = useCallback((message: string, type: "success" | "error" = "success") => {
     setAppToast({ message, type });
-  };
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    setToken(null);
+    localStorage.removeItem("token");
+    showToast("Berhasil keluar!", "success");
+  }, [showToast]);
+
+  const handleLogin = useCallback((t: string) => {
+    setToken(t);
+    localStorage.setItem("token", t);
+    showToast("Berhasil masuk!", "success");
+  }, [showToast]);
 
   // Dynamic Document Title Updater
   useEffect(() => {
@@ -169,11 +181,7 @@ export default function App() {
       return (
         <>
           <LoginPage
-            onLogin={(t: string) => {
-              setToken(t);
-              localStorage.setItem("token", t);
-              showToast("Berhasil masuk!", "success");
-            }}
+            onLogin={handleLogin}
             nav={nav}
             settings={settings}
           />
@@ -185,11 +193,7 @@ export default function App() {
       <>
         <AdminPage
           nav={nav}
-          onLogout={() => {
-            setToken(null);
-            localStorage.removeItem("token");
-            showToast("Berhasil keluar!", "success");
-          }}
+          onLogout={handleLogout}
           settings={settings}
           onUpdateSettings={(newSettings: any) => {
             setSettings(newSettings);

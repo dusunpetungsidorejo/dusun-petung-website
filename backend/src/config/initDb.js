@@ -248,6 +248,45 @@ async function initDb() {
       console.log('✓ Seeded default demographics.');
     }
 
+    // Create KRB Statistics Table
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS krb_statistics (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        category TEXT NOT NULL,
+        name TEXT NOT NULL,
+        value INTEGER NOT NULL,
+        unit TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+    `);
+    console.log('✓ KRB Statistics table created or verified.');
+
+    // Seed default KRB Statistics if empty
+    const krbCheck = await db.execute('SELECT COUNT(*) as count FROM krb_statistics');
+    if (krbCheck.rows[0].count === 0) {
+      const date = new Date().toISOString().split('T')[0];
+      const defaultKrbStats = [
+        { category: 'Kelompok Rentan', name: 'Bumil', value: 0, unit: 'Jiwa' },
+        { category: 'Kelompok Rentan', name: 'Balita', value: 9, unit: 'Jiwa' },
+        { category: 'Kelompok Rentan', name: 'Lansia', value: 28, unit: 'Jiwa' },
+        { category: 'Kelompok Rentan', name: 'Kebutuhan Khusus', value: 3, unit: 'Jiwa' },
+        { category: 'Hewan Ternak', name: 'Sapi', value: 86, unit: 'Ekor' },
+        { category: 'Hewan Ternak', name: 'Kambing', value: 21, unit: 'Ekor' },
+        { category: 'Transportasi', name: 'Motor', value: 129, unit: 'Unit' },
+        { category: 'Transportasi', name: 'Mobil', value: 11, unit: 'Unit' },
+        { category: 'Transportasi', name: 'Pick Up', value: 2, unit: 'Unit' },
+        { category: 'Transportasi', name: 'Truk', value: 5, unit: 'Unit' }
+      ];
+      for (const k of defaultKrbStats) {
+        await db.execute({
+          sql: `INSERT INTO krb_statistics (category, name, value, unit, updated_at)
+                VALUES (?, ?, ?, ?, ?)`,
+          args: [k.category, k.name, k.value, k.unit, date]
+        });
+      }
+      console.log('✓ Seeded default KRB statistics.');
+    }
+
     // Seed camp_packages if empty
     const campPackageCheck = await db.execute('SELECT COUNT(*) as count FROM camp_packages');
     if (campPackageCheck.rows[0].count === 0) {

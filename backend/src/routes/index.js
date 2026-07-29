@@ -18,6 +18,7 @@ import uploadRouter from './uploadRoutes.js';
 import liveinRouter from './liveinRoutes.js';
 import campRouter from './campRoutes.js';
 import demographicsRouter from './demographicsRoutes.js';
+import krbRouter from './krbRoutes.js';
 
 // Auth router
 router.use('/auth', authRouter);
@@ -39,5 +40,8 @@ router.use('/camp', campRouter);
 
 // Demographics router
 router.use('/demographics', demographicsRouter);
+
+// KRB statistics router
+router.use('/krb', krbRouter);
 
 export default router;
